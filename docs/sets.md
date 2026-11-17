@@ -46,7 +46,8 @@ it falls: the loot module's trophy, a boss's chance 1).
   society module) and the content's `makeItem` keep its main stats and roll its extras at that level, wherever it is
   made; a quest pays one with `setPiece(type, quest)` (quests/kit.ts), seeded by its name.
 - **A piece's own colour on the one who wears it**: `lookColor` (a look colour) before its material's (`wornLook`).
-- **A shield's block** adds what else is worn (a set's `block`), only while a shield is in the off hand.
+- **Block** is what is worn's (a set's `block`, the parrying dagger's), turning blows aside only while something is in the off
+  hand (the shield went 2026-11-05: gear.md §3b).
 - **Its words in its tooltip**: a worn piece's `text` / `text_zh` (the runtime's tooltip), in the margin's colour.
 - `powers.ts`: the relics', the vows' and the sets' powers (`RELICS`, `VOWS`, `SET_POWERS`), out of items.ts.
 
@@ -60,7 +61,9 @@ catalogue; the proof `tools/test/gearsets.test.ts`.
 
 ## 4. The sets
 
-Level is the set's (its pieces' main stats); lean is the profession its bonuses serve best.
+Level is the set's (its pieces' main stats); lean is the profession its bonuses serve best (the warrior's plate leans
+swordsman since the warrior went, 2026-11-05; the Church's of it — Thornward, the Red Order, the Almoner's, the Elect —
+the cleric since 2026-11-12, and the Porch Wardens are anyone's, so the swordsman keeps a set in the finale).
 
 ### Prologue and Chapter 1 — the Ford, Firstlight, the forest, the Pilgrim's Road, the White Knight (levels 1–5)
 
@@ -70,25 +73,25 @@ Level is the set's (its pieces' main stats); lean is the profession its bonuses 
 | **Dawn Vigil** 晨光守夜 | 3 | mage | hood, cloak, gloves, boots | *The Vigil* the cloak; Dawn Hill's shrine, the hill mine, the mill cellar | night def +2, cdr 5% | Vow of Vigil | — |
 | **Wildwood** 野林 | 2 | ranger | cap, oilskin, boots, earring | the forest flanks' errands (Orrin, Hilde, the coppice, the fowler) | crit 3%, luck 5% | Vow of the Hunt | — |
 | **Five Wounds** 五伤 | 3 | mage | amulet, earring, ring | Firstlight's errands (the pilgrim's amulet, the star-glass, Nessa's ring) | cdr 6% | atk +2, cdr 6%, xp 10% (3) | — |
-| **Thornward** 荆卫 | 5 | warrior | 6 armour | the Order of the Thorn's dead on the Pilgrim's Way, the Kneeling Field and the abbey | def +2 | block 5%, atk +1 | Vow of the Thorn |
+| **Thornward** 荆卫 | 5 | cleric | 6 armour | the Order of the Thorn's dead on the Pilgrim's Way, the Kneeling Field and the abbey | def +2 | block 5%, atk +1 | Vow of the Thorn |
 
 ### Chapter 2 — Emberfall, Cinder Peak, the Scarred March, Matthias (levels 4–9)
 
 | Set | Lv | Lean | Pieces | Where | 2 | 4 | 6 / power |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| **Ashguard** 灰甲 | 6 | warrior | 6 armour | Garrick of Emberfall sells them | def +2 | atk +2 | Heart of Embers (relic) |
-| **Pitman's** 矿工 | 5 | warrior | lamp-hat, gloves, belt, boots | the mine under Emberfall: the dead miners' remains | def +2 | def +3, luck 10% | — |
+| **Ashguard** 灰甲 | 6 | swordsman | 6 armour | Garrick of Emberfall sells them | def +2 | atk +2 | Heart of Embers (relic) |
+| **Pitman's** 矿工 | 5 | swordsman | lamp-hat, gloves, belt, boots | the mine under Emberfall: the dead miners' remains | def +2 | def +3, luck 10% | — |
 | **Cinder Hoard** 烬峰宝藏 | 8 | mage | amulet, earring, ring | the dragon's lair, its hoard | atk +2 | cdr 8%, crit damage 20% (3) | — |
 | **Ashen Watch** 灰烬守望 | 8 | assassin | 6 armour | Severin's dead brothers, hidden in the March: the Lashmarks, the bastion, the pass, the Scourge House's undercroft | dodge 4% | crit 6% | Vow of Silence |
 | **Lashmark Company** 鞭痕连队 | 8 | ranger | helm, pauldrons, gloves, cord | the camp's errands (the captain's pauldrons, the surgeon's gloves, the drummer's cord); Kell sells the helm | attack speed 5% | atk +3, crit 5% | — |
-| **Red Order** 红衣修会 | 9 | warrior | 6 armour | chests in the Scourge House (where the Order still lives), the Pillar Yard's and the bastion's dead | def +2 | atk +2, def +2 | **Blood Price** |
+| **Red Order** 红衣修会 | 9 | cleric | 6 armour | chests in the Scourge House (where the Order still lives), the Pillar Yard's and the bastion's dead | def +2 | atk +2, def +2 | **Blood Price** |
 
 ### Chapter 3 — the Vale of Scales, Ele (levels 11–12)
 
 | Set | Lv | Lean | Pieces | Where | 2 | 4 | 6 / power |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | **Grain Guild** 粮行 | 11 | any | chain, earring, signet | Ottilie sells them | luck 10% | xp 15%, crit 4% (3) | — |
-| **Almoner's** 施赈 | 11 | warrior | shawl, ribbon, apron, mittens | the Vale's errands (Berthe's bread, Elsie's scarf, Godwin's grinding); the mittens in the last almoner's box in Fairweight's chapel | def +2 | Vow of Mercy | — |
+| **Almoner's** 施赈 | 11 | cleric | shawl, ribbon, apron, mittens | the Vale's errands (Berthe's bread, Elsie's scarf, Godwin's grinding); the mittens in the last almoner's box in Fairweight's chapel | def +2 | Vow of Mercy | — |
 | **Tithe Riders** 什一骑手 | 12 | ranger | hood, mantle, bracers, boots | the riders who died carrying the tithe: the Chaff Road, the salt | crit 4% | Running Wind (relic) | — |
 | **The Lightened** 称轻者 | 12 | assassin | 6 armour | the Standing's leavings on the salt pans | dodge 4% | move 6%, crit 5% | **Light as Chaff** |
 | **Black Balance** 黑衡 | 12 | mage | 6 armour | Ele's church: the Black Balance, the Scale Floor | cdr 5% | atk +3 | **The Measure** |
@@ -101,7 +104,7 @@ Level is the set's (its pieces' main stats); lean is the profession its bonuses 
 | **Gravelamp** 墓灯 | 14 | ranger | hood, mantle, gloves, belt | Barnaby's errand the gloves; the chapel, the causeway's grave-posts | crit 5% | **Lamplight** | — |
 | **Reliquary** 圣骨匣 | 15 | mage | cowl, robe, gloves, earring | Bone Isle's reliquary | cdr 6% | **Shroud-ward** | — |
 | **Fenwalker** 沼行 | 15 | assassin | 6 armour | the Drowned Graves and the causeway's drowned | dodge 4% | crit 6%, move 5% | **Undertow** |
-| **Reinholder** 执辔 | 15 | warrior | 6 armour | the Ossuary on Bone Isle, the Dead Ford | def +2 | atk +2, def +2 | Nailed to the World (relic) |
+| **Reinholder** 执辔 | 15 | swordsman | 6 armour | the Ossuary on Bone Isle, the Dead Ford | def +2 | atk +2, def +2 | Nailed to the World (relic) |
 
 ### Chapter 5 — the White Altar Heights, the Witnesses (levels 17–18)
 
@@ -110,14 +113,14 @@ Level is the set's (its pieces' main stats); lean is the profession its bonuses 
 | **Chalk Stair** 白阶 | 17 | ranger | mantle, gloves, rope, sandals | the graves along the White Stair | move 6% | atk +3, crit 6% | — |
 | **Turned Back** 回头者 | 17 | assassin | hood, cloak, boots, ring | Ysolde's hood by her cell, the others who turned back on the lower stair; she sells the ring | dodge 5% | Vow of the Lone Road | — |
 | **The Restless** 不安者 | 18 | any | locket, earring, ring | the catacombs' niches | cdr 8% | lifesteal 1, crit damage 25% (3) | — |
-| **The Elect** 选民 | 18 | warrior | 6 armour | Whiteveil's gifts to the chosen: the abbot's circlet (*The White Stair*), Agathe's robe cut to your measure (her errand), chests in the church, the robing house, the cells | def +3 | atk +3 | **Chosen of the Road** |
+| **The Elect** 选民 | 18 | cleric | 6 armour | Whiteveil's gifts to the chosen: the abbot's circlet (*The White Stair*), Agathe's robe cut to your measure (her errand), chests in the church, the robing house, the cells | def +3 | atk +3 | **Chosen of the Road** |
 | **White-Robed** 白衣 | 18 | mage | 6 armour | the catacombs, Beneath the Altar | cdr 6% | atk +3, crit 5% | Through the Heart (relic) |
 
 ### The finale — the Holy City (level 20)
 
 | Set | Lv | Lean | Pieces | Where | 2 | 4 | 6 / power |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| **Porch Wardens** 门廊守卫 | 20 | warrior | 6 armour | the wardens sell them; the porch's armoury | def +3 | atk +3, block 5% | Vow of the Shield |
+| **Porch Wardens** 门廊守卫 | 20 | any | 6 armour | the wardens sell them; the porch's armoury | def +3 | atk +3, block 5% | Vow of the Shield |
 | **The Curia** 圣廷 | 20 | mage | 6 armour | the vestry chests of the nave and its chapels; the Primate sells his gloves | cdr 6% | atk +3 | **Doctrine** |
 | **The Last Door** 最后之门 | 20 | ranger | hood, gloves, belt, boots | what pilgrims left at the Holiest's door (the Confluence) | crit 6% | **Those Who Came This Far** | — |
 | **The Second's** 第二位 | 20 | assassin | circlet, shawl, slippers, earring | reliquaries in the nave's chapels, a coffer and a box in the Confluence | dodge 5% | **Went Small** | — |

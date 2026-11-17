@@ -33,19 +33,19 @@ describe('what a building of the Held Ground unlocks is made anywhere, from the 
     expect(RECIPES.filter((r) => r.station === 'workbench' || r.station === 'loom')).toEqual([])
   })
 
-  it('a shield waits for the workshop: not made before, whatever is carried; made anywhere after', () => {
+  it('a scabbard waits for the workshop: not made before, whatever is carried; made anywhere after', () => {
     const eng = world([])
     const c = eng.controls
-    give(eng, 'item/material/plank', 3)
+    give(eng, 'item/material/plank', 2)
     give(eng, 'item/material/stick', 1)
     c.sync()
-    const shield = RECIPE_BY_ID['item/armor/shield']
-    expect(c.craft(shield)).toBe(false)
-    expect(c.count('item/armor/shield')).toBe(0)
-    expect(c.count('item/material/plank')).toBe(3)
+    const scabbard = RECIPE_BY_ID['item/armor/scabbard']
+    expect(c.craft(scabbard)).toBe(false)
+    expect(c.count('item/armor/scabbard')).toBe(0)
+    expect(c.count('item/material/plank')).toBe(2)
     eng.author(() => eng.world.setFact('haven.build.workshop', 1))
-    expect(c.craft(shield)).toBe(true)
-    expect(c.count('item/armor/shield')).toBe(1)
+    expect(c.craft(scabbard)).toBe(true)
+    expect(c.count('item/armor/scabbard')).toBe(1)
     expect(c.count('item/material/plank')).toBe(0)
   })
 

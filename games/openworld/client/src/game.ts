@@ -29,6 +29,7 @@ import {
   LOOK_SLOTS,
   LOOK_TABLE,
   MATERIALS,
+  OFFHANDS,
   PLACEMENTS,
   PLAYER_LOOK,
   RECIPES,
@@ -71,6 +72,9 @@ import {
   PLOTS_LAYOUT,
   migrateStock,
   STOCK_LAYOUT,
+  migrateProfessions,
+  PROFESSIONS_LAYOUT,
+  RANGER_LAYOUT,
   migrateTents,
   HAVEN_LAYOUT,
   SMITHY_LAYOUT,
@@ -135,7 +139,7 @@ export const CLIENT_GAME: ClientGame = {
   },
   // the interface's words about the Ford's own people: the trainer, the fairy who carries the seals' powers
   texts: {
-    skillNoProfession: { en: 'No profession yet. At level 5, Bram the trainer sets you on one in the drill yard of Firstlight Village (crossed blades over his head): assassin, warrior, ranger or mage.', zh: '还没有职业。到 5 级后，去初原村操练场找职业导师布拉姆（头顶有交叉双剑标记）选择：刺客、战士、游侠或法师。' },
+    skillNoProfession: { en: 'No profession yet. At level 5, Bram the trainer sets you on one in the drill yard of Firstlight Village (crossed blades over his head): assassin, ranger, mage, swordsman or cleric.', zh: '还没有职业。到 5 级后，去初原村操练场找职业导师布拉姆（头顶有交叉双剑标记）选择：刺客、游侠、法师、剑客或圣职者。' },
     boonTitle: { en: "Lumi's Powers", zh: '露米的力量' },
     boonSealedDoc: { en: "Lumi takes up part of a seal's power when its bearer falls.", zh: '击败持印者后，露米会接住其圣印的一部分力量。' },
     boonOne: { en: 'Lumi carries one power at a time.', zh: '露米一次只能携带一种力量。' },
@@ -210,6 +214,8 @@ export const CLIENT_GAME: ClientGame = {
     }
     // the people who traded before keep what they sold and sell what they sell now
     if (!w.fact(STOCK_LAYOUT)) game.engine.author(() => migrateStock(game, index))
+    // the warrior went, and the mage's paths became the three elements': what went comes back as points
+    if (!w.fact(PROFESSIONS_LAYOUT) || !w.fact(RANGER_LAYOUT)) game.engine.author(() => migrateProfessions(game))
     // standing your ground, stealth and perception left the gear for luck
     if (!w.fact(STATS_LAYOUT)) game.engine.author(() => migrateStats(game))
     // gear came in levels: what has none is of the first
@@ -225,7 +231,7 @@ export const CLIENT_GAME: ClientGame = {
   },
   fresh(game) {
     const w = game.engine.world
-    game.engine.author(() => (w.setFact(FIRSTLIGHT_LAYOUT, true), w.setFact(FIRSTLIGHT_HOUSES, true), w.setFact(PART_ONE_LAYOUT, true), w.setFact(PROLOGUE_LAYOUT, true), w.setFact(CHAPEL_LAYOUT, true), w.setFact(BOSS_ROOMS_LAYOUT, true), w.setFact(BOSS_LAYOUT, true), w.setFact(COMPANION_LAYOUT, true), w.setFact(COMPANION_NAME, true), w.setFact(OVERWORLD_LAYOUT, true), w.setFact(WAYPOINTS_LAYOUT, true), w.setFact(SMITHY_LAYOUT, true), w.setFact(HAVEN_LAYOUT, true), w.setFact(PLOTS_LAYOUT, true), w.setFact(STOCK_LAYOUT, true), w.setFact(STATS_LAYOUT, true), w.setFact(GEAR_LAYOUT, true), w.setFact(VOWS_LAYOUT, true)))
+    game.engine.author(() => (w.setFact(FIRSTLIGHT_LAYOUT, true), w.setFact(FIRSTLIGHT_HOUSES, true), w.setFact(PART_ONE_LAYOUT, true), w.setFact(PROLOGUE_LAYOUT, true), w.setFact(CHAPEL_LAYOUT, true), w.setFact(BOSS_ROOMS_LAYOUT, true), w.setFact(BOSS_LAYOUT, true), w.setFact(COMPANION_LAYOUT, true), w.setFact(COMPANION_NAME, true), w.setFact(OVERWORLD_LAYOUT, true), w.setFact(WAYPOINTS_LAYOUT, true), w.setFact(SMITHY_LAYOUT, true), w.setFact(HAVEN_LAYOUT, true), w.setFact(PLOTS_LAYOUT, true), w.setFact(STOCK_LAYOUT, true), w.setFact(STATS_LAYOUT, true), w.setFact(GEAR_LAYOUT, true), w.setFact(VOWS_LAYOUT, true), w.setFact(PROFESSIONS_LAYOUT, true), w.setFact(RANGER_LAYOUT, true)))
   },
   summon(kit, at, id) {
     const body = createBoss(kit, at, id)
@@ -254,7 +260,7 @@ export const CLIENT_GAME: ClientGame = {
       { label: '开启第二部 · Open Part Two', debug: { op: 'fact', key: PART_TWO, value: 1 } },
     ],
   },
-  items: { forms: FORM_BY_ID, materials: MATERIALS, relics: RELICS, vows: VOWS, coin: COIN },
+  items: { forms: FORM_BY_ID, materials: MATERIALS, relics: RELICS, vows: VOWS, offhands: OFFHANDS, coin: COIN },
   crafting: { recipes: RECIPES, stationName, placements: PLACEMENTS, buildings: BUILDINGS, shops: SHOPS, categories: CRAFT_KINDS },
   skills: {
     all: SKILLS,

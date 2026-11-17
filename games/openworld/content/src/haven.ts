@@ -97,8 +97,8 @@ export const HAVEN_UPGRADES: HavenUpgrade[] = [
     done: W('Warm water out of cold rock. Sit in it a while. I will keep watch.', '冷石头里涌出来的热水。去泡一会儿吧，我替你守着。') },
   // buildings: a plot staked out at the heart, built into what the ground needs
   { id: 'workshop', track: 'building', name: L('Workshop', '工坊'), land: 0, fact: 'haven.build.workshop', value: 1, coins: 0, plot: [18, 18], becomes: 'fixture/craft/workbench',
-    recipes: ['item/weapon/blunt/club', 'item/armor/shield', 'item/weapon/ranged/bow'],
-    unlocks: [L('Recipes: a club, a shield and a bow, made anywhere from the bag', '解锁配方：棍棒、盾牌、弓，随时随地在背包里做'), L('Can be raised to Workshop II', '可以升级为工坊 II')],
+    recipes: ['item/weapon/blunt/club', 'item/armor/scabbard', 'item/armor/rosary', 'item/weapon/ranged/bow'],
+    unlocks: [L('Recipes: a club, a scabbard, a rosary and a bow, made anywhere from the bag', '解锁配方：棍棒、刀鞘、念珠、弓，随时随地在背包里做'), L('Can be raised to Workshop II', '可以升级为工坊 II')],
     needs: [n(LOG, 8, 'Logs', '木头'), n(STONE, 4, 'Stones', '石块')],
     done: W('A bench, and room to work at it. Make what you need; I will not ask what it is for.', '一张工作台，还有干活的地方。你需要什么就做什么，做来干什么，我不过问。') },
   { id: 'workshop2', track: 'building', name: L('Workshop II', '工坊 II'), land: 1, fact: 'haven.build.workshop', value: 2, coins: 0,

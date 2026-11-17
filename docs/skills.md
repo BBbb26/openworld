@@ -130,4 +130,4 @@ faster and harder, its breath twice. 700 health and attack 7 in the lair; 1600 a
 
 Checks: `boss-fights.test.ts` (the redesigned fights), `bosses.test.ts` (every boss skill lands on its marked cells as its
 rule says; the three kept for later exactly as before), `boss-balance.test.ts` (every profession loses ignoring the
-warnings; a dodging warrior wins), `kits.test.ts` (the minor monsters), `kit-contract.test.ts` (§4).
+warnings; a dodging swordsman wins), `kits.test.ts` (the minor monsters), `kit-contract.test.ts` (§4).

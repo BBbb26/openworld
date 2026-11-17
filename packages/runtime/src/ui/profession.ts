@@ -1,5 +1,5 @@
 import { mountWindow, confirmDialog } from './components/index.ts'
-// The trainer's panel (talking to a profession trainer opens it): the four professions, what
+// The trainer's panel (talking to a profession trainer opens it): the professions, what
 // each is about and the weapon it starts with; the current one; the level it takes. Changing
 // profession gives back every point of the profession branch (engine/src/profession.ts), so
 // the panel says so and asks first.
@@ -7,7 +7,7 @@ import { mountWindow, confirmDialog } from './components/index.ts'
 import type { Frame } from '@openworld/engine'
 import { ADVANCE_LEVELS, ADVANCE_POINTS, PROFESSION_LEVEL, thirdOf } from '@openworld/modules'
 import { game } from '../game.ts'
-import { $, esc, t, tx } from './common.ts'
+import { $, esc, locale, t, tx } from './common.ts'
 import { skillArt } from './skillIcons.ts'
 
 export class ProfessionPanel {
@@ -53,7 +53,7 @@ export class ProfessionPanel {
       return `<div class="pf-card${mine ? ' mine' : ''}">
         <div class="pf-icon">${skillArt(p.icon)}</div>
         <div class="pf-body"><b>${esc(tx(p.name))}</b><div class="pf-doc">${esc(tx(p.doc))}</div>
-          <div class="pf-meta">${t('profKit')}: ${esc(tx(p.weapon?.name))} · ${nodes.length} ${t('profNodes')}</div></div>
+          <div class="pf-meta">${t('profKit')}: ${[p.weapon, p.offhand].filter((x) => x?.name).map((x) => esc(tx(x!.name))).join(locale.value === 'zh' ? '、' : ', ')} · ${nodes.length} ${t('profNodes')}</div></div>
         <div class="pf-act">${action}</div>
       </div>`
     }).join('')

@@ -54,7 +54,7 @@ try {
   assert.equal(await evaluate('window.bossStudio.frame.tick'), tick, 'Lobby must pause')
   await screenshot('lobby')
   assert(await evaluate("document.querySelector('#challengeLobby .challenge-sheet').getBoundingClientRect().bottom <= innerHeight - 20"), 'Desktop lobby clipped')
-  for (const profession of ['assassin', 'ranger', 'mage', 'warrior']) {
+  for (const profession of ['assassin', 'ranger', 'mage', 'swordsman']) {
     await evaluate(`document.querySelector('[name=challengeProfession][value=${profession}]').checked = true`)
     await click('startChallenge')
     await delay(150)
@@ -65,7 +65,7 @@ try {
     assert.equal(await evaluate("document.querySelectorAll('#skillButtons button:disabled').length"), 3)
     assert(await evaluate("document.getElementById('enrageBoss').classList.contains('hidden')"))
     console.log(profession, player.hp, JSON.stringify(player.held.name))
-    if (profession !== 'warrior') await click('changeChallenge')
+    if (profession !== 'swordsman') await click('changeChallenge')
   }
   await key('keyDown', 'KeyW', 'w'); await delay(800); await key('keyUp', 'KeyW', 'w')
   assert((await evaluate('window.bossStudio.frame.player.y')) < 19, 'Movement failed')

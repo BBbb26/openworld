@@ -690,6 +690,248 @@ icon('demon-prison', (r) => {
 })
 
 
+// Shade Stab: a hooded shadow behind a dagger thrust, a drop of blood off its point
+icon('shade-stab', (r) => {
+  hooded(r, 22, 8, 44, ['d1', 'd2', 'd3', 'b1'], 'v4')
+  r.outline('k')
+  dagger(r, [24, 44], [56, 16], 3.2, 6, STEEL, 'v3', 'v1')
+  r.outline('k', ['d1', 'd2', 'd3', 'b1'])
+  drop(r, 56, 30, 2.6, ['c1', 'c2', 'c3'])
+  r.outline('k', ['d1', 'd2', 'd3', 'b1', 's1', 's2', 's3', 's4'])
+})
+
+// Shadow Dance: two daggers crossed, violet swirls wheeling round them
+icon('shadow-dance', (r) => {
+  arc(r, 32, 32, 26, 200, 340, 'v2', 3)
+  arc(r, 32, 32, 26, 20, 160, 'v2', 3)
+  arc(r, 32, 32, 26, 210, 330, 'v3', 1)
+  arc(r, 32, 32, 26, 30, 150, 'v3', 1)
+  dagger(r, [14, 50], [46, 14], 3, 6, STEEL, 'v3', 'v1')
+  dagger(r, [50, 50], [18, 14], 3, 6, STEEL, 'v3', 'v1')
+  r.outline('k', ['v2', 'v3'])
+  sparkle(r, 32, 30, 3, 'v4', 's4')
+})
+
+// Night Veil: a veil of indigo drawn across a crescent moon, stars through it
+icon('night-veil', (r) => {
+  crescent(r, 34, 26, 16, [8, -6], ['o1', 'o2', 'o3', 's4'])
+  r.outline('k')
+  r.poly([[6, 30], [20, 26], [32, 32], [44, 26], [58, 30], [58, 58], [44, 52], [32, 58], [20, 52], [6, 58]], 'd2')
+  r.poly([[6, 30], [20, 26], [24, 40], [20, 52], [6, 58]], 'd3')
+  r.line(8, 32, 8, 56, 'd4')
+  r.outline('k', ['o1', 'o2', 'o3', 's4'])
+  for (const [x, y] of [[30, 44], [46, 40], [16, 44]] as const) sparkle(r, x, y, 2, 'd4', 's4')
+})
+
+// Umbral Step: Mastery — a dagger rising out of a pool of void, a gold badge
+icon('umbral-step-plus', (r) => {
+  r.ellipse(26, 46, 20, 8, 'd1')
+  r.ellipse(26, 45, 15, 5, 'b1')
+  r.outline('k')
+  dagger(r, [24, 46], [44, 16], 3, 6, STEEL, 'd3', 'd1')
+  r.outline('k')
+  badge(r)
+})
+
+// Deadly Grace: a dagger at rest, a gold star of the critical blaze at its point, a feather beside
+icon('deadly-grace', (r) => {
+  dagger(r, [14, 52], [44, 22], 3.2, 7, STEEL, 'g2', 'v1')
+  r.outline('k')
+  r.poly([[46, 6], [49, 17], [60, 20], [49, 23], [46, 34], [43, 23], [32, 20], [43, 17]], 'g2')
+  r.poly([[46, 10], [48, 18], [46, 26], [44, 18]], 'f4')
+  r.outline('k')
+  feather(r)
+})
+
+/** A feather (Deadly Grace): a quill and its vane, curved. */
+function feather(r: Raster): void {
+  const vane = curve([[8, 34], [12, 22], [20, 12], [28, 8]], 6)
+  for (let i = 0; i + 1 < vane.length; i++) thick(r, vane[i], [vane[i + 1][0] + 2, vane[i + 1][1] + 3], 'v3', 2)
+  for (let i = 0; i + 1 < vane.length; i++) r.line(vane[i][0], vane[i][1], vane[i + 1][0], vane[i + 1][1], 'v4')
+  r.outline('k', ['g2', 'f4', 's1', 's2', 's3', 's4', 'v1'])
+}
+
+// Blur: Mastery — two ghosted daggers, a gold badge
+icon('blur-plus', (r) => {
+  dagger(r, [6, 44], [28, 14], 3, 6, ['d1', 'd2', 'd3'], 'd3', 'd1')
+  dagger(r, [16, 48], [40, 16], 3.2, 6, STEEL, 'v3', 'v1')
+  r.outline('k', ['d1', 'd2', 'd3'])
+  badge(r)
+})
+
+// ---------------------------------------------------------------- Phantom (the Shadowdancer's own third): violet and pale
+
+// Shadow Double: a hooded figure and its shadow beside it, the shadow half there
+icon('shadow-double', (r) => {
+  hooded(r, 40, 10, 44, ['v1', 'v2', 'v3', 'b1'], 'v4')
+  for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) if ((x + y) % 2 === 0 && r.get(x, y)) r.set(x, y, NONE)
+  hooded(r, 24, 12, 44, ['d1', 'd2', 'd3', 'b1'], 'c3')
+  r.outline('k')
+  sparkle(r, 54, 10, 2, 'v4', 's4')
+})
+
+// Fade: a hooded figure dissolving into motes from the hem up
+icon('fade', (r) => {
+  hooded(r, 32, 8, 46, ['d1', 'd2', 'd3', 'b1'], 'v4')
+  for (let y = 30; y < 64; y++) for (let x = 0; x < 64; x++) if (r.get(x, y) && ((x * 37 + y * 17) % 31) < y - 30) r.set(x, y, NONE)
+  r.outline('k')
+  for (let i = 0; i < 10; i++) r.rect(14 + ((i * 37) % 36), 40 + ((i * 13) % 20), 2, 2, i % 2 ? 'v3' : 'd4')
+})
+
+// Shadow Double: Mastery — three shadows in a row, a gold badge
+icon('shadow-double-plus', (r) => {
+  hooded(r, 16, 16, 34, ['d1', 'd1', 'd2'])
+  hooded(r, 30, 12, 38, ['v1', 'v2', 'v3', 'b1'], 'v4')
+  hooded(r, 44, 16, 34, ['d1', 'd1', 'd2'])
+  r.outline('k')
+  badge(r)
+})
+
+// ---------------------------------------------------------------- the Demon Hunter, deeper: chains, hexes, the hunt
+
+/** A chain of links along a path of points (iron, the lit side bright). */
+function chain(r: Raster, pts: P[]): void {
+  for (let i = 0; i < pts.length; i++) {
+    const [x, y] = pts[i]
+    r.ellipse(x, y, i % 2 ? 2.5 : 4, i % 2 ? 4 : 2.5, 'm2')
+    r.ellipse(x - 0.5, y - 0.5, i % 2 ? 1.2 : 2.4, i % 2 ? 2.4 : 1.2, 'm4')
+    r.set(x, y, NONE)
+  }
+}
+
+// Chains of Binding: a chain flung in an arc, its end a gold hook of a sigil
+icon('chains-of-binding', (r) => {
+  chain(r, curve([[8, 54], [16, 40], [28, 30], [42, 26], [52, 18]], 2))
+  r.outline('k')
+  sigilRing(r, 52, 14, 8)
+  r.outline('k', ['g1', 'g2', 'g3'])
+  sparkle(r, 52, 14, 2, 'v4', 'f4')
+})
+
+// Hex Wave: violet rings going out round a hex's rune
+icon('hex-wave', (r) => {
+  for (const [rad, c] of [[26, 'v1'], [19, 'v2'], [12, 'v3']] as const) arc(r, 32, 32, rad, 0, 360, c, 2)
+  r.poly([[32, 22], [35, 29], [42, 32], [35, 35], [32, 42], [29, 35], [22, 32], [29, 29]], 'g2')
+  r.set(32, 32, 'f4')
+  r.outline('k', ['v1', 'v2', 'v3'])
+  for (const [x, y] of [[8, 8], [56, 10], [54, 56]] as const) sparkle(r, x, y, 2, 'v4', 'f4')
+})
+
+// Chains of Binding: Mastery — the chain, a gold badge
+icon('chains-plus', (r) => {
+  chain(r, curve([[8, 50], [16, 36], [28, 26], [40, 22]], 2))
+  r.outline('k')
+  badge(r)
+})
+
+// Judgement: a gold blade pointing down over a chained, hexed foe's mark
+icon('judgement', (r) => {
+  sigilRing(r, 32, 46, 14)
+  blade(r, [32, 4], [32, 52], 4, ['g1', 'g2', 'g3', 'f4'])
+  r.rect(22, 12, 21, 3, 'v2')
+  r.rect(30, 4, 5, 8, 'w1')
+  r.outline('k', ['g1', 'g2', 'g3'])
+  sparkle(r, 46, 50, 2, 'v4', 'f4')
+})
+
+// Call of the Hunt: Mastery — the hunting horn, a gold badge
+icon('hunt-call-plus', (r) => {
+  const horn = curve([[8, 40], [16, 48], [28, 46], [36, 36], [40, 24]], 8)
+  for (let i = 0; i + 1 < horn.length; i++) thick(r, horn[i], horn[i + 1], 'w2', 2 + Math.round((i / horn.length) * 5))
+  r.ellipse(40, 22, 6, 3.5, 'g2')
+  r.ellipse(40, 21, 4, 2, 'b1')
+  r.outline('k')
+  badge(r)
+})
+
+// Deep Hex: a violet eye of the hex, its poison running down from it
+icon('deep-hex', (r) => {
+  r.poly([[6, 28], [20, 16], [32, 12], [44, 16], [58, 28], [44, 40], [32, 44], [20, 40]], 'v1')
+  r.poly([[10, 28], [22, 19], [32, 16], [42, 19], [54, 28], [42, 37], [32, 40], [22, 37]], 'o3')
+  ball(r, 32, 28, 9, ['v1', 'v2', 'v3', 'v4'])
+  r.ellipse(32, 28, 3, 6, 'b1')
+  r.outline('k')
+  for (const [x, y] of [[20, 50], [32, 56], [44, 50]] as const) drop(r, x, y, 2.2, ['v1', 'v2', 'v4'])
+  r.outline('k', ['v1', 'v2', 'v4'])
+})
+
+// ---------------------------------------------------------------- Ghostwail (the Demon Hunter's own third): silver, gold, the wail
+
+// Exorcist: a silver stake banded with gold runes driven through a demon's horned skull
+icon('exorcist', (r) => {
+  demonSkull(r, 32, 38, 12)
+  r.outline('k')
+  blade(r, [12, 10], [44, 58], 3.2, ['s1', 's2', 's3', 's4'])
+  for (const k of [0.15, 0.3]) r.rect(12 + 32 * k - 3, 10 + 48 * k - 1, 7, 3, 'g2')
+  r.outline('k', ['c1', 'c2', 'c3'])
+})
+
+// Hunter's Sanctum: a gold dome of light over a sigil on the ground
+icon('hunters-sanctum', (r) => {
+  sigilRing(r, 32, 46, 14)
+  r.ellipse(32, 46, 6, 3, 'v2')
+  arc(r, 32, 46, 26, 180, 360, 'g2', 2)
+  arc(r, 32, 46, 22, 190, 350, 'g3', 1)
+  for (const x of [20, 32, 44]) r.line(x, 44, x, 30, 'g3')
+  r.outline('k', ['g1', 'g2', 'g3'])
+  for (const [x, y] of [[20, 30], [32, 24], [44, 30]] as const) sparkle(r, x, y, 2, 'f4', 's4')
+})
+
+// Death Mark: Mastery — a red reticle closing on a mark, a gold badge
+icon('death-mark-plus', (r) => {
+  arc(r, 28, 28, 18, 0, 360, 'c2', 2)
+  arc(r, 28, 28, 11, 0, 360, 'c3', 1)
+  for (const [a, b] of [[[28, 4], [28, 14]], [[28, 42], [28, 52]], [[4, 28], [14, 28]], [[42, 28], [52, 28]]] as [P, P][]) thick(r, a, b, 'c2', 2)
+  ball(r, 28, 28, 4, ['c1', 'c2', 'c3'])
+  r.outline('k')
+  badge(r)
+})
+
+// Undying Hunt: a heart held in a gold ring of sigils, a violet flame on it
+icon('undying-hunt', (r) => {
+  sigilRing(r, 32, 34, 25)
+  r.ellipse(25, 30, 9, 9, 'r1')
+  r.ellipse(39, 30, 9, 9, 'r1')
+  r.poly([[17, 32], [47, 32], [32, 50]], 'r1')
+  r.ellipse(24, 29, 6.5, 6.5, 'r2')
+  r.ellipse(38, 29, 6.5, 6.5, 'r2')
+  r.poly([[19, 32], [45, 32], [32, 47]], 'r2')
+  r.set(22, 25, 'r3')
+  r.outline('k', ['g1', 'g2', 'g3'])
+  r.poly([[32, 8], [36, 16], [34, 22], [30, 22], [28, 16]], 'v3')
+  r.poly([[32, 12], [34, 18], [30, 18]], 'v4')
+  r.outline('k', ['g1', 'g2', 'g3'])
+})
+
+// Ghost Howl: a wailing ghost, its mouth wide, the howl ringing out of it
+icon('ghost-howl', (r) => {
+  r.poly([[14, 58], [14, 26], [20, 12], [32, 6], [44, 12], [50, 26], [50, 58], [44, 52], [38, 58], [32, 52], [26, 58], [20, 52]], 'o2')
+  r.poly([[14, 58], [14, 26], [20, 12], [28, 8], [22, 28], [20, 52]], 'o3')
+  r.ellipse(25, 26, 3.5, 4.5, 'b1')
+  r.ellipse(39, 26, 3.5, 4.5, 'b1')
+  r.ellipse(32, 40, 5, 7, 'b1')
+  for (const x of [24, 40]) r.line(x, 31, x, 37, 'd3')
+  r.outline('k')
+  for (const rad of [8, 13]) {
+    arc(r, 32, 40, rad + 14, -40, 40, 'd4', 1)
+    arc(r, 32, 40, rad + 14, 140, 220, 'd4', 1)
+  }
+})
+
+// Hex Plague: one hexed eye passing its hex to three, by violet threads
+icon('hex-plague', (r) => {
+  for (const [x, y] of [[12, 14], [52, 16], [50, 52]] as const) thick(r, [26, 34], [x, y], 'v1', 3)
+  for (const [x, y] of [[12, 14], [52, 16], [50, 52]] as const) r.line(26, 34, x, y, 'v3')
+  r.outline('k')
+  ball(r, 24, 36, 11, ['v1', 'v2', 'v3', 'v4'])
+  r.ellipse(24, 36, 2.5, 5, 'b1')
+  for (const [x, y] of [[12, 14], [52, 16], [50, 52]] as const) {
+    ball(r, x, y, 6, ['v1', 'v2', 'v3'])
+    r.ellipse(x, y, 1.5, 3, 'b1')
+  }
+  r.outline('k')
+})
+
 // ================================================================ the Master of Shadows: black, crimson, gold
 
 // The mastery: a black hood, crimson eyes in it, a gold crown above

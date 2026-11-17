@@ -1,8 +1,9 @@
-// The mage's advancement icons (docs/advancement.md; content advancement.ts): the three paths — the Pyromancer in fire
-// orange and red, the Cryomancer in ice blue and white, the Dawnbringer in dawn gold and ivory —, the Archmage's mastery
-// in violet and gold, the four new skills of the first tree in arcane blue, and the entrances (a medallion for each
-// path, the Archmage's circlet). 64x64, by code, in the look of skill-actives.ts: one bold emblem on a clear ground, a
-// dark outline round it, three or four tones a colour, a few bright accents.
+// The mage's advancement icons (docs/advancement.md; content advancement.ts): the three paths and each one's own third —
+// the Cryomancer and Everwinter in ice blue and white, the Pyromancer and the Worldfire in fire orange and red, the
+// Stormcaller in lightning yellow on violet and the Wrath of Heaven in heaven's gold and white —, the four new skills of
+// the first tree in arcane blue, and the entrances (a medallion for each path, an emblem for each third). 64x64, by
+// code, in the look of skill-actives.ts: one bold emblem on a clear ground, a dark outline round it, three or four tones
+// a colour, a few bright accents; a mastery's picture is its skill's with a gold badge in the lower right.
 //
 //   npx tsx games/openworld/tools/src/art/skill-adv-mage.ts
 
@@ -25,7 +26,7 @@ const PAL: Palette = {
   b1: [28, 28, 38, 255], b2: [58, 58, 74, 255], b3: [100, 100, 122, 255],
   e1: [78, 52, 38, 255], e2: [120, 84, 54, 255], e3: [166, 120, 80, 255],
   n1: [30, 54, 128, 255], n2: [56, 102, 200, 255], n3: [120, 168, 246, 255],
-  // the dawn's gold and ivory
+  // heaven's gold and ivory (the Wrath of Heaven)
   d1: [190, 128, 40, 255], d2: [236, 184, 72, 255], d3: [255, 226, 140, 255], d4: [255, 248, 222, 255],
 }
 
@@ -125,12 +126,78 @@ function medallion(r: Raster, ramp: Ramp): void {
   }
 }
 
+/** A gold badge in the corner: a skill's mastery (as the other trees' enhancements), on a layer of its own. */
+function badge(r: Raster): void {
+  const b = new Raster(S, S)
+  ball(b, 50, 50, 9, ['g1', 'g2', 'g3'])
+  b.outline('k')
+  b.rect(48, 44, 4, 12, 'f4')
+  b.rect(44, 48, 12, 4, 'f4')
+  b.px.forEach((c, i) => c && (r.px[i] = c))
+}
+
+/** A bolt of lightning along its turns: its body, a bright core. */
+function bolt(r: Raster, pts: P[], w = 3, body = 'y2', core = 'y3'): void {
+  for (let i = 0; i + 1 < pts.length; i++) thick(r, pts[i], pts[i + 1], body, w)
+  for (let i = 0; i + 1 < pts.length; i++) thick(r, pts[i], pts[i + 1], core, 1)
+}
+
+/** A cloud of puffs, dark below and light above. */
+function cloud(r: Raster, puffs: [number, number, number][], ramp: [string, string, string]): void {
+  for (const [x, y, s] of puffs) r.ellipse(x, y, s, s * 0.85, ramp[0])
+  for (const [x, y, s] of puffs) r.ellipse(x - s * 0.1, y - s * 0.18, s * 0.8, s * 0.62, ramp[1])
+  for (const [x, y, s] of puffs) r.ellipse(x - s * 0.3, y - s * 0.38, s * 0.38, s * 0.28, ramp[2])
+}
+
+/** A critical's star: four long points round a white heart. */
+function star4(r: Raster, x: number, y: number, s: number, c = 'y2', core = 's4'): void {
+  const pts = (k: number): P[] => [[x, y - s * k], [x + s * k * 0.26, y - s * k * 0.26], [x + s * k, y], [x + s * k * 0.26, y + s * k * 0.26], [x, y + s * k], [x - s * k * 0.26, y + s * k * 0.26], [x - s * k, y], [x - s * k * 0.26, y - s * k * 0.26]]
+  r.poly(pts(1), c)
+  r.poly(pts(0.5), core)
+}
+
+/** A heart's shape, s across from its middle. */
+function heart(r: Raster, cx: number, cy: number, s: number, c: string): void {
+  r.ellipse(cx - s * 0.5, cy - s * 0.25, s * 0.55, s * 0.55, c)
+  r.ellipse(cx + s * 0.5, cy - s * 0.25, s * 0.55, s * 0.55, c)
+  r.poly([[cx - s * 1.04, cy - s * 0.12], [cx + s * 1.04, cy - s * 0.12], [cx, cy + s * 1.15]], c)
+}
+
+/** A cloaked figure's silhouette: a head and a cloak widening to its feet, dark, its body, a rim of light. */
+function figure(r: Raster, cx: number, top: number, h: number, ramp: [string, string, string]): void {
+  const w = h * 0.34
+  r.poly([[cx - w, top + h], [cx - w * 0.6, top + h * 0.32], [cx + w * 0.6, top + h * 0.32], [cx + w, top + h]], ramp[0])
+  r.ellipse(cx, top + h * 0.17, h * 0.14, h * 0.15, ramp[0])
+  r.poly([[cx - w * 0.8, top + h], [cx - w * 0.5, top + h * 0.36], [cx - w * 0.05, top + h * 0.34], [cx - w * 0.2, top + h]], ramp[1])
+  r.ellipse(cx - h * 0.04, top + h * 0.15, h * 0.08, h * 0.09, ramp[1])
+  r.line(cx - w * 0.6, top + h * 0.36, cx - w * 0.92, top + h - 1, ramp[2])
+}
+
+/** An ice spike standing out of the ground: its shaded face, its lit face, a white edge. */
+function spike(r: Raster, x: number, base: number, w: number, h: number, lean = 0): void {
+  r.poly([[x - w / 2, base], [x + lean, base - h], [x + w / 2, base]], 'i1')
+  r.poly([[x - w / 2 + 1, base], [x + lean, base - h], [x + lean * 0.4 + 1, base]], 'i2')
+  r.poly([[x - w / 2 + 1, base], [x + lean, base - h + 2], [x - w / 6 + lean * 0.3, base]], 'i3')
+  r.line(x + lean, base - h, x + lean * 0.5 + 1, base - 2, 'i4')
+}
+
+/** Only where a mask raster is drawn: what `draw` paints, kept within it (a cap of ice on a world). */
+function within(r: Raster, mask: (m: Raster) => void, draw: (t: Raster) => void): void {
+  const m = new Raster(S, S)
+  mask(m)
+  const t = new Raster(S, S)
+  draw(t)
+  t.px.forEach((c, i) => c && m.px[i] && (r.px[i] = c))
+}
+
 const out: Record<string, Raster> = {}
 const icon = (id: string, draw: (r: Raster) => void) => {
   const r = new Raster(S, S)
   draw(r)
   out[id] = r
 }
+/** Another icon's picture under this one (a mastery's badge goes over its skill's). */
+const copy = (r: Raster, from: string) => out[from].px.forEach((c, i) => (r.px[i] = c))
 
 // ---------------------------------------------------------------- the Pyromancer: fire
 
@@ -240,6 +307,226 @@ icon('path-pyromancer', (r) => {
   r.outline('k')
   flame(r, 32, 46, 20, 30, 1)
   r.outline('k', ['f3', 'f4'])
+})
+
+// Dragon's Breath: a red dragon's head, its jaws wide, a cone of fire roaring out of them
+icon('dragons-breath', (r) => {
+  r.poly([[24, 31], [60, 10], [62, 31], [59, 52]], 'r2')
+  r.poly([[24, 31], [57, 16], [60, 31], [57, 46]], 'f2')
+  r.poly([[24, 31], [53, 23], [56, 31], [53, 39]], 'f3')
+  r.poly([[24, 31], [48, 28], [48, 34]], 'f4')
+  r.outline('k', ['f3', 'f4'])
+  // the head: the brow, the upper jaw, the lower jaw hung open
+  r.poly([[2, 28], [5, 18], [14, 12], [24, 15], [31, 24], [26, 28], [12, 30]], 'r1')
+  r.poly([[4, 26], [7, 19], [14, 15], [22, 17], [27, 23], [14, 26]], 'r2')
+  r.line(8, 18, 20, 15, 'r3')
+  r.poly([[4, 36], [14, 33], [29, 37], [23, 43], [12, 46], [4, 42]], 'r1')
+  r.poly([[6, 37], [14, 35], [25, 38], [19, 41], [10, 43]], 'r2')
+  // the horn swept back, the eye, the teeth
+  r.poly([[10, 15], [2, 3], [7, 4], [17, 13]], 'm3')
+  r.line(4, 4, 12, 13, 'm4')
+  r.rect(15, 19, 3, 2, 'y2')
+  r.set(16, 19, 'y3')
+  for (const x of [19, 23, 27]) r.poly([[x, 27], [x + 2, 27], [x + 1, 31]], 's4')
+  for (const x of [14, 18, 22]) r.poly([[x, 35], [x + 2, 35], [x + 1, 31]], 's4')
+  r.outline('k', ['f3', 'f4'])
+  sparkle(r, 50, 6, 2, 'f3', 'f4')
+  sparkle(r, 48, 56, 2, 'f3', 'f4')
+})
+
+// Pyroblast: one great bolt of fire flying up and to the right, its round head white-hot, its flame streaming behind
+icon('pyroblast', (r) => {
+  // (the flame's shape turned to fly: its round foot the bolt's head, its point the tail)
+  const turn = (pts: P[], cx: number, cy: number, a: number): P[] => pts.map(([x, y]) => [cx + (x - cx) * Math.cos(a) - (y - cy) * Math.sin(a), cy + (x - cx) * Math.sin(a) + (y - cy) * Math.cos(a)])
+  for (const [k, c] of [[1, 'r2'], [0.74, 'f2'], [0.5, 'f3'], [0.26, 'f4']] as const) {
+    const W = 30 * k
+    const H = 62 * k
+    const flamePts: P[] = [[-W * 0.5, -H * 0.22], [-W * 0.42, -H * 0.5], [-W * 0.18, -H * 0.72], [0, -H], [W * 0.12, -H * 0.74], [W * 0.34, -H * 0.6], [W * 0.5, -H * 0.3], [W * 0.36, -H * 0.04], [0, 0], [-W * 0.36, -H * 0.04]]
+    r.poly(turn(flamePts.map(([x, y]): P => [46 + x, 18 + y + H * 0.1]), 46, 18, (225 * Math.PI) / 180), c)
+  }
+  r.ellipse(44, 20, 5, 5, 's4')
+  r.outline('k', ['f3', 'f4', 's4'])
+  for (const [x, y] of [[58, 34], [28, 8], [10, 30], [36, 58]] as const) sparkle(r, x, y, 2, 'f3', 'f4')
+})
+
+// Wildfire: one fallen, burning where it lies, its fire leaping on in two arcs to the ground on either side
+icon('wildfire', (r) => {
+  r.poly([[2, 54], [62, 54], [60, 60], [4, 60]], 'e1')
+  r.line(4, 55, 60, 55, 'e2')
+  // the fallen: a dark body on its back, its head to the right
+  r.ellipse(30, 50, 15, 5, 'b2')
+  r.ellipse(48, 48, 5, 5, 'b2')
+  r.line(18, 47, 42, 47, 'b3')
+  r.outline('k')
+  flame(r, 30, 51, 16, 26, 0)
+  flame(r, 8, 55, 10, 16, -1)
+  flame(r, 56, 55, 10, 16, 1)
+  r.outline('k', ['f3', 'f4'])
+  // the fire leaping off it: a streak of flame along each arc, falling on the fires beside
+  for (const s of [-1, 1]) {
+    let prev: P | undefined
+    for (let i = 0; i <= 12; i++) {
+      const t = i / 12
+      const p: P = [(1 - t) ** 2 * (30 + s * 4) + 2 * t * (1 - t) * (30 + s * 14) + t * t * (30 + s * 24), (1 - t) ** 2 * 22 + 2 * t * (1 - t) * 2 + t * t * 34]
+      if (prev) thick(r, prev, p, t < 0.85 ? 'f2' : 'f3', t < 0.5 ? 3 : 2)
+      prev = p
+    }
+  }
+  r.outline('k', ['f3', 'f4'])
+  sparkle(r, 30, 4, 2, 'f3', 'f4')
+})
+
+// Flame Wall: Mastery — the wall of flame, a gold badge
+icon('flame-wall-plus', (r) => {
+  copy(r, 'flame-wall')
+  badge(r)
+})
+
+// Combustion: Mastery — the bursting ember, a gold badge
+icon('combustion-plus', (r) => {
+  copy(r, 'combustion')
+  badge(r)
+})
+
+// Searing: a slender white-hot flame, a critical's star flashing off it
+icon('searing', (r) => {
+  flame(r, 28, 58, 26, 52, 2, ['f2', 'f3', 'f4', 's4'])
+  r.outline('k', ['f4', 's4'])
+  r.ellipse(28, 50, 4, 3, 's4')
+  star4(r, 48, 16, 10, 'f3', 's4')
+  r.outline('k', ['f4', 's4'])
+  sparkle(r, 52, 42, 2, 'f3', 'f4')
+  sparkle(r, 8, 20, 2, 'f3', 'f4')
+})
+
+// ---------------------------------------------------------------- the Worldfire (the Pyromancer's third): the fire that ends a world
+
+// Heart of the Worldfire: a heart that is all flame, from its red rim to a white heart, burning at its top
+icon('kalpa-heart', (r) => {
+  heart(r, 32, 34, 21, 'r1')
+  heart(r, 32, 34, 18, 'r2')
+  heart(r, 32, 35, 13, 'f2')
+  heart(r, 32, 36, 8, 'f3')
+  r.ellipse(32, 35, 3, 3, 'f4')
+  r.set(32, 35, 's4')
+  r.outline('k')
+  flame(r, 20, 22, 12, 18, -2)
+  flame(r, 44, 22, 12, 18, 2)
+  flame(r, 32, 24, 14, 22, 0)
+  r.outline('k', ['f3', 'f4'])
+  sparkle(r, 8, 8, 2, 'f3', 'f4')
+  sparkle(r, 56, 10, 2, 'f3', 'f4')
+})
+
+// Immolate: a dark figure standing in a pyre of its own fire
+icon('immolate', (r) => {
+  flame(r, 32, 60, 44, 58, 0, ['r2', 'f2', 'f3', 'f4'])
+  figure(r, 32, 16, 44, ['b1', 'b2', 'b3'])
+  r.rect(28, 22, 2, 1, 'f4')
+  r.rect(34, 22, 2, 1, 'f4')
+  r.outline('k', ['f3', 'f4'])
+  flame(r, 14, 60, 12, 22, -3)
+  flame(r, 50, 60, 12, 22, 3)
+  r.outline('k', ['f3', 'f4'])
+  sparkle(r, 8, 18, 2, 'f3', 'f4')
+  sparkle(r, 56, 14, 2, 'f3', 'f4')
+})
+
+// Scorched Earth: a wave of fire rolling forward over the ground, its crest curling, the earth behind it burnt black
+icon('scorched-earth', (r) => {
+  r.poly([[2, 52], [62, 52], [60, 60], [4, 60]], 'e2')
+  r.poly([[2, 52], [30, 52], [28, 60], [4, 60]], 'b1')
+  for (const x of [6, 14, 22]) r.line(x, 54, x + 4, 57, 'r1')
+  r.outline('k')
+  // the wave: low behind, rising to a crest that curls over before it
+  r.poly([[4, 52], [10, 44], [20, 40], [30, 30], [40, 16], [50, 10], [58, 14], [60, 24], [54, 22], [50, 28], [56, 36], [58, 52]], 'r2')
+  r.poly([[10, 52], [16, 46], [26, 40], [36, 28], [44, 20], [52, 16], [56, 20], [50, 22], [46, 30], [52, 40], [52, 52]], 'f2')
+  r.poly([[20, 52], [28, 44], [38, 34], [44, 28], [42, 38], [46, 46], [46, 52]], 'f3')
+  r.poly([[32, 52], [38, 44], [42, 40], [42, 52]], 'f4')
+  r.outline('k', ['f3', 'f4'])
+  // the smoke left behind it, no outline
+  for (const [x, y] of [[8, 34], [14, 26], [6, 20]] as const) r.ellipse(x, y, 3, 2, 'm2')
+})
+
+// Burnout: a burst already spent, its embers flown, the fire in its middle still burning
+icon('burnout', (r) => {
+  for (let i = 0; i < 12; i++) {
+    const a = (i * Math.PI) / 6 + 0.2
+    const x = 32 + Math.cos(a) * 24
+    const y = 32 + Math.sin(a) * 24
+    r.poly([[x, y], [x + Math.cos(a + 1.3) * 4, y + Math.sin(a + 1.3) * 4], [x + Math.cos(a) * 5, y + Math.sin(a) * 5]], i % 2 ? 'e1' : 'r1')
+  }
+  arc(r, 32, 32, 17, 0, 360, 'r1', 2)
+  r.outline('k')
+  flame(r, 32, 46, 20, 34, 0)
+  r.outline('k', ['f3', 'f4'])
+  for (const [x, y] of [[14, 14], [50, 16], [52, 50], [12, 48]] as const) r.set(x, y, 'f3')
+})
+
+// Scorched Earth: Mastery — the burning ground, a gold badge
+icon('scorched-earth-plus', (r) => {
+  copy(r, 'scorched-earth')
+  badge(r)
+})
+
+// Worldfire: a world wrapped in fire falling out of the sky, its trail behind it, the horizon alight below
+icon('worldfire', (r) => {
+  // its trail, tapering back up the sky
+  for (const [c, k] of [['r2', 9], ['f2', 6], ['f3', 3]] as const)
+    for (let i = 0; i <= 24; i++) {
+      const t = i / 24
+      const w = k * (1 - t) + (c === 'r2' ? 1 : 0)
+      if (w > 0.5) r.ellipse(36 + 22 * t, 28 - 22 * t, w, w, c)
+    }
+  ball(r, 30, 34, 18, ['r1', 'r2', 'f2', 'f3'])
+  // its seas boiled away: the dark land on it
+  r.poly([[18, 32], [24, 28], [30, 32], [26, 38], [18, 38]], 'e1')
+  r.poly([[34, 40], [42, 36], [44, 44], [36, 48]], 'e1')
+  r.ellipse(24, 26, 3, 2, 'f4')
+  r.outline('k', ['f3', 'f4'])
+  r.poly([[2, 56], [62, 56], [62, 61], [2, 61]], 'r1')
+  r.line(2, 56, 62, 56, 'f2')
+  for (const x of [8, 20, 44, 56]) flame(r, x, 56, 6, 8, 0, ['r2', 'f2', 'f3'])
+  r.outline('k', ['f3', 'f4'])
+})
+
+// All Is Kindling: a bundle of sticks alight, two arrows of fire wheeling round it, the fire passed on and on
+icon('all-is-kindling', (r) => {
+  for (const [a0, a1] of [[200, 330], [20, 150]] as const) {
+    arc(r, 32, 32, 23, a0, a1, 'f1', 5)
+    arc(r, 32, 32, 23, a0, a1, 'f3', 1)
+    const t = (a1 * Math.PI) / 180
+    const x = 32 + Math.cos(t) * 23
+    const y = 32 + Math.sin(t) * 23
+    const n = t + Math.PI / 2
+    r.poly([[x + Math.cos(n) * 8, y + Math.sin(n) * 8], [x + Math.cos(t) * 7, y + Math.sin(t) * 7], [x - Math.cos(t) * 7, y - Math.sin(t) * 7]], 'f2')
+  }
+  r.outline('k', ['f3'])
+  thick(r, [20, 44], [44, 34], 'w1', 4)
+  thick(r, [20, 34], [44, 44], 'w1', 4)
+  thick(r, [21, 43], [43, 34], 'w2', 2)
+  thick(r, [21, 35], [43, 43], 'w3', 1)
+  r.outline('k')
+  flame(r, 32, 40, 14, 22, 0)
+  r.outline('k', ['f3', 'f4'])
+})
+
+// The Worldfire's entrance: a black world eclipsed before a corona of fire
+icon('mastery-pyromancer', (r) => {
+  const star: P[] = []
+  for (let i = 0; i < 24; i++) {
+    const a = (i * Math.PI) / 12
+    const rad = i % 2 ? 22 : i % 4 ? 26 : 30
+    star.push([32 + Math.cos(a) * rad, 32 + Math.sin(a) * rad])
+  }
+  r.poly(star, 'r2')
+  r.poly(star.map(([x, y]): P => [32 + (x - 32) * 0.82, 32 + (y - 32) * 0.82]), 'f2')
+  r.ellipse(32, 32, 20, 20, 'f3')
+  r.ellipse(32, 32, 17, 17, 'f4')
+  r.outline('k')
+  ball(r, 33, 33, 16, ['b1', 'b1', 'b2'])
+  arc(r, 33, 33, 15, 200, 250, 'f2', 1)
+  r.outline('k', ['b1', 'b2'])
 })
 
 // ---------------------------------------------------------------- the Cryomancer: ice
@@ -380,235 +667,503 @@ icon('path-cryomancer', (r) => {
   r.outline('k', ['s4', 'i4'])
 })
 
-// ---------------------------------------------------------------- the Dawnbringer: the light against the Night
-
-// Dawnlight: the sun's edge coming up over a dark hill, long rays before it
-icon('dawnlight', (r) => {
-  rays(r, 32, 44, 18, 30, 12, 'd3', 2, 0.5)
-  r.ellipse(32, 44, 16, 16, 'd2')
-  r.ellipse(32, 44, 13, 13, 'd3')
-  r.ellipse(29, 41, 7, 7, 'd4')
-  // the hill and the night still on it
-  r.poly([[2, 46], [16, 40], [30, 44], [46, 38], [62, 44], [62, 60], [2, 60]], 'v1')
-  r.poly([[2, 50], [18, 46], [36, 50], [62, 48], [62, 60], [2, 60]], 'b1')
-  r.line(16, 40, 30, 44, 'v2')
-  r.line(46, 38, 62, 44, 'v2')
-  r.outline('k', ['d3'])
-  sparkle(r, 10, 14, 2, 'd3', 'd4')
+// Ice Spikes: spikes of ice bursting out of a patch of frosted ground, three rows of three, the near ones tallest
+icon('ice-spikes', (r) => {
+  r.ellipse(32, 51, 30, 10, 'i1')
+  r.ellipse(32, 50, 27, 8, 'i2')
+  r.ellipse(29, 48, 16, 4, 'i3')
+  r.outline('k')
+  for (const x of [18, 32, 46]) spike(r, x, 44, 10, 26, x < 32 ? -2 : x > 32 ? 2 : 0)
+  r.outline('k')
+  for (const x of [10, 32, 54]) spike(r, x, 51, 12, 32, x < 32 ? -3 : x > 32 ? 3 : 0)
+  r.outline('k')
+  for (const x of [21, 43]) spike(r, x, 58, 14, 38, x < 32 ? -2 : 2)
+  r.outline('k')
+  sparkle(r, 4, 14, 2, 'i3', 'i4')
+  sparkle(r, 60, 10, 2, 'i3', 'i4')
 })
 
-// Sunburst: a sun flaring out, a white heart and a ring of light round it
-icon('sunburst', (r) => {
-  rays(r, 32, 32, 14, 28, 16, 'd2', 3)
-  rays(r, 32, 32, 14, 26, 16, 'd3', 1)
-  r.ellipse(32, 32, 14, 14, 'd1')
-  r.ellipse(32, 32, 12, 12, 'd2')
-  r.ellipse(31, 31, 9, 9, 'd3')
-  r.ellipse(29, 29, 5, 5, 'd4')
-  r.outline('k', ['d3'])
-  arc(r, 32, 32, 19, 0, 360, 'd4', 1)
+// Frozen Ground: a slab of ground frozen over, flat, crazed with cracks, frost rising off it
+icon('frozen-ground', (r) => {
+  r.poly([[4, 38], [32, 24], [60, 38], [32, 52]], 'i3')
+  r.poly([[4, 38], [32, 52], [32, 57], [4, 43]], 'i1')
+  r.poly([[32, 52], [60, 38], [60, 43], [32, 57]], 'n1')
+  r.poly([[12, 38], [32, 28], [40, 32], [20, 42]], 'i4')
+  // the cracks
+  for (const [a, b] of [[[18, 36], [28, 40]], [[28, 40], [26, 46]], [[28, 40], [38, 38]], [[38, 38], [46, 42]], [[38, 38], [36, 30]], [[46, 42], [52, 40]]] as [P, P][]) thick(r, a, b, 'i1', 1)
+  r.line(4, 38, 32, 24, 's4')
+  r.outline('k')
+  // the icicles under its edge
+  for (const [x, y, h] of [[10, 45, 5], [20, 50, 7], [30, 56, 5], [42, 54, 6], [54, 47, 5]] as const) r.poly([[x - 1.5, y], [x + 1.5, y], [x, y + h]], 'i2')
+  r.outline('k')
+  // frost rising off it, no outline
+  for (const [x, y] of [[16, 18], [30, 12], [46, 20], [54, 28]] as const) {
+    r.line(x, y, x + 2, y - 4, 'i3')
+    r.set(x + 2, y - 5, 'i4')
+  }
+  snowflake(r, 32, 12, 6, 'i4', 1, 'i3')
 })
 
-// Sanctuary: a ring of golden runes on the ground, light standing up from it
-icon('sanctuary', (r) => {
-  r.ellipse(32, 48, 27, 11, 'd1')
-  r.ellipse(32, 48, 24, 9, 'd2')
-  r.ellipse(32, 48, 19, 6, 'd4')
+// Permafrost: a thick block of ice, an hourglass held frozen in it, its sand stopped
+icon('permafrost', (r) => {
+  r.poly([[10, 12], [54, 12], [56, 56], [8, 56]], 'i1')
+  r.poly([[12, 14], [52, 14], [54, 54], [10, 54]], 'i2')
+  r.poly([[12, 14], [30, 14], [20, 54], [10, 54]], 'i3')
+  r.line(12, 15, 52, 15, 'i4')
+  r.line(11, 16, 9, 53, 'i4')
+  // the hourglass inside
+  r.rect(22, 20, 20, 3, 'g1')
+  r.rect(22, 46, 20, 3, 'g1')
+  r.poly([[24, 23], [40, 23], [33, 34], [40, 46], [24, 46], [31, 34]], 'i4')
+  r.poly([[26, 24], [38, 24], [33, 31], [31, 31]], 'e3')
+  r.poly([[31, 38], [33, 38], [38, 45], [26, 45]], 'e3')
+  r.line(32, 31, 32, 38, 'e3')
+  r.line(22, 20, 41, 20, 'g3')
+  // a crack across the ice
+  thick(r, [44, 18], [48, 30], 'i1', 1)
+  thick(r, [48, 30], [44, 40], 'i1', 1)
+  r.outline('k')
+  sparkle(r, 58, 8, 2, 'i3', 'i4')
+  sparkle(r, 4, 30, 2, 'i3', 'i4')
+})
+
+// Ice Lance: Mastery — the lance of ice, a gold badge
+icon('ice-lance-plus', (r) => {
+  copy(r, 'ice-lance')
+  badge(r)
+})
+
+// Deep Chill: a bone gone white with frost, icicles hanging off it, a critical's star flashing cold
+icon('deep-chill', (r) => {
+  thick(r, [16, 48], [44, 20], 'm3', 7)
+  thick(r, [16, 47], [44, 19], 'm4', 3)
+  for (const [x, y] of [[12, 48], [16, 52], [44, 16], [48, 20]] as const) {
+    r.ellipse(x, y, 5, 5, 'm3')
+    r.ellipse(x - 1, y - 1, 3, 3, 'm4')
+  }
+  // the frost on its back
+  for (let t = 0; t <= 1; t += 0.08) r.rect(14 + 30 * t, 42 - 28 * t, 2, 2, 'i3')
+  r.outline('k')
+  for (const [x, y, h] of [[22, 46, 8], [30, 38, 10], [38, 30, 7]] as const) r.poly([[x - 2, y], [x + 2, y], [x, y + h]], 'i2')
+  r.outline('k')
+  star4(r, 50, 46, 11, 'i3', 's4')
+  r.outline('k', ['s4'])
+  sparkle(r, 10, 14, 2, 'i3', 'i4')
+})
+
+// Frozen Ground: Mastery — the frozen slab, a gold badge
+icon('frozen-ground-plus', (r) => {
+  copy(r, 'frozen-ground')
+  badge(r)
+})
+
+// ---------------------------------------------------------------- Everwinter (the Cryomancer's third): the winter that does not end
+
+// Heart of Winter: a heart cut from ice, its facets lit, a snowflake at its core
+icon('heart-of-winter', (r) => {
+  heart(r, 32, 32, 22, 'i1')
+  heart(r, 32, 32, 19, 'i2')
+  heart(r, 30, 30, 11, 'i3')
+  // its facets
+  for (const [a, b] of [[[32, 22], [32, 54]], [[12, 26], [32, 38]], [[52, 26], [32, 38]], [[20, 16], [32, 22]], [[44, 16], [32, 22]]] as [P, P][]) r.line(a[0], a[1], b[0], b[1], 'i1')
+  r.line(14, 20, 20, 14, 'i4')
+  r.outline('k')
+  snowflake(r, 32, 36, 7, 's4', 1, 'i4')
+  sparkle(r, 54, 52, 2, 'i3', 'i4')
+  sparkle(r, 8, 50, 2, 'i3', 'i4')
+})
+
+// Glacier: a wall of ice sliding forward, its front broken into crevasses, snow on its back, the ground torn before it
+icon('glacier', (r) => {
+  r.poly([[20, 58], [16, 32], [22, 22], [28, 26], [34, 12], [42, 20], [48, 10], [56, 20], [62, 34], [62, 58]], 'i1')
+  r.poly([[22, 56], [19, 34], [24, 26], [29, 30], [34, 18], [40, 26], [40, 56]], 'i2')
+  r.poly([[22, 56], [20, 36], [24, 30], [28, 34], [26, 56]], 'i3')
+  // its back of snow
+  r.poly([[22, 22], [28, 26], [34, 12], [42, 20], [48, 10], [56, 20], [52, 22], [46, 16], [42, 24], [34, 18], [28, 30]], 's4')
+  // the crevasses
+  for (const [x0, y0, x1, y1] of [[30, 36, 28, 50], [44, 28, 46, 46], [52, 34, 54, 52], [36, 42, 38, 56]] as const) thick(r, [x0, y0], [x1, y1], 'n1', 1)
+  r.outline('k')
+  // the broken ground and the chunks it pushes, the cold it drives before it
+  for (const [x, y, s] of [[10, 54, 4], [4, 58, 3], [14, 46, 2]] as const) r.poly([[x - s, y], [x, y - s], [x + s, y], [x, y + s * 0.6]], 'i3')
+  r.outline('k')
+  for (const [x, y, l] of [[2, 30, 10], [4, 38, 8], [2, 46, 6]] as const) r.line(x, y, x + l, y, 'i3')
+})
+
+// Cold Wave: rings of cold rolling out from a frozen heart, snow thrown off the outermost
+icon('cold-wave', (r) => {
+  arc(r, 32, 32, 26, 20, 160, 'i2', 3)
+  arc(r, 32, 32, 26, 200, 340, 'i2', 3)
+  arc(r, 32, 32, 18, 60, 300, 'i3', 3)
+  arc(r, 32, 32, 18, 330, 390, 'i3', 3)
+  arc(r, 32, 32, 26, 20, 160, 'i4', 1)
+  r.outline('k')
+  ball(r, 32, 32, 7, ['i1', 'i2', 'i4', 's4'])
+  r.outline('k')
+  for (const [x, y] of [[4, 32], [60, 32], [32, 2], [32, 61]] as const) r.rect(x - 1, y - 1, 2, 2, 'i4')
+  snowflake(r, 52, 10, 5, 'i4', 1, 'i3')
+  snowflake(r, 12, 54, 5, 'i4', 1, 'i3')
+})
+
+// Frostbite: two fangs of ice biting down, a drop of blood drawn below them
+icon('frostbite', (r) => {
+  arc(r, 32, 2, 26, 30, 150, 'i1', 6)
+  arc(r, 32, 2, 26, 40, 140, 'i3', 2)
+  for (const x of [20, 44]) {
+    r.poly([[x - 6, 20], [x + 6, 20], [x + (x < 32 ? 2 : -2), 44]], 'i2')
+    r.poly([[x - 6, 20], [x - 1, 20], [x + (x < 32 ? 2 : -2), 44]], 'i3')
+    r.line(x - 4, 21, x + (x < 32 ? 1 : -3), 40, 'i4')
+  }
+  r.outline('k')
+  // the drop of blood
+  r.poly([[32, 40], [37, 50], [32, 56], [27, 50]], 'r1')
+  r.ellipse(32, 51, 5, 5, 'r1')
+  r.ellipse(32, 51, 4, 4, 'r2')
+  r.set(30, 49, 'r3')
+  r.outline('k')
+  sparkle(r, 8, 40, 2, 'i3', 'i4')
+  sparkle(r, 56, 42, 2, 'i3', 'i4')
+})
+
+// Cold Wave: Mastery — the rings of cold, a gold badge
+icon('cold-wave-plus', (r) => {
+  copy(r, 'cold-wave')
+  badge(r)
+})
+
+// Endless Winter: a world under ice, its cap spreading down it, snow driving over it
+icon('endless-winter', (r) => {
+  ball(r, 32, 38, 21, ['n1', 'n2', 'n3'])
+  within(r, (m) => r.px.forEach((c, i) => c && (m.px[i] = c)), (t) => {
+    t.poly([[0, 0], [64, 0], [64, 40], [52, 44], [44, 38], [36, 46], [26, 40], [18, 46], [10, 40], [0, 44]], 'i3')
+    t.poly([[0, 0], [64, 0], [64, 30], [50, 34], [40, 28], [28, 34], [16, 28], [0, 32]], 'i4')
+  })
+  r.outline('k')
+  for (const [x, y, h] of [[18, 46, 5], [26, 42, 6], [36, 48, 5], [52, 46, 4]] as const) r.poly([[x - 1.5, y - 1], [x + 1.5, y - 1], [x, y + h]], 'i3')
+  r.outline('k')
+  snowflake(r, 10, 10, 6, 'i4', 1, 'i3')
+  snowflake(r, 54, 8, 5, 'i4', 1, 'i3')
+  for (const [x, y] of [[30, 6], [44, 14], [4, 28], [60, 26], [8, 58], [58, 58]] as const) {
+    r.line(x, y, x - 2, y + 3, 'i3')
+    r.set(x - 2, y + 3, 'i4')
+  }
+})
+
+// Still Time: a clock stopped, a ring of ice shards hanging round it in the air, frozen as they flew
+icon('still-time', (r) => {
+  r.ellipse(32, 32, 14, 14, 'i1')
+  r.ellipse(32, 32, 12, 12, 'i4')
+  for (let i = 0; i < 12; i++) {
+    const a = (i * Math.PI) / 6
+    r.set(32 + Math.cos(a) * 10, 32 + Math.sin(a) * 10, i % 3 ? 'i2' : 'i1')
+  }
+  // its hands, stopped
+  thick(r, [32, 32], [32, 24], 'b2', 2)
+  thick(r, [32, 32], [38, 35], 'b2', 2)
+  r.set(32, 32, 'i1')
+  r.outline('k')
   for (let i = 0; i < 8; i++) {
-    const a = (i * Math.PI) / 4
-    r.rect(32 + Math.cos(a) * 21.5 - 1, 48 + Math.sin(a) * 7.8 - 1, 2, 2, 'd1')
+    const a = (i * Math.PI) / 4 + 0.35
+    const x = 32 + Math.cos(a) * 24
+    const y = 32 + Math.sin(a) * 24
+    const d = a + Math.PI / 2
+    r.poly([[x + Math.cos(a) * 5, y + Math.sin(a) * 5], [x + Math.cos(d) * 3, y + Math.sin(d) * 3], [x - Math.cos(a) * 4, y - Math.sin(a) * 4], [x - Math.cos(d) * 2, y - Math.sin(d) * 2]], i % 2 ? 'i2' : 'i3')
+    r.set(x, y, 'i4')
   }
   r.outline('k')
-  // the light standing up from the ring: bright shafts, unoutlined, widening to the ground
-  for (const [x0, x1, c] of [[22, 18, 'd3'], [27, 25, 'd4'], [32, 32, 's4'], [37, 39, 'd4'], [42, 46, 'd3']] as const) thick(r, [x0, 10], [x1, 44], c, c === 's4' ? 3 : 2)
-  r.ellipse(32, 48, 6, 2, 's4')
-  sparkle(r, 12, 20, 2, 'd3', 'd4')
-  sparkle(r, 52, 14, 2, 'd3', 'd4')
-  sparkle(r, 32, 5, 2, 'd3', 'd4')
+  arc(r, 32, 32, 18, 200, 250, 'i3', 1)
+  arc(r, 32, 32, 18, 20, 70, 'i3', 1)
 })
 
-// Lantern Soul: a lantern under a crescent moon, a pale soul-flame burning in it
-icon('lantern-soul', (r) => {
-  // the moon
-  r.ellipse(50, 14, 9, 9, 'd3')
-  r.ellipse(54, 11, 8, 8, null as unknown as string)
-  // the lantern: a ring, a hood, a glass, a base
-  arc(r, 30, 12, 5, 180, 360, 'g1', 2)
-  r.poly([[20, 18], [40, 18], [36, 14], [24, 14]], 'g1')
-  r.rect(21, 18, 18, 24, 'b2')
-  r.rect(23, 20, 14, 20, 'i3')
-  r.rect(21, 42, 18, 5, 'g1')
-  r.rect(23, 47, 14, 3, 'g2')
-  r.line(21, 18, 21, 41, 'g2')
-  r.line(38, 18, 38, 41, 'g1')
-  r.line(30, 18, 30, 41, 'g1')
+// Everwinter's entrance: a crown of icicles before a pale winter sun
+icon('mastery-cryomancer', (r) => {
+  r.ellipse(32, 30, 26, 26, 'n1')
+  r.ellipse(32, 30, 23, 23, 'n2')
+  r.ellipse(32, 24, 13, 13, 'i3')
+  r.ellipse(30, 22, 9, 9, 'i4')
   r.outline('k')
-  // the soul-flame in the glass, pale blue and white
-  flame(r, 30, 39, 10, 16, 1, ['i2', 'i3', 'i4', 's4'])
-  r.line(30, 18, 30, 22, 'g1')
-  r.outline('k', ['i4', 's4'])
-  sparkle(r, 12, 30, 2, 'i3', 'i4')
-  sparkle(r, 46, 40, 1, 'd3', 'd4')
-})
-
-// Mercy of Dawn: a white dove rising before a small dawn sun
-icon('mercy-of-dawn', (r) => {
-  rays(r, 40, 20, 9, 18, 10, 'd3', 2, 0.5)
-  r.ellipse(40, 20, 9, 9, 'd2')
-  r.ellipse(39, 19, 6, 6, 'd3')
-  r.ellipse(37, 17, 3, 3, 'd4')
-  r.outline('k', ['d3'])
-  // the far wing, raised, in shadow
-  r.poly([[24, 36], [12, 14], [20, 16], [30, 30]], 'm3')
-  r.line(14, 16, 26, 32, 'm2')
-  // the tail, the body, the head and its beak
-  r.poly([[8, 44], [20, 38], [22, 46], [10, 52]], 'm4')
-  r.line(10, 48, 20, 42, 'm3')
-  r.ellipse(30, 40, 13, 7, 'm4')
-  r.ellipse(30, 42, 11, 4, 'm3')
-  r.ellipse(43, 34, 5, 5, 's4')
-  r.poly([[47, 33], [52, 35], [47, 36]], 'f2')
-  r.set(44, 33, 'b1')
-  // the near wing, raised high, its feathers spread
-  r.poly([[28, 38], [30, 12], [36, 8], [38, 16], [42, 14], [40, 24], [44, 24], [36, 36]], 's4')
-  r.line(31, 14, 33, 34, 'm3')
-  r.line(36, 12, 35, 32, 'm3')
-  r.line(40, 18, 37, 32, 'm3')
-  // a sprig in its beak
-  thick(r, [49, 36], [55, 44], 'e2', 1)
-  r.set(52, 39, 'g3')
-  r.set(54, 42, 'g3')
-  r.outline('k', ['d3'])
-  sparkle(r, 56, 50, 2, 'd3', 'd4')
-})
-
-// Daybreak: a pillar of light driven down into the ground, the ground flaring where it strikes
-icon('daybreak', (r) => {
-  // the flare at its foot
-  r.ellipse(32, 52, 22, 7, 'd2')
-  r.ellipse(32, 52, 16, 5, 'd3')
-  rays(r, 32, 52, 8, 16, 8, 'd3', 2)
-  r.outline('k', ['d3'])
-  // the beam, white at its heart
-  r.poly([[22, 4], [42, 4], [38, 52], [26, 52]], 'd2')
-  r.poly([[26, 4], [38, 4], [35, 52], [29, 52]], 'd3')
-  r.rect(30, 4, 4, 48, 'd4')
-  r.rect(31, 4, 2, 48, 's4')
-  r.outline('k', ['d3'])
-  r.ellipse(32, 52, 6, 2, 's4')
-  sparkle(r, 12, 40, 2, 'd3', 'd4')
-  sparkle(r, 52, 36, 2, 'd3', 'd4')
-  sparkle(r, 48, 14, 1, 'd3', 'd4')
-})
-
-// The Dawnbringer's medallion: an ivory plate, the sun on it
-icon('path-dawnbringer', (r) => {
-  medallion(r, ['d1', 'd3', 'd4'])
+  // the crown: a silver band, icicle points standing off it
+  r.rect(10, 42, 44, 8, 's2')
+  r.rect(10, 42, 44, 3, 's3')
+  for (const [x, h] of [[13, 12], [21, 18], [32, 26], [43, 18], [51, 12]] as const) {
+    r.poly([[x - 4, 43], [x, 43 - h], [x + 4, 43]], 'i2')
+    r.poly([[x - 3, 43], [x, 43 - h], [x, 43]], 'i3')
+  }
+  for (const x of [17, 26, 38, 47]) r.ellipse(x, 46, 2, 2, 'i1')
+  r.ellipse(32, 46, 2.5, 2.5, 'i4')
   r.outline('k')
-  rays(r, 32, 32, 9, 16, 12, 'd1', 2)
-  r.ellipse(32, 32, 8, 8, 'd1')
-  r.ellipse(32, 32, 6, 6, 'd2')
-  r.ellipse(30, 30, 3, 3, 'd4')
-  r.outline('k', ['d1', 'd2', 'd3', 'd4'])
+  sparkle(r, 56, 8, 2, 'i3', 'i4')
 })
 
-// ---------------------------------------------------------------- the Archmage: violet and gold
+// ---------------------------------------------------------------- the Stormcaller: lightning
 
-// Arcane Mastery: an eye of violet fire in a gold triangle, rays round it
-icon('arcane-mastery', (r) => {
-  rays(r, 32, 36, 22, 30, 12, 'v3', 1)
-  r.poly([[32, 8], [58, 52], [6, 52]], 'g1')
-  r.poly([[32, 13], [53, 49], [11, 49]], 'g2')
-  r.poly([[32, 18], [48, 46], [16, 46]], 'v1')
-  // the eye
-  r.poly([[18, 36], [26, 30], [38, 30], [46, 36], [38, 42], [26, 42]], 's4')
-  r.ellipse(32, 36, 5, 5, 'v2')
-  r.ellipse(32, 36, 3, 3, 'v4')
-  r.rect(32, 35, 1, 2, 'b1')
-  r.line(32, 13, 52, 48, 'g3')
-  r.outline('k', ['v3'])
-})
-
-// Time Warp: an hourglass twisting, its violet sand running up as much as down
-icon('time-warp', (r) => {
-  arc(r, 32, 32, 25, 200, 320, 'v3', 2)
-  arc(r, 32, 32, 25, 20, 140, 'v3', 2)
-  r.poly([[54, 22], [58, 30], [50, 30]], 'v3')
-  r.poly([[10, 42], [6, 34], [14, 34]], 'v3')
-  r.rect(18, 8, 28, 4, 'w2')
-  r.rect(18, 52, 28, 4, 'w2')
-  r.line(18, 8, 45, 8, 'w3')
-  r.poly([[21, 12], [43, 12], [34, 31], [43, 52], [21, 52], [30, 33]], 'i3')
-  r.poly([[24, 14], [40, 14], [33, 28], [31, 28]], 'v2')
-  r.poly([[31, 36], [33, 36], [41, 50], [23, 50]], 'v2')
-  r.line(32, 28, 32, 36, 'v4')
-  r.line(23, 14, 30, 30, 's4')
-  r.outline('k', ['v3'])
-})
-
-// Mana Flow: a drop of mana with ribbons of it running round in a loop
-icon('mana-flow', (r) => {
-  arc(r, 32, 34, 22, 140, 400, 'n2', 3)
-  arc(r, 32, 34, 22, 160, 380, 'n3', 1)
-  r.poly([[46, 14], [56, 16], [50, 24]], 'n3')
-  arc(r, 32, 34, 15, -40, 220, 'v2', 2)
-  r.poly([[19, 44], [14, 52], [24, 50]], 'v3')
-  r.outline('k', ['n2', 'n3', 'v2', 'v3'])
-  // the drop
-  r.poly([[32, 16], [40, 30], [40, 38], [32, 44], [24, 38], [24, 30]], 'n1')
-  r.poly([[32, 18], [38, 30], [38, 37], [32, 42], [26, 37], [26, 30]], 'n2')
-  r.poly([[30, 24], [27, 31], [28, 36], [31, 30]], 'n3')
-  r.set(28, 32, 's4')
-  r.outline('k', ['n2', 'n3', 'v2', 'v3'])
-  sparkle(r, 54, 46, 2, 'n3', 's4')
-})
-
-// Convergence: three beams — fire, ice, lightning — meeting in one white star
-icon('convergence', (r) => {
-  thick(r, [6, 10], [32, 34], 'f2', 5)
-  thick(r, [6, 10], [32, 34], 'f3', 2)
-  thick(r, [58, 10], [32, 34], 'i2', 5)
-  thick(r, [58, 10], [32, 34], 'i4', 2)
-  thick(r, [32, 60], [32, 34], 'y1', 5)
-  thick(r, [32, 60], [32, 34], 'y3', 2)
+// The Stormcaller's medallion: a violet plate, a bolt across it
+icon('path-stormcaller', (r) => {
+  medallion(r, ['v1', 'v2', 'v3'])
   r.outline('k')
-  for (const [x, y, c] of [[8, 12, 'f2'], [56, 12, 'i2'], [32, 58, 'y2']] as const) r.ellipse(x, y, 4, 4, c)
-  r.poly([[32, 20], [36, 30], [46, 34], [36, 38], [32, 48], [28, 38], [18, 34], [28, 30]], 'v4')
-  r.poly([[32, 26], [34, 32], [40, 34], [34, 36], [32, 42], [30, 36], [24, 34], [30, 32]], 's4')
-  r.outline('k', ['v4', 's4'])
+  r.poly([[36, 10], [20, 34], [30, 34], [24, 54], [44, 26], [34, 26], [40, 10]], 'y2')
+  r.poly([[36, 12], [24, 32], [31, 32], [27, 48], [40, 28], [32, 28], [38, 12]], 'y3')
+  r.outline('k', ['y3'])
 })
 
-// Ascendance: three chevrons of violet light climbing to a star
-icon('ascendance', (r) => {
-  for (const [y, c, d] of [[52, 'v1', 'v2'], [40, 'v2', 'v3'], [28, 'v3', 'v4']] as const) {
-    r.poly([[12, y], [32, y - 12], [52, y], [52, y + 6], [32, y - 6], [12, y + 6]], c)
-    r.line(13, y + 1, 32, y - 11, d)
+// Static: two charged motes, a crackling spark leaping the gap between them, sparks spitting off it
+icon('static', (r) => {
+  bolt(r, [[16, 44], [24, 34], [22, 40], [32, 30], [30, 36], [40, 26], [48, 20]], 3)
+  bolt(r, [[30, 32], [36, 40], [34, 46]], 1, 'v3', 'v4')
+  bolt(r, [[24, 36], [18, 26], [22, 20]], 1, 'v3', 'v4')
+  r.outline('k', ['y3', 'v4'])
+  ball(r, 14, 46, 9, ['v1', 'v2', 'v3', 'v4'])
+  ball(r, 50, 18, 9, ['y1', 'y2', 'y3', 's4'])
+  r.rect(11, 45, 6, 2, 'v4')
+  r.rect(47, 17, 6, 2, 'y1')
+  r.rect(49, 15, 2, 6, 'y1')
+  r.outline('k', ['y3', 'v4'])
+  for (const [x, y] of [[6, 22], [58, 40], [36, 58], [30, 8]] as const) sparkle(r, x, y, 2, 'y2', 'y3')
+})
+
+// Lightning Bolt: a bolt out of a dark cloud, striking the ground in a flash
+icon('lightning-bolt', (r) => {
+  cloud(r, [[16, 14, 10], [32, 10, 12], [48, 15, 10], [32, 18, 10]], ['b2', 'b3', 'm2'])
+  r.outline('k')
+  r.ellipse(30, 56, 14, 4, 'y2')
+  r.ellipse(30, 56, 8, 2, 'y3')
+  r.outline('k', ['y2', 'y3'])
+  r.poly([[34, 20], [24, 36], [32, 36], [26, 56], [42, 30], [34, 30], [40, 20]], 'y2')
+  r.poly([[35, 22], [27, 35], [33, 35], [29, 50], [39, 32], [32, 32], [38, 22]], 'y3')
+  r.outline('k', ['y2', 'y3'])
+  for (const [x, y] of [[14, 50], [46, 50], [52, 36]] as const) sparkle(r, x, y, 2, 'y2', 'y3')
+})
+
+// Thunderclap: a flash at the heart, its shock rolling out in rings, short bolts flung off them
+icon('thunderclap', (r) => {
+  for (const [a0, a1] of [[-30, 60], [90, 180], [210, 300]] as const) {
+    arc(r, 32, 32, 25, a0, a1, 'v2', 3)
+    arc(r, 32, 32, 25, a0 + 10, a1 - 10, 'v4', 1)
+  }
+  for (const [a0, a1] of [[30, 120], [150, 240], [270, 360]] as const) arc(r, 32, 32, 17, a0, a1, 'y2', 2)
+  r.outline('k', ['v4'])
+  for (let i = 0; i < 4; i++) {
+    const a = (i * Math.PI) / 2 + Math.PI / 4
+    const p = (k: number, o = 0): P => [32 + Math.cos(a) * k + Math.cos(a + Math.PI / 2) * o, 32 + Math.sin(a) * k + Math.sin(a + Math.PI / 2) * o]
+    bolt(r, [p(10), p(15, 3), p(19, -2), p(27, 1)], 2)
+  }
+  ball(r, 32, 32, 8, ['y1', 'y2', 'y3', 's4'])
+  r.outline('k', ['v4', 'y3'])
+})
+
+// Thunder Spear: a spear made of lightning, its head a white diamond, its shaft a jagged bolt
+icon('thunder-spear', (r) => {
+  bolt(r, [[4, 60], [12, 48], [10, 54], [20, 42], [18, 48], [28, 36], [26, 42], [36, 30]], 4, 'y2', 'y3')
+  // the head: a long diamond, white at its heart
+  r.poly([[32, 34], [40, 18], [60, 4], [46, 24], [38, 34]], 'y1')
+  r.poly([[34, 32], [41, 20], [57, 7], [45, 23], [37, 31]], 'y2')
+  r.poly([[37, 29], [43, 21], [55, 9], [44, 22]], 'y3')
+  r.line(40, 26, 54, 10, 's4')
+  r.outline('k', ['y3'])
+  for (const [x, y] of [[8, 36], [22, 58], [52, 30], [26, 14]] as const) sparkle(r, x, y, 2, 'y2', 'y3')
+})
+
+// Overload: an orb of charge cracking, bolts tearing out of it on every side
+icon('overload', (r) => {
+  for (let i = 0; i < 6; i++) {
+    const a = (i * Math.PI) / 3 + 0.3
+    const p = (k: number, o = 0): P => [32 + Math.cos(a) * k + Math.cos(a + Math.PI / 2) * o, 32 + Math.sin(a) * k + Math.sin(a + Math.PI / 2) * o]
+    bolt(r, [p(10), p(18, 4), p(23, -3), p(29, 2)], 3)
+  }
+  r.outline('k', ['y3'])
+  ball(r, 32, 32, 14, ['v1', 'v2', 'v3', 'v4'])
+  // its cracks, white with the charge bursting through
+  for (const [a, b] of [[[32, 20], [30, 30]], [[30, 30], [38, 36]], [[30, 30], [22, 36]], [[38, 36], [36, 44]]] as [P, P][]) thick(r, a, b, 's4', 1)
+  r.outline('k', ['y3'])
+})
+
+// Lightning Step: a hooded figure arrived in a flash, the jagged bolt it came by still trailing behind it
+icon('lightning-step', (r) => {
+  bolt(r, [[2, 46], [10, 38], [8, 44], [18, 36], [16, 42], [30, 34]], 4)
+  for (const [x, y, l] of [[4, 22, 14], [2, 28, 20], [6, 56, 16]] as const) r.line(x, y, x + l, y, 'v3')
+  figure(r, 44, 8, 50, ['b1', 'b2', 'y2'])
+  r.rect(41, 15, 2, 1, 'y3')
+  r.rect(46, 15, 2, 1, 'y3')
+  r.outline('k', ['v3', 'y3'])
+  for (const [x, y] of [[30, 12], [60, 30], [26, 58]] as const) sparkle(r, x, y, 2, 'y2', 'y3')
+})
+
+// Quickening: three chevrons of lightning driving forward, sparks thrown off them
+icon('quickening', (r) => {
+  for (const [x, c, d] of [[8, 'v2', 'v3'], [22, 'y1', 'y2'], [36, 'y2', 'y3']] as const) {
+    r.poly([[x, 12], [x + 10, 12], [x + 22, 32], [x + 10, 52], [x, 52], [x + 12, 32]], c)
+    r.poly([[x + 2, 14], [x + 9, 14], [x + 20, 32], [x + 12, 32]], d)
   }
   r.outline('k')
-  r.poly([[32, 4], [35, 11], [42, 12], [36, 16], [38, 23], [32, 19], [26, 23], [28, 16], [22, 12], [29, 11]], 'g3')
-  r.set(31, 12, 's4')
-  r.outline('k')
-  sparkle(r, 10, 22, 2, 'v3', 'v4')
-  sparkle(r, 54, 18, 2, 'v3', 'v4')
+  for (const [x, y] of [[6, 4], [60, 14], [60, 50], [30, 60]] as const) sparkle(r, x, y, 2, 'y2', 'y3')
 })
 
-// The Archmage's entrance: a circlet of gold with a violet star-stone, three motes round it
-icon('mastery-mage', (r) => {
-  r.poly([[8, 40], [14, 26], [22, 34], [32, 18], [42, 34], [50, 26], [56, 40], [56, 48], [8, 48]], 'g2')
-  r.poly([[10, 42], [14, 30], [20, 36], [32, 22], [32, 46], [10, 46]], 'g3')
-  r.rect(8, 44, 48, 4, 'g1')
-  r.ellipse(32, 36, 6, 7, 'v1')
-  r.ellipse(31, 35, 4, 5, 'v3')
-  r.set(30, 33, 'v4')
-  r.ellipse(16, 42, 2, 2, 'i2')
-  r.ellipse(48, 42, 2, 2, 'r2')
+// Thunder Spear: Mastery — the spear of lightning, a gold badge
+icon('thunder-spear-plus', (r) => {
+  copy(r, 'thunder-spear')
+  badge(r)
+})
+
+// High Voltage: a warning sign, a bolt on it, a critical's star flashing off its corner
+icon('high-voltage', (r) => {
+  r.poly([[28, 8], [54, 54], [2, 54]], 'b1')
+  r.poly([[28, 14], [49, 51], [7, 51]], 'y2')
+  r.poly([[28, 14], [28, 51], [7, 51]], 'y3')
+  r.poly([[30, 22], [20, 38], [27, 38], [22, 50], [36, 32], [29, 32], [34, 22]], 'b1')
   r.outline('k')
-  // the motes that wheel round it: fire, ice, light
-  ball(r, 10, 14, 4, ['r2', 'f2', 'f3'])
-  ball(r, 54, 14, 4, ['i1', 'i2', 'i4'])
-  ball(r, 32, 6, 3.5, ['y1', 'y2', 'y3'])
+  star4(r, 50, 18, 11, 'y3', 's4')
+  r.outline('k', ['s4'])
+})
+
+// Lightning Step: Mastery — the figure gone to lightning, a gold badge
+icon('lightning-step-plus', (r) => {
+  copy(r, 'lightning-step')
+  badge(r)
+})
+
+// Storm Spirit: a thundercloud with a face, its eyes alight, bolts for arms
+icon('storm-spirit', (r) => {
+  cloud(r, [[18, 30, 12], [32, 24, 15], [46, 30, 12], [32, 36, 12]], ['v1', 'v2', 'v3'])
   r.outline('k')
-  arc(r, 32, 30, 26, 200, 340, 'v3', 1)
+  r.ellipse(26, 30, 3, 2, 'y3')
+  r.ellipse(38, 30, 3, 2, 'y3')
+  r.set(26, 30, 's4')
+  r.set(38, 30, 's4')
+  r.poly([[26, 38], [29, 36], [32, 39], [35, 36], [38, 38], [32, 42]], 'b1')
+  bolt(r, [[10, 38], [6, 46], [12, 46], [6, 58]], 3)
+  bolt(r, [[54, 38], [58, 46], [52, 46], [58, 58]], 3)
+  r.outline('k', ['y3'])
+  sparkle(r, 32, 4, 2, 'y2', 'y3')
+})
+
+// Thunder Prison: a cage whose bars are lightning, something dark held in it
+icon('thunder-prison', (r) => {
+  r.ellipse(32, 54, 24, 6, 'v1')
+  r.ellipse(32, 53, 21, 4, 'v2')
+  arc(r, 32, 30, 22, 180, 360, 'v1', 4)
+  arc(r, 32, 30, 22, 190, 350, 'v3', 1)
+  r.outline('k')
+  // the held thing
+  r.ellipse(32, 44, 8, 8, 'b2')
+  r.ellipse(32, 36, 5, 5, 'b2')
+  r.rect(29, 35, 2, 1, 'y3')
+  r.rect(33, 35, 2, 1, 'y3')
+  r.outline('k')
+  // the bars
+  for (const x of [14, 24, 32, 40, 50]) {
+    const top = 30 - Math.sqrt(Math.max(0, 22 * 22 - (x - 32) ** 2))
+    bolt(r, [[x, top + 2], [x - 2, top + 12], [x + 2, top + 22], [x - 1, 52]], 2)
+  }
+  r.outline('k', ['y3', 'b2'])
+  sparkle(r, 32, 4, 2, 'y2', 'y3')
+})
+
+// ---------------------------------------------------------------- the Wrath of Heaven (the Stormcaller's third): heaven's own lightning
+
+// Heaven's Might: a crest of heaven, two white wings spread from a gold shield, a bolt on it, rays behind
+icon('heavens-might', (r) => {
+  rays(r, 32, 30, 16, 30, 16, 'd3', 2)
+  r.outline('k', ['d3'])
+  for (const s of [-1, 1]) {
+    r.poly([[32 + s * 8, 26], [32 + s * 30, 12], [32 + s * 28, 22], [32 + s * 30, 26], [32 + s * 26, 34], [32 + s * 26, 40], [32 + s * 10, 40]], 'm4')
+    for (const [y0, y1] of [[18, 26], [26, 32], [32, 38]] as const) r.line(32 + s * 12, y1, 32 + s * 26, y0 + 2, 'm3')
+  }
+  r.poly([[20, 18], [44, 18], [44, 36], [32, 50], [20, 36]], 'd1')
+  r.poly([[22, 20], [42, 20], [42, 35], [32, 47], [22, 35]], 'd2')
+  r.poly([[34, 22], [26, 34], [31, 34], [28, 44], [38, 30], [33, 30], [37, 22]], 'd4')
+  r.outline('k', ['d3'])
+})
+
+// Bolt of Judgement: the clouds parted, gold light pouring through, one great bolt driven straight down
+icon('judgement-bolt', (r) => {
+  cloud(r, [[10, 12, 10], [22, 8, 9], [42, 8, 9], [54, 12, 10]], ['m2', 'm3', 's4'])
+  r.outline('k')
+  r.poly([[24, 4], [40, 4], [46, 56], [18, 56]], 'd3')
+  r.poly([[28, 4], [36, 4], [40, 56], [24, 56]], 'd4')
+  r.poly([[34, 6], [24, 28], [32, 28], [26, 56], [42, 22], [34, 22], [40, 6]], 'y2')
+  r.poly([[35, 8], [27, 26], [33, 26], [29, 48], [39, 24], [32, 24], [38, 8]], 's4')
+  r.outline('k', ['d3', 'd4'])
+  r.ellipse(30, 58, 14, 3, 'd3')
+  r.ellipse(30, 58, 8, 2, 's4')
+})
+
+// Thunder Shroud: a figure inside a sphere of crackling charge
+icon('thunder-shroud', (r) => {
+  r.ellipse(32, 32, 27, 27, 'v1')
+  r.ellipse(32, 32, 25, 25, null as unknown as string)
+  figure(r, 32, 12, 42, ['b1', 'b2', 'b3'])
+  r.rect(30, 18, 2, 1, 'y3')
+  r.rect(34, 18, 2, 1, 'y3')
+  r.outline('k')
+  arc(r, 32, 32, 26, 0, 360, 'v3', 2)
+  for (let i = 0; i < 5; i++) {
+    const a = (i * 2 * Math.PI) / 5 - 1.2
+    const p = (k: number, d: number): P => [32 + Math.cos(a + d) * k, 32 + Math.sin(a + d) * k]
+    bolt(r, [p(26, 0), p(22, 0.12), p(26, 0.24), p(23, 0.36)], 2)
+  }
+  r.outline('k', ['y3', 'v3'])
+})
+
+// Thunderstrike: a bolt slanting down out of the sky onto one point, a critical's star bursting there
+icon('thunderstrike', (r) => {
+  bolt(r, [[6, 4], [18, 18], [12, 22], [28, 34], [22, 38], [40, 46]], 5, 'y1', 'y2')
+  bolt(r, [[6, 4], [18, 18], [12, 22], [28, 34], [22, 38], [40, 46]], 2, 'y3', 's4')
+  r.outline('k', ['s4'])
+  star4(r, 44, 46, 16, 'y2', 's4')
+  r.outline('k', ['s4'])
+  for (const [x, y] of [[56, 20], [20, 56], [58, 60]] as const) sparkle(r, x, y, 2, 'y2', 'y3')
+})
+
+// Thunder Shroud: Mastery — the figure in its shroud of charge, a gold badge
+icon('thunder-shroud-plus', (r) => {
+  copy(r, 'thunder-shroud')
+  badge(r)
+})
+
+// Wrath of Heaven: the heavens opening, light pouring out between the clouds, bolt after bolt falling to the ground
+icon('wrath-of-heaven', (r) => {
+  r.ellipse(32, 6, 22, 10, 'd3')
+  r.ellipse(32, 4, 14, 7, 'd4')
+  cloud(r, [[6, 14, 10], [18, 12, 8], [46, 12, 8], [58, 14, 10]], ['m2', 'm3', 's4'])
+  r.outline('k', ['d3', 'd4'])
+  r.poly([[2, 58], [62, 58], [60, 62], [4, 62]], 'b2')
+  for (const [x, l] of [[12, 1], [26, -1], [40, 1], [52, -1]] as const) bolt(r, [[x, 18], [x + 4 * l, 30], [x - 2 * l, 32], [x + 3 * l, 46], [x, 56]], 3)
+  r.outline('k', ['d3', 'd4', 'y3'])
+  for (const x of [12, 26, 40, 52]) r.ellipse(x, 57, 3, 1.5, 'y3')
+})
+
+// Storm Unending: a storm wheeling inward, bolts running along its arms, its eye white
+icon('storm-unending', (r) => {
+  for (const [c, w, o] of [['v1', 5, 0], ['v2', 3, 0], ['v3', 1, 0.2]] as const) {
+    let prev: P | undefined
+    for (let i = 0; i <= 60; i++) {
+      const t = i / 60
+      const a = t * Math.PI * 4 + o
+      const rad = 28 - 22 * t
+      const p: P = [32 + Math.cos(a) * rad, 32 + Math.sin(a) * rad]
+      if (prev) thick(r, prev, p, c, w)
+      prev = p
+    }
+  }
+  r.outline('k', ['v3'])
+  for (const [x, y] of [[52, 18], [12, 44], [44, 50], [18, 16]] as const) bolt(r, [[x - 4, y - 4], [x + 1, y - 1], [x - 1, y + 1], [x + 4, y + 4]], 2)
+  ball(r, 32, 32, 4, ['y2', 'y3', 's4'])
+  r.outline('k', ['v3', 'y3'])
+})
+
+// The Wrath of Heaven's entrance: a gold halo over a storm-dark round, one great bolt down through it, light behind
+icon('mastery-stormcaller', (r) => {
+  rays(r, 32, 34, 22, 30, 12, 'd3', 2, 0.5)
+  r.ellipse(32, 34, 22, 22, 'v1')
+  r.ellipse(32, 34, 19, 19, 'b2')
+  r.ellipse(28, 30, 9, 8, 'v2')
+  r.outline('k', ['d3'])
+  r.poly([[36, 18], [24, 36], [31, 36], [26, 54], [42, 30], [34, 30], [40, 18]], 'y2')
+  r.poly([[37, 20], [27, 34], [32, 34], [29, 48], [39, 32], [33, 32], [38, 20]], 'y3')
+  r.outline('k', ['d3'])
+  r.ellipse(32, 10, 14, 4, 'd1')
+  r.ellipse(32, 10, 11, 2, null as unknown as string)
+  arc(r, 32, 10, 13, 190, 260, 'd4', 1)
+  r.outline('k', ['d3'])
 })
 
 // ---------------------------------------------------------------- the first tree, deeper

@@ -8,7 +8,7 @@ import { Rng, onPath, type Entity, type SkillDef } from '@openworld/engine'
 import { thirdOf, type ProfessionDef } from '@openworld/modules'
 import { FORM_BY_ID, makeItem } from './items.ts'
 import { LIFE_SKILLS } from './life.ts'
-import { ADVANCEMENT_SKILLS, MASTERIES, PATHS } from './advancement.ts'
+import { ADVANCEMENT_SKILLS, HAZARDS, MASTERIES, PATHS } from './advancement.ts'
 
 export const SKILL_DIRECTIONS = [
   // the talents every fighter shares, whatever their profession
@@ -20,14 +20,15 @@ export const SKILL_DIRECTIONS = [
 
 export type SkillDirection = (typeof SKILL_DIRECTIONS)[number]['id']
 
-// (the profession's own tree grows up; its path goes on after it, the mastery after the path: ui/skillLayout.ts)
-export const SKILL_BRANCHES: { id: string; direction: SkillDirection; icon: string; name: { en: string; zh: string }; way?: 'left' | 'right' | 'up' | 'down'; after?: string }[] = [
+// (the profession's own tree grows up; its paths go on after it side by side, every one shown, each path's third over it:
+// ui/skillLayout.ts)
+export const SKILL_BRANCHES: { id: string; direction: SkillDirection; icon: string; name: { en: string; zh: string }; way?: 'left' | 'right' | 'up' | 'down'; after?: string; byPath?: boolean }[] = [
   { id: 'swiftness', direction: 'combat', icon: 'swift', name: { en: 'Swiftness', zh: '迅捷' } },
   { id: 'survival', direction: 'combat', icon: 'shield', name: { en: 'Survival', zh: '生存' } },
   { id: 'damage', direction: 'combat', icon: 'sweep', name: { en: 'Damage', zh: '伤害' } },
   { id: 'profession', direction: 'profession', icon: 'origin', name: { en: 'Profession', zh: '职业' }, way: 'up' },
-  { id: 'path', direction: 'profession', icon: 'path', name: { en: 'Path (Second)', zh: '二转分支' }, after: 'profession' },
-  { id: 'mastery', direction: 'profession', icon: 'mastery', name: { en: 'Mastery (Third)', zh: '三转' }, after: 'path' },
+  { id: 'path', direction: 'profession', icon: 'path', name: { en: 'Path (Second)', zh: '二转分支' }, after: 'profession', byPath: true },
+  { id: 'mastery', direction: 'profession', icon: 'mastery', name: { en: 'Mastery (Third)', zh: '三转' }, after: 'path', byPath: true },
   { id: 'gathering', direction: 'life', icon: 'axe', name: { en: 'Gathering', zh: '采集' } },
   { id: 'agriculture', direction: 'life', icon: 'farming', name: { en: 'Agriculture', zh: '农业' } },
   { id: 'husbandry', direction: 'life', icon: 'ranching', name: { en: 'Animal Husbandry', zh: '牧业' } },
@@ -42,10 +43,11 @@ const kit = (form: string, material: string) => makeItem(new Rng(0), FORM_BY_ID[
  * Every profession and skill has its own illustrated pixel-art PNG.
  */
 export const SKILL_PROFESSIONS: (ProfessionDef & { icon: string; name: { en: string; zh: string } })[] = ([
-  { id: 'assassin', icon: 'assassin', name: { en: 'Assassin', zh: '刺客' }, doc: { en: 'Daggers, theirs alone; openers from the quiet and from behind, combos that end in a finisher.', zh: '专精匕首；从暗处、从背后先手，连击收尾。' }, weapon: kit('item/weapon/blade/dagger', 'iron') },
-  { id: 'warrior', icon: 'warrior', name: { en: 'Warrior', zh: '战士' }, doc: { en: 'Sword and shield, theirs alone; takes blows, answers them, and grows fiercer with each foe felled.', zh: '专精剑盾，独有副手盾牌；扛得住打，挨打必还手，越战越勇。' }, weapon: kit('item/weapon/blade/sword', 'iron'), offhand: kit('item/armor/shield', 'wood') },
-  { id: 'ranger', icon: 'ranger', name: { en: 'Ranger', zh: '游侠' }, doc: { en: 'Bows, theirs alone; a steady aim from afar, quick feet between shots.', zh: '专精弓箭；站稳了打得准、打得远，射完就走。' }, weapon: kit('item/weapon/ranged/bow', 'wood') },
-  { id: 'mage', icon: 'mage', name: { en: 'Mage', zh: '法师' }, doc: { en: 'Staves, theirs alone; elemental spells that echo, a shield of mana, strength drawn from the fallen.', zh: '专精法杖；元素法术会回响，法力护盾护身，击倒敌人回复生命。' }, weapon: kit('item/weapon/magic/staff', 'wood') },
+  { id: 'assassin', icon: 'assassin', name: { en: 'Assassin', zh: '刺客' }, doc: { en: 'Daggers, theirs alone; openers from the quiet and from behind, combos that end in a finisher.', zh: '专精匕首；从暗处、从背后先手，连击收尾。' }, weapon: kit('item/weapon/blade/dagger', 'iron'), offhand: kit('item/armor/parrying_dagger', 'iron') },
+  { id: 'ranger', icon: 'ranger', name: { en: 'Ranger', zh: '游侠' }, doc: { en: 'Bows, theirs alone; a steady aim from afar, quick feet between shots.', zh: '专精弓箭；站稳了打得准、打得远，射完就走。' }, weapon: kit('item/weapon/ranged/bow', 'wood'), offhand: kit('item/armor/quiver', 'leather') },
+  { id: 'mage', icon: 'mage', name: { en: 'Mage', zh: '法师' }, doc: { en: 'Staves, theirs alone; elemental spells that echo, a shield of mana, strength drawn from the fallen.', zh: '专精法杖；元素法术会回响，法力护盾护身，击倒敌人回复生命。' }, weapon: kit('item/weapon/magic/staff', 'wood'), offhand: kit('item/armor/tome', 'leather') },
+  { id: 'swordsman', icon: 'swordsman', name: { en: 'Swordsman', zh: '剑客' }, doc: { en: 'The katana, theirs alone, a scabbard at the hip; a quick draw, a true cut, the next cut on its heels.', zh: '专精太刀，腰挎刀鞘；拔刀快，出刀准，一刀紧接一刀。' }, weapon: kit('item/weapon/blade/katana', 'iron'), offhand: kit('item/armor/scabbard', 'wood') },
+  { id: 'cleric', icon: 'cleric', name: { en: 'Cleric', zh: '圣职者' }, doc: { en: 'The cross, theirs alone, swung as a mace is, a rosary at the belt; blows that mend, light that burns the night\'s things.', zh: '专精十字架，像钉锤一样抡，腰挂念珠；打中敌人能回血，圣光专烧夜里的东西。' }, weapon: kit('item/weapon/blunt/cross', 'iron'), offhand: kit('item/armor/rosary', 'wood') },
   // each with its three paths and its mastery (advancement.ts, docs/advancement.md)
 ] as (ProfessionDef & { icon: string; name: { en: string; zh: string } })[]).map((p) => ({ ...p, paths: PATHS[p.id], mastery: MASTERIES[p.id] }))
 export const PROFESSION_BY_ID: Record<string, (typeof SKILL_PROFESSIONS)[number]> = Object.fromEntries(SKILL_PROFESSIONS.map((p) => [p.id, p]))
@@ -118,13 +120,6 @@ export const SKILLS: SkillDef[] = [
   { id: 'shadow-recovery', branch: 'profession', profession: 'assassin', icon: 'shadow-recovery', requires: ['backstab'], ability: true, name: { en: 'Shadow Recovery', zh: '影中汲取' }, doc: { en: 'Defeating a creature with a dagger restores 10% of max health, rounded up; never above max health.', zh: '用匕首击败生物时，恢复生命上限的 10%（向上取整），不超过生命上限。' } },
   { id: 'death-dance', branch: 'profession', profession: 'assassin', icon: 'death-dance', requires: ['relentless', 'shadow-recovery'], cost: 2, ability: true, name: { en: 'Death Dance', zh: '死亡之舞' }, doc: { en: 'A qualifying Ambush or Backstab is guaranteed to critically hit. Does not turn Sweep secondary hits into critical openers.', zh: '触发暗影先手或背刺的攻击必定暴击；不会让横扫副目标获得先手或背刺暴击。' } },
 
-  // the warrior (combat.ts): melee arms; one arm holds the line, the other answers and rampages
-  { id: 'warrior-arms', branch: 'profession', profession: 'warrior', icon: 'warrior-arms', ability: true, name: { en: 'Arms Training', zh: '武器训练' }, doc: { en: 'Sword attacks gain +1 power. Like every warrior talent that strikes, it answers swords only, never common weapons.', zh: '使用剑攻击时威力 +1。战士的攻击类天赋都只对剑生效，通用武器无效。' } },
-  { id: 'bulwark', branch: 'profession', profession: 'warrior', icon: 'bulwark', requires: ['warrior-arms'], ability: true, name: { en: 'Bulwark', zh: '铁壁' }, doc: { en: 'Direct combat damage taken −15%. Minimum 1; not hunger or environmental damage.', zh: '受到的直接战斗伤害 −15%，最低仍为 1；不减免饥饿或环境伤害。' } },
-  { id: 'unbreakable', branch: 'profession', profession: 'warrior', icon: 'unbreakable', requires: ['bulwark'], grant: { maxHp: 10 }, name: { en: 'Unbreakable', zh: '不破之身' }, doc: { en: 'Max health +10.', zh: '生命上限 +10。' } },
-  { id: 'retaliation', branch: 'profession', profession: 'warrior', icon: 'retaliation', requires: ['warrior-arms'], ability: true, name: { en: 'Retaliation', zh: '以牙还牙' }, doc: { en: 'Within 2 seconds of taking a combat hit, your next primary sword hit gains 40% damage.', zh: '受到战斗伤害后的 2 秒内，下一次用剑的主目标命中伤害 +40%。' } },
-  { id: 'rampage', branch: 'profession', profession: 'warrior', icon: 'rampage', requires: ['retaliation'], ability: true, name: { en: 'Rampage', zh: '狂暴' }, doc: { en: 'Felling a creature with a sword: +15% sword damage for 5 seconds, stacking up to three times.', zh: '用剑击倒生物后，5 秒内剑的伤害 +15%，最多叠加 3 层。' } },
-  { id: 'warlord', branch: 'profession', profession: 'warrior', icon: 'warlord', requires: ['unbreakable', 'rampage'], cost: 2, ability: true, name: { en: 'Warlord', zh: '战争领主' }, doc: { en: 'Bulwark rises to −30%, and every Retaliation hit that lands restores 2 health.', zh: '铁壁减伤提高到 30%；每次以牙还牙命中恢复 2 点生命。' } },
   // the ranger: bows; one arm stands and aims, the other shoots and moves
   { id: 'ranger-archery', branch: 'profession', profession: 'ranger', icon: 'ranger-archery', ability: true, name: { en: 'Archery', zh: '箭术' }, doc: { en: 'Bows gain +1 power and +1 range. Ranger talents answer bows only.', zh: '弓的威力 +1，射程 +1。游侠天赋只对弓生效。' } },
   { id: 'steady-aim', branch: 'profession', profession: 'ranger', icon: 'steady-aim', requires: ['ranger-archery'], ability: true, name: { en: 'Steady Aim', zh: '稳定瞄准' }, doc: { en: 'Bow hits gain 30% damage when you have not moved for 1 second.', zh: '1 秒内没有移动时，弓箭命中伤害 +30%。' } },
@@ -139,6 +134,20 @@ export const SKILLS: SkillDef[] = [
   { id: 'mana-shield', branch: 'profession', profession: 'mage', icon: 'mana-shield', requires: ['mage-focus'], ability: true, name: { en: 'Mana Shield', zh: '法力护盾' }, doc: { en: 'Direct combat damage taken −20% while holding a staff.', zh: '手持法杖时，受到的直接战斗伤害 −20%。' } },
   { id: 'arcane-recovery', branch: 'profession', profession: 'mage', icon: 'arcane-recovery', requires: ['mana-shield'], ability: true, name: { en: 'Arcane Recovery', zh: '奥术汲取' }, doc: { en: 'Felling a creature with a staff restores 3 health.', zh: '用法杖击倒生物时恢复 3 点生命。' } },
   { id: 'archmage', branch: 'profession', profession: 'mage', icon: 'archmage', requires: ['spell-echo', 'arcane-recovery'], cost: 2, ability: true, name: { en: 'Archmage', zh: '大法师' }, doc: { en: 'Staves gain +2 more power and +1 range.', zh: '法杖的威力再 +2，射程 +1。' } },
+  // the swordsman (2026-11-03): the katana's own; an arm of the edge, an arm of the feet, the way of the blade at the end
+  { id: 'kenjutsu', branch: 'profession', profession: 'swordsman', icon: 'kenjutsu', ability: true, passive: { when: { weapon: 'own' }, damage: 0.1, attackHaste: 0.05 }, name: { en: 'Kenjutsu', zh: '剑术' }, doc: { en: 'With a katana: damage +10%, attack speed +5%. Like every swordsman talent that strikes, it answers the katana only.', zh: '持太刀时伤害 +10%，攻击速度 +5%。剑客的攻击类天赋都只对太刀生效。' } },
+  { id: 'honed-blade', branch: 'profession', profession: 'swordsman', icon: 'honed-blade', requires: ['kenjutsu'], ability: true, passive: { when: { weapon: 'own' }, crit: 0.05 }, name: { en: 'Honed Blade', zh: '砥刃' }, doc: { en: 'With a katana: critical chance +5%.', zh: '持太刀时暴击率 +5%。' } },
+  { id: 'clean-cut', branch: 'profession', profession: 'swordsman', icon: 'clean-cut', requires: ['honed-blade'], ability: true, passive: { when: { weapon: 'own', target: { wounded: 0.3 } }, damage: 0.3 }, name: { en: 'Clean Cut', zh: '一刀两断' }, doc: { en: 'With a katana, against a foe at three tenths of its health or less: damage +30%.', zh: '持太刀攻击生命不高于三成的敌人时，伤害 +30%。' } },
+  { id: 'fleet-stance', branch: 'profession', profession: 'swordsman', icon: 'fleet-stance', requires: ['kenjutsu'], ability: true, passive: { moveHaste: 0.06, dodge: 0.04 }, name: { en: 'Fleet Stance', zh: '疾步' }, doc: { en: 'Movement speed +6%, dodge +4%.', zh: '移动速度 +6%，闪避 +4%。' } },
+  { id: 'parry', branch: 'profession', profession: 'swordsman', icon: 'parry', requires: ['fleet-stance'], ability: true, passive: { when: { weapon: 'own' }, front: 0.1 }, name: { en: 'Parry', zh: '见切' }, doc: { en: 'With a katana: a blow from the way you face is turned aside one time in ten.', zh: '持太刀时，来自正面的攻击有十分之一的几率被格开。' } },
+  { id: 'way-of-the-blade', branch: 'profession', profession: 'swordsman', icon: 'way-of-the-blade', requires: ['clean-cut', 'parry'], cost: 2, ability: true, passive: { when: { weapon: 'own' }, damage: 0.15, critDamage: 0.3 }, name: { en: 'Way of the Blade', zh: '剑之道' }, doc: { en: 'Capstone: with a katana, damage +15% and critical damage +30%.', zh: '终极：持太刀时伤害 +15%，暴击伤害 +30%。' } },
+  // the cleric (2026-11-12): the cross; one arm the blow and the light, the other the body kept and those who follow
+  { id: 'faith', branch: 'profession', profession: 'cleric', icon: 'faith', ability: true, passive: { when: { weapon: 'own' }, damage: 0.1, drain: 1 }, name: { en: 'Faith', zh: '信仰' }, doc: { en: 'With a cross: damage +10%, and each blow that lands draws back 1 health. Like every cleric talent that strikes, it answers the cross only.', zh: '持十字架时伤害 +10%，每次命中吸取 1 点生命。和所有会出手的圣职者天赋一样，只对十字架生效。' } },
+  { id: 'blessed-arms', branch: 'profession', profession: 'cleric', icon: 'blessed-arms', requires: ['faith'], ability: true, passive: { when: { weapon: 'own', target: { tag: ['undead', 'nightborn'] } }, damage: 0.2 }, name: { en: 'Blessed Arms', zh: '祝圣之器' }, doc: { en: 'With a cross, against the undead and the night\'s creatures: damage +20%.', zh: '持十字架攻击亡灵和夜行生物时，伤害 +20%。' } },
+  { id: 'zeal', branch: 'profession', profession: 'cleric', icon: 'zeal', requires: ['blessed-arms'], ability: true, passive: { when: { weapon: 'own' }, attackHaste: 0.08, crit: 0.05 }, name: { en: 'Zeal', zh: '热忱' }, doc: { en: 'With a cross: attack speed +8%, critical chance +5%.', zh: '持十字架时攻击速度 +8%，暴击率 +5%。' } },
+  { id: 'devotion', branch: 'profession', profession: 'cleric', icon: 'devotion', requires: ['faith'], grant: { maxHp: 10 }, name: { en: 'Devotion', zh: '虔诚' }, doc: { en: 'Max health +10.', zh: '生命上限 +10。' } },
+  { id: 'steadfast', branch: 'profession', profession: 'cleric', icon: 'steadfast', requires: ['devotion'], ability: true, passive: { taken: -0.08 }, name: { en: 'Steadfast', zh: '坚贞' }, doc: { en: 'Combat damage taken −8%.', zh: '受到的战斗伤害 −8%。' } },
+  { id: 'holy-vessel', branch: 'profession', profession: 'cleric', icon: 'holy-vessel', requires: ['zeal', 'steadfast'], cost: 2, ability: true, passive: { when: { weapon: 'own' }, damage: 0.15, taken: -0.1 }, name: { en: 'Holy Vessel', zh: '圣器' }, doc: { en: 'Capstone: with a cross, damage +15% and combat damage taken −10%.', zh: '终极天赋：持十字架时伤害 +15%，受到的战斗伤害 −10%。' } },
   { id: 'long-reach', branch: 'gathering', icon: 'magnet', grant: { magnet: 2 }, name: { en: 'Long Reach', zh: '长臂' }, doc: { en: 'Dropped things fly to you from two tiles farther.', zh: '掉落物的吸取范围扩大 2 格。' } },
   { id: 'woodcutter', branch: 'gathering', icon: 'axe', requires: ['long-reach'], ability: true, name: { en: 'Woodcutter', zh: '伐木工' }, doc: { en: 'A tree you fell gives one more log.', zh: '砍倒的树多掉一根木头。' } },
   { id: 'big-pack', branch: 'gathering', icon: 'pack', requires: ['woodcutter'], grant: { bagRows: 1 }, name: { en: 'Big Pack', zh: '大背包' }, doc: { en: 'One more row in the bag.', zh: '背包多一行。' } },
@@ -161,10 +170,6 @@ export const ACTIVE_SKILLS: SkillDef[] = [
   ACTIVE('smoke-bomb', 'profession', ['shadow-strike'], { kind: 'veil', cooldown: 250, ticks: 30 }, 'Smoke Bomb', '烟雾弹', 'For 3 seconds no creature can see you to attack you.', '3 秒内怪物看不见你，不会攻击你。', 'assassin'),
   ACTIVE('flurry', 'profession', ['envenom'], { kind: 'flurry', cooldown: 80, power: 0.6, count: 4 }, 'Flurry', '千刃', 'Four quick stabs on the cell ahead (×0.6 each).', '对前方一格快速连刺 4 次（每次 0.6 倍伤害）。', 'assassin'),
 
-  ACTIVE('shield-bash', 'profession', ['warrior-arms'], { kind: 'bash', cooldown: 100, power: 1, afflict: 'stunned', ticks: 15 }, 'Shield Bash', '盾击', 'Strike the cell ahead and stun it for 1.5 seconds.', '攻击前方一格并使其眩晕 1.5 秒。', 'warrior'),
-  ACTIVE('charge', 'profession', ['warrior-arms'], { kind: 'charge', cooldown: 120, power: 1.5, range: 3, afflict: 'stunned', ticks: 5 }, 'Charge', '冲锋', 'Rush up to 3 cells ahead into the first foe and strike it (×1.5, a moment\'s stun).', '向前冲锋最多 3 格，撞上第一个敌人并攻击（1.5 倍伤害，短暂眩晕）。', 'warrior'),
-  ACTIVE('war-cry', 'profession', ['shield-bash'], { kind: 'rally', cooldown: 250, ticks: 50 }, 'War Cry', '战吼', 'For 5 seconds: damage dealt +25%, combat damage taken −30%.', '5 秒内造成的伤害 +25%，受到的战斗伤害 −30%。', 'warrior'),
-  ACTIVE('earthsplitter', 'profession', ['charge'], { kind: 'quake', cooldown: 120, power: 1.3, afflict: 'stunned', ticks: 8 }, 'Earthsplitter', '裂地', 'Slam the ground: every foe on the 3×3 two cells ahead is struck (×1.3) and staggered.', '重击地面：前方两格处 3×3 范围内的敌人受到攻击（1.3 倍伤害）并被震晕片刻。', 'warrior'),
 
   ACTIVE('multishot', 'profession', ['ranger-archery'], { kind: 'multishot', range: 6, cooldown: 80, power: 0.8 }, 'Multishot', '多重箭', 'Three arrows side by side, each striking the first foe in its line (×0.8).', '并排射出 3 支箭，各自命中所在直线上的第一个敌人（0.8 倍伤害）。', 'ranger'),
   ACTIVE('leap-shot', 'profession', ['ranger-archery'], { kind: 'leap-shot', range: 6, cooldown: 100, power: 1.2, count: 2 }, 'Leap Shot', '后跃射击', 'Leap 2 cells back and loose an arrow ahead (×1.2).', '向后跃 2 格，同时向前射出一箭（1.2 倍伤害）。', 'ranger'),
@@ -175,6 +180,14 @@ export const ACTIVE_SKILLS: SkillDef[] = [
   ACTIVE('frost-nova', 'profession', ['mage-focus'], { kind: 'nova', cooldown: 150, power: 0.5, range: 2, element: 'ice', afflict: 'frozen', ticks: 20 }, 'Frost Nova', '冰霜新星', 'Every foe within 2 cells is struck by ice (×0.5) and frozen for 2 seconds.', '周围 2 格内的敌人受到冰霜伤害（0.5 倍）并被冻结 2 秒。', 'mage'),
   ACTIVE('chain-lightning', 'profession', ['fireball'], { kind: 'chain', range: 5, cooldown: 100, power: 1.2, count: 3, element: 'lightning' }, 'Chain Lightning', '闪电链', 'Lightning strikes the first foe ahead and leaps on to 2 more nearby (×1.2 each).', '闪电击中前方第一个敌人，再跳向附近的另外 2 个（每次 1.2 倍伤害）。', 'mage'),
   ACTIVE('blink', 'profession', ['frost-nova'], { kind: 'blink', cooldown: 120, range: 4 }, 'Blink', '闪现', 'Vanish and reappear up to 4 cells ahead, through creatures but not walls.', '瞬移到前方最多 4 格处，可穿过生物，不能穿墙。', 'mage'),
+  ACTIVE('cross-cut', 'profession', ['kenjutsu'], { kind: 'arc', cooldown: 70, power: 1.4 }, 'Cross Cut', '十字斩', 'A cut across the three cells ahead (×1.4).', '横斩前方 3 格（1.4 倍伤害）。', 'swordsman'),
+  ACTIVE('rising-slash', 'profession', ['kenjutsu'], { kind: 'bash', cooldown: 100, power: 1.6, afflict: 'knelt', ticks: 10 }, 'Rising Slash', '挑斩', 'An upward cut at the cell ahead (×1.6): the foe is brought to its knees for 1 s.', '向上挑斩前方一格（1.6 倍伤害），使其跪地 1 秒。', 'swordsman'),
+  ACTIVE('step-cut', 'profession', ['cross-cut'], { kind: 'charge', cooldown: 120, power: 1.6, range: 3 }, 'Step Cut', '踏斩', 'Rush up to 3 cells at the first foe ahead and cut it (×1.6).', '冲向前方 3 格内的第一个敌人并斩击（1.6 倍伤害）。', 'swordsman'),
+  ACTIVE('smite', 'profession', ['faith'], { kind: 'bash', cooldown: 70, power: 1.8, afflict: 'stunned', ticks: 5 }, 'Smite', '惩击', 'A blow of the cross on the cell ahead (×1.8) that dazes the foe a moment.', '用十字架砸向前方一格（1.8 倍伤害），让敌人短暂眩晕。', 'cleric'),
+  ACTIVE('prayer', 'profession', ['faith'], { kind: 'mend', cooldown: 250, power: 0.2, range: 6 }, 'Prayer', '祷告', 'A prayer that mends you and every companion within 6 cells: a fifth of each one\'s max health.', '一段祷告，为你和身边 6 格内的每个同伴恢复各自生命上限五分之一的生命。', 'cleric'),
+  ACTIVE('consecrate', 'profession', ['smite'], { kind: 'field', leaves: HAZARDS.holy, pattern: 'around', cooldown: 260, ticks: 60, buff: { party: true, regen: 2 } }, 'Consecrate', '祝圣', 'Hallow the 3×3 round you for 6 s: you and your companions within 6 cells mend 2 a second, and the undead that walk onto it burn.', '把你周围 3×3 化为圣域，持续 6 秒：你和身边 6 格内的同伴每秒恢复 2 点生命，走上去的亡灵会被灼伤。', 'cleric'),
+  ACTIVE('rebuke', 'profession', ['prayer'], { kind: 'nova', cooldown: 150, power: 0.8, range: 2, afflict: 'knelt', ticks: 10 }, 'Rebuke', '斥退', 'Every foe within 2 cells is struck (×0.8) and brought to its knees for 1 s.', '周围 2 格内的敌人受到攻击（0.8 倍伤害）并跪地 1 秒。', 'cleric'),
+  ACTIVE('whirl-cut', 'profession', ['rising-slash'], { kind: 'whirlwind', cooldown: 110, power: 1, count: 2 }, 'Whirl Cut', '回旋斩', 'Turn twice where you stand: every foe round you is cut twice (×1.0 each).', '原地回旋两圈：周围的敌人各受到两次攻击（每次 1.0 倍伤害）。', 'swordsman'),
 ]
 
 
@@ -203,23 +216,10 @@ export const PROFESSION_DEEPER: SkillDef[] = [
   TALENT('nimble-blade', 'assassin', ['ambush'], 'Nimble Blade', '敏捷', 'With a dagger in hand: dodge +8%.', '手持匕首时闪避 +8%。'),
   TALENT('master-assassin', 'assassin', ['death-dance', 'vanishing-strikes'], 'Master Assassin', '暗杀大师', 'Capstone: whenever you fell a creature, Shadow Strike is ready again at once.', '终极天赋：每击倒一个生物，影袭的冷却立即刷新。', { cost: 2 }),
 
-  // the warrior: the blade, the shield, the fury
-  ACTIVE('wide-slash', 'profession', ['retaliation'], { kind: 'arc', cooldown: 60, power: 1.3 }, 'Wide Slash', '横劈', 'One sweep across the three cells ahead (×1.3).', '一刀横扫前方 3 格（1.3 倍伤害）。', 'warrior'),
-  ACTIVE('iron-guard', 'profession', ['bulwark'], { kind: 'guard', cooldown: 200, ticks: 30 }, 'Iron Guard', '坚盾', 'For 3 seconds: combat damage taken −60%, but you move slower.', '3 秒内受到的战斗伤害 −60%，但移动变慢。', 'warrior'),
-  { ...ACTIVE('heaven-splitter', 'profession', ['quake-plus', 'slash-plus'], { kind: 'slam', cooldown: 300, power: 2.5, range: 5, afflict: 'stunned', ticks: 15 }, 'Heaven Splitter', '天崩斩', 'Ultimate: one great blow down the 5×3 cells ahead (×2.5), stunning what it strikes.', '终极：向前方 5×3 范围劈下巨剑（2.5 倍伤害），并使其眩晕。', 'warrior'), cost: 2 },
-  MOD('bash-plus', 'warrior', ['shield-bash'], { skill: 'shield-bash', ticks: 10 }, 'Shield Bash: Concussion', '盾击·重震', 'Shield Bash: stun +1 s.', '盾击：眩晕 +1 秒。'),
-  MOD('charge-plus', 'warrior', ['charge'], { skill: 'charge', range: 2 }, 'Charge: Long Run', '冲锋·远', 'Charge: 2 cells farther.', '冲锋：距离 +2 格。'),
-  MOD('war-cry-plus', 'warrior', ['war-cry'], { skill: 'war-cry', ticks: 30 }, 'War Cry: Rousing', '战吼·激昂', 'War Cry: lasts 3 s longer.', '战吼：持续 +3 秒。'),
-  MOD('quake-plus', 'warrior', ['earthsplitter'], { skill: 'earthsplitter', power: 0.4 }, 'Earthsplitter: Aftershock', '裂地·余震', 'Earthsplitter: power +0.4.', '裂地：伤害倍率 +0.4。'),
-  MOD('slash-plus', 'warrior', ['wide-slash'], { skill: 'wide-slash', power: 0.4 }, 'Wide Slash: Honed', '横劈·锋', 'Wide Slash: power +0.4.', '横劈：伤害倍率 +0.4。'),
-  TALENT('shield-wall', 'warrior', ['iron-guard'], 'Shield Wall', '盾墙', 'With a shield worn: block chance +5%.', '佩戴盾牌时格挡率 +5%。'),
-  TALENT('bloodthirst', 'warrior', ['rampage'], 'Bloodthirst', '嗜血', 'Whenever you fell a creature: mend 5% of your max health.', '每击倒一个生物，恢复 5% 生命上限的生命。'),
-  TALENT('fortitude', 'warrior', ['unbreakable'], 'Fortitude', '坚毅', 'What a blow leaves to hold you still (a stun, a freeze, kneeling) lasts half as long.', '被攻击附带的控制效果（眩晕、冰冻、跪地）持续时间减半。'),
-  TALENT('undying-spirit', 'warrior', ['warlord', 'heaven-splitter'], 'Undying Spirit', '不灭战魂', 'Capstone: whenever you fell a creature, every skill comes 1 s nearer to ready.', '终极天赋：每击倒一个生物，所有技能的冷却 −1 秒。', { cost: 2 }),
 
   // the ranger: the shot, the eye, the storm
   ACTIVE('concussive-shot', 'profession', ['steady-aim'], { kind: 'shot', missile: 'arrow', cooldown: 80, power: 1, range: 6, afflict: 'stunned', ticks: 10 }, 'Concussive Shot', '震荡箭', 'An arrow that stuns the first foe in its line for 1 s (×1.0).', '射出一箭，命中直线上第一个敌人并使其眩晕 1 秒（1.0 倍伤害）。', 'ranger'),
-  ACTIVE('hawk-eye', 'profession', ['fleet-archer'], { kind: 'aim', cooldown: 250, ticks: 50 }, 'Hawk Eye', '鹰眼', 'For 5 seconds: a shooting weapon reaches 3 cells farther, critical chance +20%.', '5 秒内射击武器射程 +3 格，暴击率 +20%。', 'ranger'),
+  ACTIVE('hawk-eye', 'profession', ['fleet-archer'], { kind: 'aim', cooldown: 250, ticks: 50 }, 'Far Sight', '远眺', 'For 5 seconds: a shooting weapon reaches 3 cells farther, critical chance +20%.', '5 秒内射击武器射程 +3 格，暴击率 +20%。', 'ranger'),
   { ...ACTIVE('arrow-storm', 'profession', ['multishot-plus', 'rain-plus'], { kind: 'multishot', cooldown: 300, power: 1.2, range: 6, count: 5, through: true }, 'Arrow Storm', '万箭齐发', 'Ultimate: five arrows side by side, each through every foe in its line (×1.2).', '终极：并排射出 5 支箭，每支都贯穿所在直线上的所有敌人（1.2 倍伤害）。', 'ranger'), cost: 2 },
   MOD('multishot-plus', 'ranger', ['multishot'], { skill: 'multishot', count: 2 }, 'Multishot: Five', '多重箭·五连', 'Multishot: 2 more arrows.', '多重箭：箭数 +2。'),
   MOD('leap-plus', 'ranger', ['leap-shot'], { skill: 'leap-shot', count: 1, cooldown: -20 }, 'Leap Shot: Far Leap', '后跃射击·远', 'Leap Shot: 1 cell farther back, cooldown −2 s.', '后跃射击：后跳 +1 格，冷却 −2 秒。'),
@@ -244,6 +244,32 @@ export const PROFESSION_DEEPER: SkillDef[] = [
   TALENT('elementalist', 'mage', ['frost-bolt'], 'Elementalist', '元素专精', 'What carries an element strikes 15% harder (a staff with one, an element\'s spell).', '带元素的攻击伤害 +15%（带元素的法杖、元素法术）。'),
   TALENT('arcane-barrier', 'mage', ['arcane-recovery'], 'Arcane Barrier', '奥术屏障', 'Max health +10.', '生命上限 +10。', { grant: { maxHp: 10 } }),
   TALENT('elemental-master', 'mage', ['archmage', 'meteor'], 'Elemental Master', '元素大师', 'Capstone: every third skill you cast does not rest.', '终极天赋：每第 3 次施放的技能不进入冷却。', { cost: 2 }),
+  // the swordsman, deeper
+  ACTIVE('focus-stance', 'profession', ['honed-blade'], { kind: 'buff', cooldown: 220, ticks: 50, buff: { crit: 0.2, front: 0.15 } }, 'Focused Stance', '正眼之构', 'For 5 s: critical chance +20%, and a blow from the way you face is turned aside 15% of the time.', '5 秒内暴击率 +20%，来自正面的攻击有 15% 的几率被格开。', 'swordsman'),
+  ACTIVE('piercing-thrust', 'profession', ['fleet-stance'], { kind: 'pierce', missile: 'blade', cooldown: 80, power: 1.5, range: 3 }, 'Piercing Thrust', '突刺', 'A thrust through every foe in the 3 cells ahead (×1.5).', '向前突刺，贯穿前方 3 格内的所有敌人（1.5 倍伤害）。', 'swordsman'),
+  { ...ACTIVE('heaven-rending', 'profession', ['cross-cut-plus', 'whirl-cut-plus'], { kind: 'slam', cooldown: 300, power: 2.6, range: 4 }, 'Heaven Rending', '天斩', 'Ultimate: one cut through everything in the 4 cells ahead, three wide (×2.6).', '终极：一刀斩开前方 4 格、3 格宽的一切（2.6 倍伤害）。', 'swordsman'), cost: 2 },
+  MOD('cross-cut-plus', 'swordsman', ['cross-cut'], { skill: 'cross-cut', power: 0.4 }, 'Cross Cut: Honed', '十字斩·锋', 'Cross Cut: power +0.4.', '十字斩：伤害倍率 +0.4。'),
+  MOD('rising-plus', 'swordsman', ['rising-slash'], { skill: 'rising-slash', ticks: 10 }, 'Rising Slash: Heavy', '挑斩·重', 'Rising Slash: kneeling +1 s.', '挑斩：跪地 +1 秒。'),
+  MOD('step-cut-plus', 'swordsman', ['step-cut'], { skill: 'step-cut', range: 2 }, 'Step Cut: Long Stride', '踏斩·远', 'Step Cut: 2 cells farther.', '踏斩：距离 +2 格。'),
+  MOD('whirl-cut-plus', 'swordsman', ['whirl-cut'], { skill: 'whirl-cut', count: 1 }, 'Whirl Cut: Quick', '回旋斩·疾', 'Whirl Cut: one turn more.', '回旋斩：多转一圈。'),
+  MOD('thrust-plus', 'swordsman', ['piercing-thrust'], { skill: 'piercing-thrust', range: 2, power: 0.3 }, 'Piercing Thrust: Deep', '突刺·贯', 'Piercing Thrust: 2 cells deeper, power +0.3.', '突刺：距离 +2 格，伤害倍率 +0.3。'),
+  TALENT('blood-on-steel', 'swordsman', ['clean-cut'], 'Blood on Steel', '血染', 'With a katana: each blow that lands draws back 1 health.', '持太刀时每次命中吸取 1 点生命。', { passive: { when: { weapon: 'own' }, drain: 1 } }),
+  TALENT('unwavering', 'swordsman', ['parry'], 'Unwavering', '不动心', 'Standing your ground (no step this second): critical chance +8%, combat damage taken −8%.', '站定不动满 1 秒时，暴击率 +8%，受到的战斗伤害 −8%。', { passive: { when: { standing: true }, crit: 0.08, taken: -0.08 } }),
+  TALENT('flowing-blade', 'swordsman', ['fleet-stance'], 'Flowing Blade', '流刃', 'On the move (a step this second): damage +10%, dodge +5%.', '移动中（这一秒内走过一步）伤害 +10%，闪避 +5%。', { passive: { when: { moving: true }, damage: 0.1, dodge: 0.05 } }),
+  TALENT('sword-soul', 'swordsman', ['way-of-the-blade', 'heaven-rending'], 'Sword Soul', '剑魂', 'Capstone: with a katana, damage +20% and attack speed +10%.', '终极天赋：持太刀时伤害 +20%，攻击速度 +10%。', { cost: 2, passive: { when: { weapon: 'own' }, damage: 0.2, attackHaste: 0.1 } }),
+  // the cleric, deeper
+  ACTIVE('holy-light', 'profession', ['zeal'], { kind: 'shot', cooldown: 90, power: 1.5, range: 5 }, 'Holy Light', '圣光', 'A bolt of light at the first foe ahead within 5 cells (×1.5).', '向 5 格内的第一个敌人射出一道圣光（1.5 倍伤害）。', 'cleric'),
+  ACTIVE('blessing', 'profession', ['steadfast'], { kind: 'buff', cooldown: 300, ticks: 80, buff: { party: true, damage: 0.15, taken: -0.1 } }, 'Blessing', '祝福', 'For 8 s, you and your companions within 6 cells: damage +15%, combat damage taken −10%.', '8 秒内，你和身边 6 格内的同伴伤害 +15%，受到的战斗伤害 −10%。', 'cleric'),
+  { ...ACTIVE('divine-wrath', 'profession', ['smite-plus', 'prayer-plus'], { kind: 'nova', cooldown: 320, power: 2.5, range: 3, afflict: 'stunned', ticks: 15 }, 'Divine Wrath', '神怒', 'Ultimate: heaven\'s anger falls round you: every foe within 3 cells is struck (×2.5) and stunned for 1.5 s.', '终极：天怒落在你周围：3 格内的敌人受到攻击（2.5 倍伤害）并眩晕 1.5 秒。', 'cleric'), cost: 2 },
+  MOD('smite-plus', 'cleric', ['smite'], { skill: 'smite', power: 0.5 }, 'Smite: Heavy', '惩击·重', 'Smite: power +0.5.', '惩击：伤害倍率 +0.5。'),
+  MOD('prayer-plus', 'cleric', ['prayer'], { skill: 'prayer', power: 0.1, cooldown: -50 }, 'Prayer: Fervent', '祷告·虔', 'Prayer: mends a tenth more, cooldown −5 s.', '祷告：多恢复十分之一，冷却 −5 秒。'),
+  MOD('consecrate-plus', 'cleric', ['consecrate'], { skill: 'consecrate', cooldown: -60 }, 'Consecrate: Wide Blessing', '祝圣·广', 'Consecrate: cooldown −6 s.', '祝圣：冷却 −6 秒。'),
+  MOD('rebuke-plus', 'cleric', ['rebuke'], { skill: 'rebuke', range: 1 }, 'Rebuke: Loud', '斥退·喝', 'Rebuke: reach +1 cell.', '斥退：范围 +1 格。'),
+  MOD('holy-light-plus', 'cleric', ['holy-light'], { skill: 'holy-light', power: 0.5, range: 2 }, 'Holy Light: Bright', '圣光·炽', 'Holy Light: power +0.5, reach +2 cells.', '圣光：伤害倍率 +0.5，距离 +2 格。'),
+  TALENT('hymn', 'cleric', ['blessing'], 'Hymn', '圣歌', 'You and your companions within 6 cells: attack speed +8%.', '你和身边 6 格内的同伴攻击速度 +8%。', { passive: { party: true, attackHaste: 0.08 } }),
+  TALENT('penitence', 'cleric', ['rebuke'], 'Penitence', '忏悔', 'Against the kneeling and the stunned: damage +20%.', '对跪地或眩晕的敌人伤害 +20%。', { passive: { when: { target: { status: ['knelt', 'stunned'] } }, damage: 0.2 } }),
+  TALENT('vigil', 'cleric', ['consecrate'], 'Vigil', '守夜', 'At night: damage +10%, combat damage taken −10%.', '入夜后伤害 +10%，受到的战斗伤害 −10%。', { passive: { when: { night: true }, damage: 0.1, taken: -0.1 } }),
+  TALENT('sainthood', 'cleric', ['holy-vessel', 'divine-wrath'], 'Sainthood', '封圣', 'Capstone: with a cross, damage +20%, and each blow that lands draws back 2 more.', '终极天赋：持十字架时伤害 +20%，每次命中多吸取 2 点生命。', { cost: 2, passive: { when: { weapon: 'own' }, damage: 0.2, drain: 2 } }),
 ]
 
 SKILLS.push(...ACTIVE_SKILLS, ...PROFESSION_DEEPER, ...ADVANCEMENT_SKILLS, ...LIFE_SKILLS)

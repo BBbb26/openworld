@@ -26,8 +26,8 @@ yet; the story's bosses are being redesigned (docs/chapter-1.md). The internal i
   HUD, without reading or writing saves. Choose a boss, inspect its animation modes, trigger its
   skills, or fight with WASD and Space (200 HP, 8 attack; not campaign balance).
 - **Boss Challenge** (首领挑战, a page of its own, `/boss-gallery.html?challenge=1`; the title screen's button went 2026-10-25): pick
-  one of the four and a level-20 profession (assassin dagger, warrior sword and shield, ranger
-  bow, mage fire staff), each with its six profession talents and four shared starter talents.
+  one of the four and a level-20 profession (assassin dagger, ranger bow, mage fire staff, swordsman
+  katana and scabbard; the warrior's sword and shield went 2026-11-05), each with its six profession talents and four shared starter talents.
   Selection pauses; Escape pauses; victory and defeat offer retry. Nothing is saved.
   `client/src/boss-challenge.ts` owns the disposable bootstrap.
 - Both stage the fight in the East Road's clearing (`BOSS_ARENA`, `(23,15)`); no campaign boss
@@ -121,6 +121,7 @@ targeting, dodging, multi-cell collision and edge hits, save and reload, phase t
 as before), one-time rewards, the migrations, and every runtime PNG. `boss-fights.test.ts`: the White Knight's and the
 dragon's redesigned fights. `kit-contract.test.ts`: the contract both kits keep (docs/skills.md §4). `boss-challenge.test.ts`: the four loadouts, each boss
 alone, win, loss and retry. `boss-balance.test.ts`: with real movement and attacks, every
-profession loses to each boss (the dragon among them) when ignoring warnings, and a dodging warrior beats each.
+profession loses to each boss (the dragon among them) when ignoring warnings, and a dodging swordsman beats each (the
+warrior did until it went, 2026-11-05; the swordsman with its scabbard's draw, the off hands', the same day).
 `alberic-art.test.ts`: all 102 new runtime frames (real decoded alpha, unique pixels, unclipped
 borders), directional action selection, bow-release timing and unchanged legacy atlas selection.

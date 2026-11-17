@@ -1,6 +1,7 @@
-// The active skills' icons (the skill bar's twenty: four for everyone, four for each profession), 64x64, drawn by
-// code in the look of the illustrated skill art: one bold emblem on a clear ground, a dark outline round it, three or
-// four tones a colour, a few bright accents; what flies off it (wind, sparks, smoke) is left without an outline.
+// The active skills' icons (the skill bar's first sixteen: four for everyone, four for the assassin, the ranger and the
+// mage each), 64x64, drawn by code in the look of the illustrated skill art: one bold emblem on a clear ground, a dark
+// outline round it, three or four tones a colour, a few bright accents; what flies off it (wind, sparks, smoke) is left
+// without an outline.
 //
 //   npx tsx games/openworld/tools/src/art/skill-actives.ts
 
@@ -272,92 +273,6 @@ icon('flurry', (r) => {
     r.outline('k')
   }
   for (const [x, y] of [[52, 16], [44, 6], [58, 30]] as const) sparkle(r, x, y, 2, 's3', 's4')
-})
-
-// ---------------------------------------------------------------- the warrior
-
-// Shield Bash: a round shield, a star of impact where it strikes
-icon('shield-bash', (r) => {
-  // the impact behind, to the right
-  r.poly([[46, 20], [50, 28], [60, 26], [52, 33], [60, 40], [50, 38], [46, 46], [44, 37], [36, 34], [44, 30]], 'f3')
-  r.poly([[46, 26], [48, 30], [54, 30], [50, 33], [54, 37], [48, 36], [46, 40], [45, 35], [41, 33], [45, 31]], 'f4')
-  r.outline('k')
-  ball(r, 26, 34, 18, ['w1', 'w2', 'w3'])
-  r.ellipse(26, 34, 18, 18, null as unknown as string)
-  ball(r, 26, 34, 18, ['w1', 'w2', 'w3'])
-  arc(r, 26, 34, 16, 0, 360, 's2', 2)
-  arc(r, 26, 34, 16, 190, 280, 's4', 1)
-  ball(r, 26, 34, 5, ['g1', 'g2', 'g3'])
-  for (const a of [45, 135, 225, 315]) {
-    const t = (a * Math.PI) / 180
-    r.rect(26 + Math.cos(t) * 11 - 1, 34 + Math.sin(t) * 11 - 1, 2, 2, 'g2')
-  }
-  r.outline('k')
-  for (const [x, y, len] of [[54, 14, 6], [56, 50, 6]] as const) r.line(x, y, x + len, y + (y < 32 ? -3 : 3), 'f3')
-})
-
-// Charge: a helmed head rushing forward behind a lance point, speed lines trailing
-icon('charge', (r) => {
-  // the lance
-  r.poly([[14, 34], [56, 26], [14, 40]], 's2')
-  r.line(16, 35, 54, 27, 's4')
-  r.line(16, 39, 50, 29, 's1')
-  r.outline('k')
-  // the helmet
-  r.poly([[10, 18], [26, 14], [32, 22], [32, 36], [10, 36]], 's2')
-  r.poly([[12, 18], [22, 15], [24, 22], [12, 24]], 's3')
-  r.rect(18, 25, 12, 3, 'k')
-  r.rect(10, 32, 22, 4, 's1')
-  r.poly([[12, 14], [8, 6], [16, 12]], 'r2')
-  r.outline('k')
-  streaks(r, [[0, 44, 10], [2, 48, 14], [0, 52, 8], [0, 12, 4]], ['g3', 'g2', 'm3'])
-  sparkle(r, 58, 24, 3, 'f3', 'f4')
-})
-
-// War Cry: a horned helmet roaring, shout waves rolling out
-icon('war-cry', (r) => {
-  for (const rad of [22, 27]) arc(r, 30, 34, rad, -50, 50, rad === 22 ? 'f3' : 'f2', 2)
-  for (const rad of [22, 27]) arc(r, 30, 34, rad, 130, 230, rad === 22 ? 'f3' : 'f2', 2)
-  // horns
-  r.poly([[18, 26], [8, 18], [6, 8], [12, 16], [22, 22]], 'm4')
-  r.poly([[42, 26], [52, 18], [54, 8], [48, 16], [38, 22]], 'm4')
-  r.line(8, 12, 12, 18, 'm3')
-  r.line(52, 12, 48, 18, 'm3')
-  // helmet and open mouth
-  r.ellipse(30, 32, 13, 12, 's2')
-  r.ellipse(27, 28, 8, 6, 's3')
-  r.rect(18, 36, 24, 10, 's2')
-  r.rect(22, 34, 16, 3, 'k')
-  r.poly([[24, 40], [36, 40], [34, 48], [26, 48]], 'r1')
-  r.rect(26, 40, 8, 2, 'm4')
-  r.line(30, 20, 30, 34, 'g2')
-  r.outline('k', ['f2', 'f3'])
-})
-
-// Earthsplitter: a war hammer slammed down, the ground split and shards flying
-icon('earthsplitter', (r) => {
-  // ground and the split
-  r.poly([[4, 48], [60, 48], [60, 58], [4, 58]], 'e2')
-  r.line(4, 48, 60, 48, 'e3')
-  r.poly([[26, 48], [38, 48], [34, 58], [30, 58]], 'k')
-  r.line(32, 48, 20, 56, 'k')
-  r.line(32, 48, 46, 56, 'k')
-  r.outline('k')
-  // the hammer
-  thick(r, [44, 6], [33, 32], 'w2', 3)
-  r.line(44, 6, 33, 32, 'w3')
-  r.poly([[18, 30], [44, 30], [46, 44], [16, 44]], 's2')
-  r.rect(18, 31, 26, 3, 's3')
-  r.line(19, 31, 30, 31, 's4')
-  r.rect(16, 41, 30, 3, 's1')
-  r.rect(29, 34, 6, 7, 'g2')
-  r.outline('k')
-  // shards
-  for (const [x, y] of [[8, 38], [12, 30], [54, 36], [50, 28], [6, 44]] as const) {
-    r.poly([[x, y], [x + 3, y - 2], [x + 4, y + 2]], 'e3')
-  }
-  r.outline('k')
-  for (const [x, y] of [[14, 46], [50, 46]] as const) sparkle(r, x, y, 2, 'f3', 'f4')
 })
 
 // ---------------------------------------------------------------- the ranger

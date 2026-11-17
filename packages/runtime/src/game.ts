@@ -36,6 +36,8 @@ export interface SkillBranchDef {
   way?: 'left' | 'right' | 'up' | 'down'
   /** The branch it goes on after, beyond it (the second advancement after the profession's own tree). */
   after?: string
+  /** Laid out a panel a path of the profession, side by side, every path shown (the advancements' path and mastery). */
+  byPath?: boolean
 }
 
 /** A profession as its card shows it. */
@@ -163,6 +165,8 @@ export interface ClientGame extends GameDef {
     relics: Record<string, Words & { text: Words }>
     /** The Vowbound pieces' vows (`vow`): each one's name and what it does. */
     vows?: Record<string, Words & { text: Words }>
+    /** A profession's off-hand piece's power (`offhand`): its name and what it does. */
+    offhands?: Record<string, Words & { text: Words }>
     /** The money's item type. */
     coin: string
   }

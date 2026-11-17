@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Game, MAINHAND, OFFHAND, RuleLibrary, offhandOf, snapshot, weaponOf, type Engine, type Entity, type MapData } from '@openworld/engine'
-import { PROFESSION_LEVEL, canWield, combatDamage, combatDelay, combatStrike, rangeBonus, takeProfession } from '@openworld/modules'
+import { PROFESSION_LEVEL, canWield, cast, combatDamage, combatDelay, combatStrike, rangeBonus, setSkill, takeProfession } from '@openworld/modules'
 import { BASE_RULES, LEGENDARY_ARMS, PROFESSION_BY_ID, SKILLS, SKILL_BY_ID, SKILL_PROFESSIONS, STORY_RULES, buildOntology, createBoss, decodeChunk } from '@openworld-game/content'
 import { buildFord } from '../src/demo/world.ts'
 
@@ -57,7 +57,7 @@ describe('professions', () => {
   })
 
   it('every profession has a tree of at least twenty: talents, nine active skills (one an ultimate), enhancements, a capstone; and a starter weapon', () => {
-    for (const id of ['assassin', 'warrior', 'ranger', 'mage']) {
+    for (const id of SKILL_PROFESSIONS.map((p) => p.id)) {
       // its first tree (the paths' and the mastery's are the advancements': advancement.test.ts)
       const own = SKILLS.filter((s) => s.profession === id && s.branch === 'profession')
       expect(PROFESSION_BY_ID[id]?.weapon, id).toBeDefined()
@@ -84,17 +84,17 @@ describe('professions', () => {
     const eng = world()
     const w = eng.world
     atBram(eng, PROFESSION_LEVEL - 1)
-    expect(takeProfession(eng, PROFESSION_BY_ID.warrior, SKILLS)).toBe('level')
+    expect(takeProfession(eng, PROFESSION_BY_ID.swordsman, SKILLS)).toBe('level')
     eng.author(() => eng.teleport(w.player, { map: 'ford', x: 14, y: 17 }))
     w.player.props!.level = PROFESSION_LEVEL
-    expect(takeProfession(eng, PROFESSION_BY_ID.warrior, SKILLS)).toBe('trainer')
+    expect(takeProfession(eng, PROFESSION_BY_ID.swordsman, SKILLS)).toBe('trainer')
     atBram(eng, PROFESSION_LEVEL)
-    expect(takeProfession(eng, PROFESSION_BY_ID.warrior, SKILLS)).toBeUndefined()
-    expect(w.prop(w.player, 'profession')).toBe('warrior')
-    // sword and shield: the shield is worn in the off hand at once
-    expect(carries(eng, 'item/weapon/blade/sword')).toBe(1)
-    expect(carries(eng, 'item/armor/shield')).toBe(1)
-    expect(offhandOf(w, w.player)?.type).toBe('item/armor/shield')
+    expect(takeProfession(eng, PROFESSION_BY_ID.swordsman, SKILLS)).toBeUndefined()
+    expect(w.prop(w.player, 'profession')).toBe('swordsman')
+    // katana and scabbard: the scabbard is worn in the off hand at once
+    expect(carries(eng, 'item/weapon/blade/katana')).toBe(1)
+    expect(carries(eng, 'item/armor/scabbard')).toBe(1)
+    expect(offhandOf(w, w.player)?.type).toBe('item/armor/scabbard')
   })
 
   it('a change gives the profession branch back: skills unlearned, grants undone, points returned, shared skills kept', () => {
@@ -102,24 +102,27 @@ describe('professions', () => {
     const w = eng.world
     const p = w.player
     atBram(eng, 9, 8)
-    takeProfession(eng, PROFESSION_BY_ID.warrior, SKILLS)
+    takeProfession(eng, PROFESSION_BY_ID.mage, SKILLS)
     const maxHp = w.num(p, 'maxHp')
-    learnAll(eng, ['vitality', 'warrior-arms', 'bulwark', 'unbreakable'])
+    learnAll(eng, ['vitality', 'mage-focus', 'mana-shield', 'arcane-recovery', 'arcane-barrier'])
     expect(w.num(p, 'maxHp')).toBe(maxHp + 4 + 10)
-    expect(p.props!.skillPoints).toBe(4)
-    expect(takeProfession(eng, PROFESSION_BY_ID.ranger, SKILLS)).toBeUndefined()
+    expect(p.props!.skillPoints).toBe(3)
+    expect(takeProfession(eng, PROFESSION_BY_ID.swordsman, SKILLS)).toBeUndefined()
     expect(p.props!.skillPoints).toBe(7)
     expect(w.num(p, 'maxHp')).toBe(maxHp + 4)
     expect(p.tags).toContain('skill:vitality')
-    for (const id of ['warrior-arms', 'bulwark', 'unbreakable']) expect(p.tags).not.toContain(`skill:${id}`)
+    for (const id of ['mage-focus', 'mana-shield', 'arcane-recovery', 'arcane-barrier']) expect(p.tags).not.toContain(`skill:${id}`)
+    expect(carries(eng, 'item/weapon/blade/katana')).toBe(1)
+    expect(offhandOf(w, p)?.type).toBe('item/armor/scabbard')
+    // the ranger cannot wear the swordsman's scabbard: it came off into the bag, the ranger's quiver on in its place
+    expect(takeProfession(eng, PROFESSION_BY_ID.ranger, SKILLS)).toBeUndefined()
     expect(carries(eng, 'item/weapon/ranged/bow')).toBe(1)
-    // the ranger cannot wear the warrior's shield: it came off into the bag
-    expect(w.prop(p, OFFHAND)).toBeUndefined()
-    expect(carries(eng, 'item/armor/shield')).toBe(1)
-    // back to the warrior: the sword and shield were handed over once already
-    takeProfession(eng, PROFESSION_BY_ID.warrior, SKILLS)
-    expect(carries(eng, 'item/weapon/blade/sword')).toBe(1)
-    expect(carries(eng, 'item/armor/shield')).toBe(1)
+    expect(offhandOf(w, p)?.type).toBe('item/armor/quiver')
+    expect(carries(eng, 'item/armor/scabbard')).toBe(1)
+    // back to the swordsman: the katana and scabbard were handed over once already
+    takeProfession(eng, PROFESSION_BY_ID.swordsman, SKILLS)
+    expect(carries(eng, 'item/weapon/blade/katana')).toBe(1)
+    expect(carries(eng, 'item/armor/scabbard')).toBe(1)
   })
 })
 
@@ -137,29 +140,26 @@ describe('the new trees', () => {
   }
   const power = (f: ReturnType<typeof fighter>, held: Entity, range = 1) => combatStrike(f.w, f.p, f.slime, 3, range, held, true).power
 
-  it('warrior: arms training, bulwark, retaliation', () => {
-    const f = fighter('warrior', ['warrior-arms', 'bulwark', 'retaliation'])
-    const sword = weapon(f.eng, 'item/weapon/blade/sword')
-    f.p.held = sword.id
-    expect(power(f, sword)).toBe(4)
-    expect(f.eng.author(() => combatDamage(f.eng, f.p, 10, f.slime, false))).toBe(9) // −15% (and retaliation is now ready; the shield's defence is the blow's, later)
-    expect(power(f, sword)).toBeCloseTo(4 * 1.4)
-  })
-
-  it('a common weapon takes no profession talent: the mace is no warrior weapon', () => {
-    const f = fighter('warrior', ['warrior-arms', 'bulwark', 'retaliation'])
-    const mace = weapon(f.eng, 'item/weapon/blunt/mace')
-    f.p.held = mace.id
-    expect(canWield(f.w, f.p, mace)).toBe(true)
-    expect(power(f, mace)).toBe(3)
-    f.eng.author(() => combatDamage(f.eng, f.p, 10, f.slime, false)) // retaliation ready, but not for a mace
-    expect(power(f, mace)).toBe(3)
+  it("a common weapon takes no profession talent: the sword and the mace are anyone's, the katana the swordsman's", () => {
+    const f = fighter('swordsman', ['kenjutsu'])
+    const katana = weapon(f.eng, 'item/weapon/blade/katana')
+    f.p.held = katana.id
+    // (a cut just made: the scabbard's draw is not ready)
+    ;(f.p.combat ??= {}).lastAttackTick = f.w.state.tick
+    expect(power(f, katana)).toBeCloseTo(3 * 1.1)
+    for (const type of ['item/weapon/blade/sword', 'item/weapon/blunt/mace']) {
+      const held = weapon(f.eng, type)
+      f.p.held = held.id
+      expect(canWield(f.w, f.p, held), type).toBe(true)
+      expect(power(f, held), type).toBe(3)
+    }
   })
 
   it('ranger: archery reach and power, steady aim, sniper', () => {
     const f = fighter('ranger', ['ranger-archery', 'steady-aim', 'sniper'])
     const bow = weapon(f.eng, 'item/weapon/ranged/bow', { range: 6 })
-    expect(rangeBonus(f.w, f.p, bow)).toBe(1)
+    // (archery's cell, and the quiver's fletching another)
+    expect(rangeBonus(f.w, f.p, bow)).toBe(2)
     f.w.state.tick += 20 // stood still a while
     const pos = f.w.posOf(f.p)!
     f.w.author(() => f.w.place(f.slime, { on: 'tile', map: pos.map, x: pos.x + 4, y: pos.y }))
@@ -188,18 +188,20 @@ describe('the new trees', () => {
 })
 
 describe('profession weapons', () => {
-  it('dagger, sword and shield, bow and staff each belong to one profession; the rest are common', () => {
+  it('dagger, bow, staff and katana, and each one\'s off hand, belong to one profession; the rest (the sword among them) are common', () => {
     const eng = world()
     const w = eng.world
     const own: Record<string, string> = {
       'item/weapon/blade/dagger': 'assassin',
-      'item/weapon/blade/sword': 'warrior',
-      'item/weapon/blade/scimitar': 'warrior',
-      'item/armor/shield': 'warrior',
       'item/weapon/ranged/bow': 'ranger',
       'item/weapon/magic/staff': 'mage',
+      'item/weapon/blade/katana': 'swordsman',
+      'item/armor/parrying_dagger': 'assassin',
+      'item/armor/quiver': 'ranger',
+      'item/armor/tome': 'mage',
+      'item/armor/scabbard': 'swordsman',
     }
-    const common = ['item/weapon/blade/axe', 'item/weapon/blunt/club', 'item/weapon/blunt/mace', 'item/weapon/blunt/warhammer', 'item/weapon/polearm/spear', 'item/weapon/polearm/halberd', 'item/weapon/magic/wand', 'item/weapon/blade/dragonsbane']
+    const common = ['item/weapon/blade/sword', 'item/weapon/blade/scimitar', 'item/weapon/blade/axe', 'item/weapon/blunt/club', 'item/weapon/blunt/mace', 'item/weapon/blunt/warhammer', 'item/weapon/polearm/spear', 'item/weapon/polearm/halberd', 'item/weapon/magic/wand', 'item/weapon/blade/dragonsbane']
     const p = w.player
     for (const [type, profession] of [...Object.entries(own), ...Object.entries(LEGENDARY_ARMS).flatMap(([pr, arms]) => arms.map((a) => [a, pr]))]) {
       const item = eng.author(() => w.create(type, { on: 'inside', holder: p.id }))
@@ -227,17 +229,17 @@ describe('profession weapons', () => {
     const pos = w.posOf(p)!
     p.facing = 'right'
     const slime = eng.author(() => w.create('actor/creature/slime/green_slime', { on: 'tile', map: pos.map, x: pos.x + 1, y: pos.y }, { props: { hp: 50, maxHp: 50 } }))
-    const sword = eng.author(() => w.create('item/weapon/blade/sword', { on: 'hand', holder: p.id }, { props: { power: 4 } }))
+    const katana = eng.author(() => w.create('item/weapon/blade/katana', { on: 'hand', holder: p.id }, { props: { power: 4 } }))
     expect(eng.attack(p, { e: slime.id })).toBe(false)
     w.fx = []
     eng.playerAttack({ e: slime.id })
     expect(w.num(slime, 'hp')).toBe(50)
-    expect(w.fx.some((f) => f.t === 'log' && typeof f.text !== 'string' && f.text.zh === '只有战士会用剑战斗。')).toBe(true)
+    expect(w.fx.some((f) => f.t === 'log' && typeof f.text !== 'string' && f.text.zh === '只有剑客会用太刀战斗。')).toBe(true)
     const plan = eng.controls.plan('use', { x: pos.x + 1, y: pos.y })
     expect(plan?.attack).toBe(true)
-    expect(typeof plan?.label === 'string' ? plan.label : plan?.label.zh).toBe('只有战士会用剑')
+    expect(typeof plan?.label === 'string' ? plan.label : plan?.label.zh).toBe('只有剑客会用太刀')
     // the ranger's own bow strikes
-    eng.author(() => w.place(sword, { on: 'inside', holder: p.id }))
+    eng.author(() => w.place(katana, { on: 'inside', holder: p.id }))
     eng.author(() => w.create('item/weapon/ranged/bow', { on: 'hand', holder: p.id }, { props: { power: 3, range: 6 } }))
     expect(eng.attack(p, { e: slime.id })).toBe(true)
     expect(w.num(slime, 'hp')).toBeLessThan(50)
@@ -299,8 +301,8 @@ describe('profession weapons', () => {
     const w = eng.world
     const p = w.player
     atBram(eng, 9)
-    takeProfession(eng, PROFESSION_BY_ID.warrior, SKILLS)
-    // whatever the trainer handed over goes back to the bag; a sword readied in the main hand (the bag's Wear)
+    takeProfession(eng, PROFESSION_BY_ID.swordsman, SKILLS)
+    // whatever the trainer handed over goes back to the bag; a sword (anyone's) readied in the main hand (the bag's Wear)
     eng.author(() => { if (p.held) w.place(w.get(p.held)!, { on: 'inside', holder: p.id }) })
     const sword = eng.author(() => w.create('item/weapon/blade/sword', { on: 'inside', holder: p.id }, { props: { power: 9 } }))
     const bread = eng.author(() => w.create('item/food/bread', { on: 'inside', holder: p.id }))
@@ -337,40 +339,91 @@ describe('profession weapons', () => {
     expect(combatDelay(w, p, 100, 'attack')).toBeLessThan(bare)
   })
 
-  it('the off hand (the arm slot): only a warrior wears a shield; it blocks, and a profession change takes it off', () => {
+  it("the off hand (the arm slot): each profession's own piece, handed over with its weapon and worn at once; a change takes it off; it turns blows aside by what is worn's block", () => {
     const eng = world()
     const w = eng.world
     const p = w.player
-    const shield = eng.author(() => w.create('item/armor/shield', { on: 'inside', holder: p.id }, { props: { def: 2 } }))
+    const parrier = eng.author(() => w.create('item/armor/parrying_dagger', { on: 'inside', holder: p.id }, { props: { def: 1, block: 1 } }))
     eng.controls.sync()
     // no profession: it will not go on
-    eng.controls.wear(shield.id)
+    eng.controls.wear(parrier.id)
     expect(w.prop(p, OFFHAND)).toBeUndefined()
+    // each profession its own, worn at once; the one before comes off
     atBram(eng, 9)
-    takeProfession(eng, PROFESSION_BY_ID.warrior, SKILLS)
-    const starter = w.prop(p, OFFHAND) as string
-    expect(w.get(starter)?.type).toBe('item/armor/shield')
-    // wear the other one instead; the slot shows it, and its defence counts
-    eng.controls.wear(shield.id)
-    expect(w.prop(p, OFFHAND)).toBe(shield.id)
-    expect(snapshot(eng).player.offhand).toMatchObject({ id: shield.id, works: true })
-    expect(w.stat(p, 'def')).toBe(w.num(p, 'def') + 2)
-    // the legendary wall turns blows aside: a block of 1 is held to half the blows
-    const wall = eng.author(() => w.create('item/armor/shield/unfallen', { on: 'inside', holder: p.id }, { props: { block: 1 } }))
-    eng.controls.wear(wall.id)
-    expect(offhandOf(w, p)?.id).toBe(wall.id)
+    for (const [profession, type] of [['assassin', 'item/armor/parrying_dagger'], ['ranger', 'item/armor/quiver'], ['mage', 'item/armor/tome'], ['swordsman', 'item/armor/scabbard']] as const) {
+      expect(takeProfession(eng, PROFESSION_BY_ID[profession], SKILLS), profession).toBeUndefined()
+      expect([profession, offhandOf(w, p)?.type]).toEqual([profession, type])
+    }
+    // the assassin's again: wear the other one; the slot shows it, and its defence counts
+    takeProfession(eng, PROFESSION_BY_ID.assassin, SKILLS)
+    eng.controls.wear(parrier.id)
+    expect(w.prop(p, OFFHAND)).toBe(parrier.id)
+    expect(snapshot(eng).player.offhand).toMatchObject({ id: parrier.id, works: true })
+    expect(w.stat(p, 'def')).toBe(w.num(p, 'def') + 1)
+    // it turns blows aside: a block of 1 is held to half the blows
     const slime = eng.author(() => w.create('actor/creature/slime/green_slime', { on: 'tile', map: 'meadow', x: 1, y: 1 }))
     const blows = Array.from({ length: 20 }, () => eng.author(() => combatDamage(eng, p, 10, slime, false)))
     expect(blows.filter((d) => d === 0).length).toBeGreaterThan(0)
     expect(blows.filter((d) => d > 0).length).toBeGreaterThan(0)
-    // taken off from the slot: offered again, it comes off
+    // taken off from the slot: offered again, it comes off; a block with nothing in the off hand turns nothing
     eng.controls.wear()
     expect(w.prop(p, OFFHAND)).toBeUndefined()
-    // a ranger: the shield comes off and no longer works
-    eng.controls.wear(shield.id)
-    takeProfession(eng, PROFESSION_BY_ID.ranger, SKILLS)
-    expect(w.prop(p, OFFHAND)).toBeUndefined()
-    expect(offhandOf(w, p)).toBeUndefined()
+    eng.author(() => w.setProp(p, 'block', 1))
+    expect(Array.from({ length: 20 }, () => eng.author(() => combatDamage(eng, p, 10, slime, false))).every((d) => d > 0)).toBe(true)
+  })
+
+  it("the off hands' powers: the parrying dagger's second cut, the scabbard's draw, the quiver's reach and element, the tome's skills", () => {
+    const fighter = (profession: string) => {
+      const eng = world()
+      const w = eng.world
+      atBram(eng, 20, 30)
+      takeProfession(eng, PROFESSION_BY_ID[profession], SKILLS)
+      eng.author(() => (w.setProp(w.player, 'critChance', 0), w.setProp(w.player, 'atk', 50)))
+      const pos = w.posOf(w.player)!
+      w.player.facing = 'right'
+      const slime = eng.author(() => w.create('actor/creature/slime/green_slime', { on: 'tile', map: pos.map, x: pos.x + 1, y: pos.y }, { props: { hp: 5000, maxHp: 5000 } }))
+      return { eng, w, p: w.player, slime }
+    }
+    // Two Blades: one blow in four cuts again, half as hard
+    const a = fighter('assassin')
+    const dagger = weapon(a.eng, 'item/weapon/blade/dagger')
+    const cuts = new Set(Array.from({ length: 60 }, () => combatStrike(a.w, a.p, a.slime, 10, 1, dagger, true).power))
+    expect([...cuts].sort((u, v) => u - v)).toEqual([10, 15])
+    // the Draw: the first cut after three seconds without one, half again as hard
+    const s = fighter('swordsman')
+    const katana = weapon(s.eng, 'item/weapon/blade/katana')
+    ;(s.p.combat ??= {}).lastAttackTick = s.w.state.tick
+    expect(combatStrike(s.w, s.p, s.slime, 10, 1, katana, true).power).toBe(10)
+    s.p.combat.lastAttackTick = s.w.state.tick - 30
+    expect(combatStrike(s.w, s.p, s.slime, 10, 1, katana, true).power).toBe(15)
+    // Fletching: the bow reaches a cell farther; a quiver of fire lends its arrows its fire
+    const r = fighter('ranger')
+    const bow = weapon(r.eng, 'item/weapon/ranged/bow', { range: 6 })
+    expect(rangeBonus(r.w, r.p, bow)).toBe(1)
+    expect(combatStrike(r.w, r.p, r.slime, 10, 4, bow, true).element).toBeUndefined()
+    const fiery = r.eng.author(() => r.w.create('item/armor/quiver', { on: 'inside', holder: r.p.id }, { props: { element: 'fire' } }))
+    r.eng.controls.sync()
+    r.eng.controls.wear(fiery.id)
+    expect(combatStrike(r.w, r.p, r.slime, 10, 4, bow, true).element).toBe('fire')
+    // the Written Word: a skill a tenth harder with the tome worn, its element's half as much again
+    const m = fighter('mage')
+    learnAll(m.eng, ['mage-focus', 'elemental-attunement', 'frost-bolt'])
+    setSkill(m.eng, 0, 'frost-bolt')
+    const bolt = () => {
+      m.eng.author(() => m.w.setProp(m.slime, 'hp', 5000))
+      m.eng.setCooldown(`skill:frost-bolt:${m.p.id}`, 0)
+      expect(cast(m.eng, 0)).toBe(true)
+      return 5000 - m.w.num(m.slime, 'hp')
+    }
+    const withTome = bolt()
+    m.eng.controls.wear()
+    const bare = bolt()
+    const rime = m.eng.author(() => m.w.create('item/armor/tome', { on: 'inside', holder: m.p.id }, { props: { element: 'ice' } }))
+    m.eng.controls.sync()
+    m.eng.controls.wear(rime.id)
+    const iced = bolt()
+    expect(bare).toBeLessThan(withTome)
+    expect(withTome).toBeLessThan(iced)
   })
 
   it('a fallen sin leaves its feller the first legendary of their profession the world has not seen', () => {
@@ -378,7 +431,7 @@ describe('profession weapons', () => {
     const at = { map: 'arena', x: 16, y: 20 }
     Object.assign(index, { start: at, npcs: [], companions: [], steps: [], quests: [], invariants: [], waypoints: [] })
     index.player.place = { on: 'tile', ...at }
-    index.player.props = { ...index.player.props, hp: 1000, maxHp: 1000, profession: 'warrior' }
+    index.player.props = { ...index.player.props, hp: 1000, maxHp: 1000, profession: 'mage' }
     const game = Game.create(index, buildOntology(), new RuleLibrary([...BASE_RULES, ...STORY_RULES]))
     const map: MapData = { id: 'arena', name: 'Arena', kind: 'wild', width: 40, height: 40, terrain: Array(1600).fill('grass'), portals: [], light: 'indoor' }
     game.loadChunk({ map, entities: [createBoss('pride', { map: 'arena', x: 16, y: 16 }), createBoss('envy', { map: 'arena', x: 30, y: 30 }), createBoss('lust', { map: 'arena', x: 6, y: 30 })] })
@@ -386,11 +439,11 @@ describe('profession weapons', () => {
     const w = eng.world
     const dropped = (type: string) => w.entitiesOnMap('arena').filter((e) => e.type === type).length
     eng.damage(w.get('sin.pride')!, 10000, undefined, true, { e: w.player.id })
-    expect(dropped('item/weapon/blade/sword/oathbrand')).toBe(1)
+    expect(dropped('item/weapon/magic/staff/emberheart')).toBe(1)
     eng.damage(w.get('sin.envy')!, 10000, undefined, true, { e: w.player.id })
-    expect(dropped('item/armor/shield/unfallen')).toBe(1)
-    expect(w.fact('legend.oathbrand')).toBe(1)
-    expect(w.fact('legend.unfallen')).toBe(1)
+    expect(dropped('item/weapon/magic/staff/rimecrown')).toBe(1)
+    expect(w.fact('legend.emberheart')).toBe(1)
+    expect(w.fact('legend.rimecrown')).toBe(1)
     // both seen: the third sin leaves only its ordinary reward
     eng.damage(w.get('sin.lust')!, 10000, undefined, true, { e: w.player.id })
     expect(w.entitiesOnMap('arena').filter((e) => w.hasTag(e, 'legend')).length).toBe(2)

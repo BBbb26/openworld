@@ -120,7 +120,7 @@ export const QUALITIES = [
   { id: 'legendary', en: 'Stigmatic', zh: '圣痕', factor: 2, value: 9, w: 0 },
 ]
 
-export { RELICS, VOWS, VOW_IDS } from './powers.ts'
+export { OFFHANDS, RELICS, VOWS, VOW_IDS } from './powers.ts'
 
 /** A piece's main stats as its form, quality and level make them (the engine's gearProps, with this world's levels). */
 export const leveled = (form: Record<string, PropValue>, quality: string | undefined, level: number, material?: string): Record<string, number> =>
@@ -148,13 +148,18 @@ const W = (id: string, en: string, zh: string, sprite: string, rest: Partial<For
 const BASE_FORMS: Form[] = [
   // weapons
   // profession weapons (`profession:<id>`, engine/src/profession.ts) fight only for their own:
-  // the assassin's dagger, the warrior's sword and shield, the ranger's bow, the mage's staff
-  W('item/weapon/blade/sword', 'Sword', '剑', 'item:sword', { tags: ['profession:warrior'], props: { power: 4 }, materials: WEAPON_METALS, elemental: true, where: { smithy: 5, dungeon: 3, shop: 1 } }),
+  // the assassin's dagger, the ranger's bow, the mage's staff, the swordsman's katana, the cleric's cross; the sword (the
+  // warrior's, until the warrior went, 2026-11-05) is anyone's
+  W('item/weapon/blade/sword', 'Sword', '剑', 'item:sword', { props: { power: 4 }, materials: WEAPON_METALS, elemental: true, where: { smithy: 5, dungeon: 3, shop: 1 } }),
   W('item/weapon/blade/dagger', 'Dagger', '匕首', 'item:dagger', { tags: ['profession:assassin'], props: { power: 2 }, materials: WEAPON_METALS, elemental: true, where: { smithy: 3, dungeon: 2, home: 0.5, npc: 1 } }),
   W('item/weapon/blade/axe', 'Axe', '斧', 'item:axe', { tags: ['tool:axe'], props: { power: 4 }, materials: TOOL_METALS, elemental: true, where: { smithy: 3, farm: 2, wild: 0.5 }, makeup: [{ type: 'item/material/stone', count: 1 }, { type: 'item/material/stick', count: 1 }, { type: 'item/material/grass', count: 1 }], station: 'hands' }),
   // the smith of Emberfall's blade, forged for the dragon (the main quest)
   W('item/weapon/blade/dragonsbane', 'Dragonsbane', '屠龙剑', 'item:sword', { tags: ['dragonsbane', 'quality:legendary'], props: stigmatic({ power: 4 }, { relic: 'dragonsbane' }), where: {} }),
-  W('item/weapon/blade/scimitar', 'Scimitar', '弯刀', 'item:sword', { tags: ['profession:warrior'], props: { power: 4 }, materials: WEAPON_METALS, elemental: true, where: { dungeon: 1, smithy: 1 } }),
+  // the swordsman's (2026-11-03): a long curved blade worn at the hip, drawn and cut in one motion
+  W('item/weapon/blade/katana', 'Katana', '太刀', 'item:katana', { tags: ['profession:swordsman'], props: { power: 4 }, materials: WEAPON_METALS, elemental: true, where: {} }),
+  // the cleric's (2026-11-12): a cross of the Church's, long in the shaft and heavy in the head, swung as a mace is
+  W('item/weapon/blunt/cross', 'Cross', '十字架', 'item:cross', { tags: ['profession:cleric', 'holy'], props: { power: 4 }, materials: WEAPON_METALS, elemental: true, where: {} }),
+  W('item/weapon/blade/scimitar', 'Scimitar', '弯刀', 'item:sword', { props: { power: 4 }, materials: WEAPON_METALS, elemental: true, where: { dungeon: 1, smithy: 1 } }),
   W('item/weapon/blunt/club', 'Club', '棍棒', 'item:club', { props: { power: 2 }, materials: ['wood', 'bone'], where: { wild: 1, npc: 1, dungeon: 1 }, makeup: [{ type: 'item/material/log', count: 1 }], station: 'hands', unlockedBy: unlockedBy('workshop') }),
   W('item/weapon/blunt/mace', 'Mace', '钉锤', 'item:mace', { props: { power: 4 }, materials: WEAPON_METALS, elemental: true, where: { smithy: 2, dungeon: 2 } }),
   W('item/weapon/blunt/warhammer', 'Warhammer', '战锤', 'item:hammer', { props: { power: 5 }, materials: WEAPON_METALS, elemental: true, where: { smithy: 1, dungeon: 1 } }),
@@ -167,7 +172,6 @@ const BASE_FORMS: Form[] = [
   // lying about; a fallen sin leaves one for the profession of whoever felled it (bosses.ts)
   W('item/weapon/blade/dagger/nightfang', 'Nightfang', '夜牙', 'item:dagger', { tags: ['quality:legendary', 'legend'], props: stigmatic({ power: 2 }, { relic: 'nightfang', critChance: 0.15 }), where: {} }),
   W('item/weapon/blade/dagger/mirrorshard', 'Mirrorshard', '镜中刃', 'item:dagger', { tags: ['quality:legendary', 'legend', 'glass'], props: stigmatic({ power: 2 }, { relic: 'mirrorshard', lifesteal: 1 }), where: {} }),
-  W('item/weapon/blade/sword/oathbrand', 'Oathbrand', '誓约之刃', 'item:sword', { tags: ['quality:legendary', 'legend', 'metal', 'conductive', 'holy'], props: stigmatic({ power: 4 }, { relic: 'oathbrand', lifesteal: 1 }), where: {} }),
   W('item/weapon/ranged/bow/galestring', 'Galestring', '疾风之弦', 'item:bow', { tags: ['quality:legendary', 'legend', 'element:wind'], props: stigmatic({ power: 3 }, { relic: 'galestring', range: 7, element: 'wind', attackHaste: 0.2 }), where: {} }),
   W('item/weapon/ranged/bow/starfall', 'Starfall', '坠星', 'item:bow', { tags: ['quality:legendary', 'legend'], props: stigmatic({ power: 3 }, { relic: 'starfall', range: 8, critChance: 0.1 }), where: {} }),
   W('item/weapon/magic/staff/emberheart', 'Emberheart', '烬心法杖', 'item:staff', { tags: ['quality:legendary', 'legend', 'element:fire'], props: stigmatic({ power: 5 }, { relic: 'emberheart', range: 5, element: 'fire' }), where: {} }),
@@ -175,9 +179,12 @@ const BASE_FORMS: Form[] = [
   // armour and clothing: put on oneself, worn in a slot (world-model.md §6.8); armour adds its defence — and every
   // piece of clothing a little (2026-10-12: gloves, boots, hats, hoods and cloaks gave nothing but their rolled extras)
   W('item/armor/helmet', 'Helmet', '头盔', 'item:helmet', { tags: ['wearable'], props: { def: 1, slot: 'head', look: 'hat.helm' }, materials: ['iron', 'steel', 'bronze', 'leather', 'bone'], where: { smithy: 2, dungeon: 1 } }),
-  W('item/armor/shield', 'Shield', '盾牌', 'item:shield', { tags: ['wearable', 'profession:warrior'], props: { def: 2, slot: 'arm' }, materials: ['wood', 'iron', 'steel', 'bronze'], where: { smithy: 2, dungeon: 1 }, makeup: [{ type: 'item/material/plank', count: 3 }, { type: 'item/material/stick', count: 1 }], station: 'hands', unlockedBy: unlockedBy('workshop') }),
-  // the warrior's legendary shield: a block turns a blow aside (combat.ts)
-  W('item/armor/shield/unfallen', 'The Unfallen Wall', '不陷之壁', 'item:shield', { tags: ['quality:legendary', 'legend', 'metal', 'conductive'], props: stigmatic({ def: 2 }, { relic: 'unfallen', slot: 'arm', block: 0.15 }), where: {} }),
+  // each profession's off hand (2026-11-05, in the shield's place: the shield went), handed over with its weapon, a power
+  // of its own (`offhand`, the classes module's combat answers it; content powers.ts OFFHANDS its words): the assassin's
+  // parrying dagger (a second cut; it turns blows aside), the ranger's quiver (the bow reaches farther, the arrows carry
+  // its element), the mage's tome (the skills harder, its element's more), the swordsman's scabbard (the draw), the
+  // cleric's rosary (the litany: mending stronger, a blow that mends)
+  W('item/armor/parrying_dagger', 'Parrying Dagger', '格挡短刃', 'item:parrying_dagger', { tags: ['wearable', 'profession:assassin'], props: { def: 1, dodge: 0.03, block: 0.05, slot: 'arm', offhand: 'twin' }, materials: ['iron', 'steel'], where: { smithy: 2, dungeon: 1 } }),
   W('item/armor/breastplate', 'Breastplate', '胸甲', 'item:armor', { tags: ['wearable'], props: { def: 3, slot: 'body', look: 'armour.plate' }, materials: ['iron', 'steel', 'leather', 'mithril'], where: { smithy: 1, dungeon: 0.5 } }),
   // the body's ten slots (docs/world-model.md §6.8): head, body, feet, hands, waist, shoulders, neck, two rings, ear
   W('item/armor/pauldrons', 'Pauldrons', '护肩', 'item:pauldrons', { tags: ['wearable'], props: { def: 1, slot: 'shoulders', look: 'cloak.pauldrons' }, materials: ['iron', 'steel', 'leather', 'bronze'], where: { smithy: 1, dungeon: 0.5 } }),
@@ -187,13 +194,13 @@ const BASE_FORMS: Form[] = [
   // a hood drawn up hides the face: who sees a deed done under it remembers only the hood (docs/npc-sandbox.md §2.3)
   W('item/clothing/hood', 'Hood', '兜帽', 'item:cloak', { tags: ['wearable'], props: { def: 1, dodge: 0.01, slot: 'head', look: 'hat.hood' }, materials: ['cloth', 'leather'], where: { shop: 0.5, home: 0.5 } }),
   W('item/clothing/boots', 'Boots', '靴子', 'item:boots', { tags: ['wearable'], props: { def: 1, moveHaste: 0.03, slot: 'feet' }, materials: ['leather', 'cloth'], where: { home: 2, shop: 1 } }),
-  // what the four sets need beyond the old forms (sets.ts): a light body for those who move, a robe, and an off hand
-  // for each profession that had none (the warrior's is the shield)
+  // what the sets need beyond the old forms (sets.ts): a light body for those who move, a robe; and the off hands
   W('item/armor/jerkin', 'Jerkin', '皮甲', 'item:armor', { tags: ['wearable'], props: { def: 2, slot: 'body' }, materials: ['leather'], where: {} }),
   W('item/clothing/robe', 'Robe', '法袍', 'item:cloak', { tags: ['wearable'], props: { def: 1, slot: 'body' }, materials: ['cloth', 'silk'], where: {} }),
-  W('item/armor/parrying_dagger', 'Parrying Dagger', '格挡短刃', 'item:dagger', { tags: ['wearable', 'profession:assassin'], props: { def: 1, dodge: 0.03, slot: 'arm' }, materials: ['iron', 'steel'], where: {} }),
-  W('item/armor/quiver', 'Quiver', '箭袋', 'item:bow', { tags: ['wearable', 'profession:ranger'], props: { critChance: 0.03, slot: 'arm' }, materials: ['leather'], where: {} }),
-  W('item/armor/tome', 'Tome', '法典', 'item:book', { tags: ['wearable', 'profession:mage', 'paper'], props: { cdr: 0.05, slot: 'arm' }, materials: ['leather'], where: {} }),
+  W('item/armor/quiver', 'Quiver', '箭袋', 'item:quiver', { tags: ['wearable', 'profession:ranger'], props: { critChance: 0.03, slot: 'arm', offhand: 'fletch' }, materials: ['leather'], elemental: true, where: {} }),
+  W('item/armor/scabbard', 'Scabbard', '刀鞘', 'item:scabbard', { tags: ['wearable', 'profession:swordsman'], props: { attackHaste: 0.04, slot: 'arm', offhand: 'draw' }, materials: ['wood', 'leather'], where: {}, makeup: [{ type: 'item/material/plank', count: 2 }, { type: 'item/material/stick', count: 1 }], station: 'hands', unlockedBy: unlockedBy('workshop') }),
+  W('item/armor/rosary', 'Rosary', '念珠', 'item:rosary', { tags: ['wearable', 'profession:cleric', 'holy'], props: { def: 1, slot: 'arm', offhand: 'litany' }, materials: ['wood', 'bone'], where: {}, makeup: [{ type: 'item/material/stick', count: 2 }], station: 'hands', unlockedBy: unlockedBy('workshop') }),
+  W('item/armor/tome', 'Tome', '法典', 'item:tome', { tags: ['wearable', 'profession:mage', 'paper'], props: { cdr: 0.05, slot: 'arm', offhand: 'codex' }, materials: ['leather'], elemental: true, where: {} }),
   W('item/clothing/gloves', 'Gloves', '手套', 'item:gloves', { tags: ['wearable'], props: { def: 1, critChance: 0.02, slot: 'hands' }, materials: ['leather', 'cloth', 'silk'], where: { home: 1, shop: 1, smithy: 1 } }),
   // tools
   W('item/tool/pickaxe', 'Pickaxe', '镐', 'item:pickaxe', { tags: ['tool:pickaxe'], props: { power: 3 }, materials: TOOL_METALS, where: { smithy: 2, dungeon: 1, farm: 0.5 }, makeup: [{ type: 'item/material/stone', count: 2 }, { type: 'item/material/stick', count: 2 }, { type: 'item/material/grass', count: 1 }], station: 'hands' }),
@@ -611,7 +618,6 @@ export const FORM_BY_ID: Record<string, Form> = Object.fromEntries(FORMS.map((f)
 /** Each profession's legendary arms, in the order a fallen sin hands them over (bosses.ts). */
 export const LEGENDARY_ARMS: Record<string, string[]> = {
   assassin: ['item/weapon/blade/dagger/nightfang', 'item/weapon/blade/dagger/mirrorshard'],
-  warrior: ['item/weapon/blade/sword/oathbrand', 'item/armor/shield/unfallen'],
   ranger: ['item/weapon/ranged/bow/galestring', 'item/weapon/ranged/bow/starfall'],
   mage: ['item/weapon/magic/staff/emberheart', 'item/weapon/magic/staff/rimecrown'],
 }

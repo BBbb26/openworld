@@ -7,7 +7,7 @@ describe('equipping through the bag while the weapon is drawn', () => {
     const eng = buildSandbox({
       terrain: Array.from({ length: 5 }, () => Array(5).fill('grass')),
       entities: [
-        { key: 'actor', type: 'actor/person/player', x: 2, y: 2, statuses: ['drawn'], props: { profession: type.includes('/magic/') ? 'mage' : 'warrior', level: 20 } },
+        { key: 'actor', type: 'actor/person/player', x: 2, y: 2, statuses: ['drawn'], props: { ...(type.includes('/magic/') && { profession: 'mage' }), level: 20 } },
         { key: 'weapon', type, x: 2, y: 2, inside: 'actor' },
       ],
       event: {},

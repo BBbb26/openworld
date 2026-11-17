@@ -51,6 +51,11 @@ export const SKILL_STATUSES: StatusDef[] = [
   { id: 'famished', name: L('Famished', '饥馑'), duration: 30, every: 10 },
   // a Demon Hunter's hex (advancement.ts): weaker, softer and slower while it lasts
   { id: 'hexed', name: L('hexed', '咒印'), duration: 40, moveDelay: 1.3, props: { atk: -2, def: -3 } },
+  // a Hunter's prey (advancement.ts: Mark Prey, the Dawn Flight): slower while it lasts, and struck harder by the Hunter
+  // and those who follow them (their passives in data)
+  { id: 'hunted', name: L('hunted', '猎物'), duration: 100, moveDelay: 1.25 },
+  // an Inquisitor's brand of heresy (advancement.ts): softer while it lasts, and judged harder (their passives in data)
+  { id: 'branded', name: L('branded', '异端烙印'), duration: 80, props: { def: -3 } },
   // just come back to one's feet: a skill cannot hold one again for a while (no hold follows a hold)
   { id: 'steadied', name: L('steadied', '定神'), duration: 45, wards: ['entranced', 'knelt', 'stunned'] },
 ]

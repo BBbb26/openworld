@@ -31,7 +31,7 @@ describe('the item tooltip', () => {
     play(onto())
     const ctx = { atk: 1, nameOf: () => undefined }
     for (const slot of ['arm', 'body', 'weapon', undefined]) {
-      const lines = text(tooltipHtml(item('item/armor/shield', { ...(slot && { slot }), critChance: 0.05, ...(slot === 'weapon' && { power: 3 }) }), ctx))
+      const lines = text(tooltipHtml(item('item/armor/quiver', { ...(slot && { slot }), critChance: 0.05, ...(slot === 'weapon' && { power: 3 }) }), ctx))
       expect(times(lines, 'Critical Chance'), String(slot)).toBe(1)
     }
   })

@@ -59,6 +59,31 @@ and the **set** it belongs to, worn with others of it. All three are read by `Wo
 Thirty-two more sets, five or six to a chapter and two across the line, a type and a picture per piece, their
 bonuses' powers (vows, relics' powers, the sets' own): [sets.md](sets.md) (2026-11-01).
 
+## 3b. The off hands (2026-11-05)
+
+Asked: the shield taken out, and each profession's off hand designed anew. The shield went with every kind of it (the
+regions' too), its recipes (the Workshop's, the anvil's) and its picture; an older save's shields are taken apart into
+what the anvil makes one of, where they were (two planks; two bars of the metal, a metal one: content
+`migrateProfessions.ts`). Each profession has one piece of its own for the off hand (the `arm` slot), handed over with its
+weapon when the profession is taken up and worn at once — one who took it up before is handed it on loading — each
+with a power (`props.offhand`, its words `OFFHANDS` in powers.ts, the tooltip's ◈ line; the classes module's combat.ts
+`offhandsOf`):
+
+| Piece | Profession | Stats | Power |
+| --- | --- | --- | --- |
+| **Parrying Dagger** 格挡短刃 | assassin | def 1, dodge 3%, block 5% | **Two Blades** 双刃: with a dagger, a blow cuts again one time in four (a chance), half as hard |
+| **Quiver** 箭袋 (of an element, now and then) | ranger | critical 3% | **Fletching** 箭羽: with a bow, reach +1; a quiver of an element lends it to the arrows (and its chance to leave its status) |
+| **Tome** 法典 (of an element, now and then) | mage | cooldowns −5% | **The Written Word** 秘典: skills +10%; a tome of an element, that element's skills +15% again |
+| **Scabbard** 刀鞘 | swordsman | attack speed 4% | **The Draw** 拔刀: with a katana, the first cut after 3 s without one +50% |
+| **Rosary** 念珠 (2026-11-12) | cleric | def 1 | **The Litany** 祷文: with a cross, one's mending +20%, and a blow that lands mends 2 one time in four |
+
+Where they are: the parrying dagger takes the shield's place in the smithies and the dark (`where`, so the played maps'
+rolls stay as they were, the shield's become parrying daggers) and the anvil's recipe (an ingot and a stick); the
+scabbard the Workshop's (two planks and a stick), the rosary too (two sticks); the cleric's cross the anvil's (two
+ingots and a plank); the quiver and the tome the regions' own kinds (goods.ts); every one
+in its profession's set (sets.ts). **Block** is turned aside by what is worn (the parrying dagger's own, a set's) only
+with something in the off hand.
+
 ## 4. Where it lives
 
 Engine: `affixes.ts`, `World.stat` (`world.ts`), the `trophy` primitive and `craft` (`effects.ts`), the types

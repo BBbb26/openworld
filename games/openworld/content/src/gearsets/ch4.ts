@@ -102,7 +102,7 @@ export const CH4_SETS: SetDef[] = [
     ],
   },
   {
-    id: 'reinholder', en: 'Reinholder', zh: '执辔', chapter: 'ch4', level: 15, lean: 'warrior', look: 'charcoal',
+    id: 'reinholder', en: 'Reinholder', zh: '执辔', chapter: 'ch4', level: 15, lean: 'swordsman', look: 'charcoal',
     palette: ['#4a4c56', '#23242a', '#e6e2d8', '#8e92a0'],
     pieces: [
       P('head', F.helmet, "Reinholder's Helm", '执辔者头盔',

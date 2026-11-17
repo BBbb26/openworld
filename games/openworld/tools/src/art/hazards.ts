@@ -1,7 +1,7 @@
 // What the advancements' skills lay on the ground (docs/advancement.md, content advancement.ts HAZARDS): a Necromancer's
-// miasma, a Trapper's snare, spikes and blast trap, a Pyromancer's wall of flame, a Dawnbringer's holy ground, an
-// assassin's caltrops, a Demon Hunter's binding sigil — 16×16, lying flat under whoever walks into them. (The Thornknight's briars are the White
-// Knight's own picture.)
+// miasma, a Trapper's snare, spikes and blast trap, a Pyromancer's wall of flame, a Cryomancer's frozen ground, an
+// assassin's caltrops, a Demon Hunter's binding sigil, and holy ground (the Dawnbringer's once; no skill lays it now) —
+// 16×16, lying flat under whoever walks into them. (The briar line's picture is the White Knight's own briars.)
 //
 //   npx tsx games/openworld/tools/src/art/hazards.ts
 
@@ -115,6 +115,24 @@ const HOLY = [
   '.....hhhhhh.....',
   '................',
 ]
+const FROZEN = [
+  '................',
+  '....oooooooo....',
+  '..ooIIIwIIiioo..',
+  '.oIIwwIIcIIiiio.',
+  '.oIwIIIIcIIIiio.',
+  'oIIIIIIcIccIIiio',
+  'oIwIcccIIIIcIIio',
+  'oIIIIIcIIIIIcIio',
+  'oiIIIIcIIwIIIcio',
+  'oiIIIcIIIIIIIIio',
+  'oiiIcIIIIwwIIiio',
+  '.oiiIIIIcIIIiio.',
+  '.oiiiIIIcIIiiio.',
+  '..ooiiiiciiioo..',
+  '....oooooooo....',
+  '................',
+]
 const CALTROPS = [
   '................',
   '................',
@@ -158,6 +176,7 @@ writeIcon('Fixtures/Spikes.png', SPIKES, { o: '#2a2830', s: '#878d97', S: '#5a63
 writeIcon('Fixtures/BlastTrap.png', BLAST, { o: '#1e1a18', S: '#47301f', s: '#5a6370', R: '#7a2a24', r: '#a23a3a', Y: '#ffcf5a' })
 writeIcon('Fixtures/FlameWall.png', FLAME, { y: '#ffe88a', Y: '#ffc23a', O: '#f08a24', R: '#d4481e', r: '#8a2a14' })
 writeIcon('Fixtures/HolyGround.png', HOLY, { h: '#c9a24a', H: '#ffe9a0' })
+writeIcon('Fixtures/FrozenGround.png', FROZEN, { o: '#2a4a78', i: '#7fb6e0', I: '#bfe4f8', w: '#f2fbff', c: '#4f86c0' })
 writeIcon('Fixtures/Caltrops.png', CALTROPS, { o: '#2a2830', s: '#5a6370', S: '#878d97', l: '#c8cbd6' })
 writeIcon('Fixtures/BindingSigil.png', SIGIL, { g: '#8a6a2a', G: '#e8c060', v: '#8a5ac8', V: '#e0c8ff' })
-console.log('hazards: 8 pictures → public/assets/lsw/Fixtures/')
+console.log('hazards: 9 pictures → public/assets/lsw/Fixtures/')

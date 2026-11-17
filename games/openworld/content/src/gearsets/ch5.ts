@@ -71,7 +71,7 @@ export const CH5_SETS: SetDef[] = [
     ],
   },
   {
-    id: 'elect', en: 'The Elect', zh: '选民', chapter: 'ch5', level: 18, lean: 'warrior', look: 'snow',
+    id: 'elect', en: 'The Elect', zh: '选民', chapter: 'ch5', level: 18, lean: 'cleric', look: 'snow',
     palette: ['#f2efe6', '#a89870', '#e2c070', '#ffffff'],
     pieces: [
       P('head', F.circlet, 'Circlet of the Elect', '选民金环',

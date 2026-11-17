@@ -36,7 +36,7 @@ export const KNOWLEDGE: KnowledgeEntry[] = [
     summary: L('A little practice becomes a skill; a profession opens a new road.', '升级后别忘了花技能点；选定职业，还会打开一条新的成长道路。'),
     sections: [
       { title: L('Spend skill points', '学习技能'), body: L('Open the skill tree with {key:skills}. Select a skill to see its effects, prerequisites and point cost. Life skills can help with gathering, fishing, farming and smithing.', '按 {key:skills} 打开技能树，点选技能查看效果、前置条件和所需点数。生活技能能帮助采集、钓鱼、种植和锻造。') },
-      { title: L('Choose a profession', '选择职业'), body: L('At level 5, visit Bram in the drill yard of Firstlight Village. Look for the crossed-blades marker and press {key:hands} to talk. Choose assassin, warrior, ranger or mage to open that profession’s skill branch.', '达到 5 级后，去初原村操练场找布拉姆。他头顶有交叉双剑标记，按 {key:hands} 与他交谈，可以选择刺客、战士、游侠或法师，解锁对应的技能分支。') },
+      { title: L('Choose a profession', '选择职业'), body: L('At level 5, visit Bram in the drill yard of Firstlight Village. Look for the crossed-blades marker and press {key:hands} to talk. Choose assassin, ranger, mage, swordsman or cleric to open that profession’s skill branch.', '达到 5 级后，去初原村操练场找布拉姆。他头顶有交叉双剑标记，按 {key:hands} 与他交谈，可以选择刺客、游侠、法师、剑客或圣职者，解锁对应的技能分支。') },
       { title: L('Use active skills', '使用主动技能'), body: L('Hover a learned active skill in the skill tree and press a skill-slot key ({key:casts}) to assign it. Back in the world, that key casts it. Passive skills take effect once learned.', '在技能树中把鼠标放到已学会的主动技能上，按技能栏按键（{key:casts}）装入对应格子。回到游戏后按同一个键施放；被动技能学会就会生效。') },
     ],
     tip: L('Read a skill’s prerequisites before saving up points for it.', '想学某个技能，先看看它需要哪些前置技能，再安排点数。'),
