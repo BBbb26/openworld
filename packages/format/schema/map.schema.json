@@ -130,6 +130,9 @@
             "dark"
           ]
         },
+        "environment": {
+          "$ref": "#/definitions/MapEnvironment"
+        },
         "vistas": {
           "type": "array",
           "items": {
@@ -347,6 +350,24 @@
         "ty"
       ],
       "additionalProperties": false
+    },
+    "MapEnvironment": {
+      "type": "object",
+      "properties": {
+        "palette": {
+          "type": "string",
+          "const": "verdant"
+        },
+        "water": {
+          "type": "string",
+          "const": "stream"
+        },
+        "fireflies": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Bounded local presentation presets, without asset URLs or executable behavior."
     },
     "Vista": {
       "type": "object",
