@@ -4,9 +4,12 @@ The second and third advancements (three paths a profession at level 10, its mas
 [advancement.md](advancement.md) (2026-11-01).
 
 The tree's three directions since 2026-11-01: **General Combat** (Swiftness, Survival, Damage), **Profession** (the
-profession's own tree growing up, its path going on after its last skill, the mastery after the path) and **Life**. A
-branch may name the way it grows (`way`, content `skills.ts`; `skillLayout.ts` gives the rest the free ways in order),
-or the branch it goes on after (`after`: its way, beyond it, its trunk out of that branch's last row). The history
+profession's own tree growing up; its three paths side by side after its last row, every one shown, only the one taken
+learned; each path's third over it) and **Life**. A branch may name the way it grows (`way`, content `skills.ts`;
+`skillLayout.ts` gives the rest the free ways in order), the branch it goes on after (`after`: its way, beyond it, its
+trunk out of that branch's last row), and be laid out a panel a path (`byPath`: a group a path, `path:<id>`, each over
+the same path's group of the branch before; what no one path owns one panel, over the path taken). The page draws a
+path not taken, and a third not reached, barred: shown, its skills not learned. The history
 below still speaks of the profession branch under Combat, where it was until then.
 
 ## Icon completion (2026-10-04)
@@ -75,7 +78,8 @@ two, a two-point capstone needing both arms) and a starter weapon handed over th
 profession branch, undoes its grants and gives its points back; shared branches are kept.
 Each professional node declares `profession`; UI filtering and engine-side learning both
 enforce the match, and every talent checks the actor's current profession. The new trees'
-icons and profession entrances received individual illustrations on 2026-10-04.
+icons and profession entrances received individual illustrations on 2026-10-04. (The warrior was taken out on
+2026-11-05, and the swordsman came on 2026-11-03: docs/advancement.md §2. Its rows below are the record of what it was.)
 
 | Profession | Root | Arm A | Arm B | Capstone (2 points) |
 | --- | --- | --- | --- | --- |
@@ -428,11 +432,11 @@ pure data, no engine code each) — three talents of its own, and a capstone tal
 | --- | --- | --- | --- | --- |
 | Assassin | Throwing Knives, Fan of Knives, **Vanishing Strikes** | Shadow Strike, Envenom, Smoke Bomb, Flurry, Fan of Knives | Venom Mastery, Nightstalker, Nimble Blade | Master Assassin |
 | Warrior | Wide Slash, Iron Guard, **Heaven Splitter** | Shield Bash, Charge, War Cry, Earthsplitter, Wide Slash | Shield Wall, Bloodthirst, Fortitude | Undying Spirit |
-| Ranger | Concussive Shot, Hawk Eye, **Arrow Storm** | Multishot, Leap Shot, Piercing Arrow, Arrow Rain, Concussive Shot | Light Gear, Deadly Shot, Windwalker | Marksman |
+| Ranger | Concussive Shot, Far Sight (Hawk Eye until 2026-11-12), **Arrow Storm** | Multishot, Leap Shot, Piercing Arrow, Arrow Rain, Concussive Shot | Light Gear, Deadly Shot, Windwalker | Marksman |
 | Mage | Frost Bolt, Thunderstorm, **Meteor** | Fireball, Frost Nova, Chain Lightning, Blink, Frost Bolt | Mana Surge, Elementalist, Arcane Barrier | Elemental Master |
 
 New kinds in `actives.ts`: `shot` (one missile on the first foe in line), `arc` (the three cells ahead), `guard`
-(Iron Guard: blows ×0.4, steps slower), `aim` (Hawk Eye: a shooting weapon +3 reach, +20% critical), `slam` (a
+(Iron Guard: blows ×0.4, steps slower), `aim` (Far Sight: a shooting weapon +3 reach, +20% critical), `slam` (a
 `range`-deep, three-wide blow); `multishot` takes `count` and `through`, `fireball` a `radius`, `shadow-strike` a
 `count`, `rain` an element. The talents that answer a defeat (Master Assassin, Bloodthirst, Undying Spirit) run in
 `onDefeat` when a blow — a cast's or an ordinary attack's — raises the striker's `combat.defeats`; `cdr` (Mana
@@ -442,7 +446,7 @@ Balance: the Boss Challenge learns every node, and the White Knight's "ignoring 
 about a tenth of the knight's health of a warrior's win — a warrior's +10 max health turned it. So Fortitude halves
 the control effects a blow leaves instead (stun, freeze, kneeling), and Shield Wall adds +5% block with a shield.
 The ring layout eases crowded neighbours apart on each ring (`skillLayout.ts`, GAP 76) so twenty-two nodes fit.
-Icons: `tools/src/art/skill-professions-a.ts` (assassin, warrior) and `-b.ts` (ranger, mage), drawn by code.
+Icons: `tools/src/art/skill-professions-a.ts` (assassin; the warrior's went with it) and `-b.ts` (ranger, mage), drawn by code.
 
 ## The life branches, deeper (2026-10-09)
 

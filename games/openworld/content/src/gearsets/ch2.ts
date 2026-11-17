@@ -8,7 +8,7 @@ import { F, P, type SetDef } from './kit.ts'
 
 export const CH2_SETS: SetDef[] = [
   {
-    id: 'ashguard', en: 'Ashguard', zh: '灰甲', chapter: 'ch2', level: 6, lean: 'warrior', look: 'charcoal',
+    id: 'ashguard', en: 'Ashguard', zh: '灰甲', chapter: 'ch2', level: 6, lean: 'swordsman', look: 'charcoal',
     palette: ['#6b6b72', '#36363e', '#d9692a', '#b9b4ad'],
     pieces: [
       P('head', F.helmet, 'Ashguard Helm', '灰甲战盔',
@@ -37,7 +37,7 @@ export const CH2_SETS: SetDef[] = [
     ],
   },
   {
-    id: 'pitman', en: "Pitman's", zh: '矿工', chapter: 'ch2', level: 5, lean: 'warrior', look: 'leather',
+    id: 'pitman', en: "Pitman's", zh: '矿工', chapter: 'ch2', level: 5, lean: 'swordsman', look: 'leather',
     palette: ['#7a5132', '#47301f', '#e2c070', '#c4a27a'],
     pieces: [
       P('head', F.hat, "Pitman's Lamp Cap", '矿工灯帽',
@@ -129,7 +129,7 @@ export const CH2_SETS: SetDef[] = [
     ],
   },
   {
-    id: 'redorder', en: 'Red Order', zh: '红衣修会', chapter: 'ch2', level: 9, lean: 'warrior', look: 'madder',
+    id: 'redorder', en: 'Red Order', zh: '红衣修会', chapter: 'ch2', level: 9, lean: 'cleric', look: 'madder',
     palette: ['#a23a3a', '#5c1a1e', '#45454e', '#e07a6a'],
     pieces: [
       P('head', F.hood, 'Red Order Hood', '红衣修会兜帽',

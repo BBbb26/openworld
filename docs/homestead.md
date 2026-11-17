@@ -132,7 +132,7 @@ far the land goes and what was carried.
   kitchen hearth (a campfire, lit), the storehouse (`fixture/container/storehouse`, forty places, open), the
   weaving shed (a loom), the apothecary (a cauldron), and three residents' tents (2026-10-12). A building
   **unlocks recipes** (2026-10-21, `HavenUpgrade.recipes` → `Recipe.unlockedBy`, the fact it sets): the
-  workshop the club, the shield and the bow (and an Apiarist's bee box), the weaving shed cloth and a
+  workshop the club, the scabbard and the bow (and an Apiarist's bee box), the weaving shed cloth and a
   Leatherworker's gear; unlocked, they are made anywhere from the bag — no workbench or loom is stood beside
   (world-model.md §6.4). A building has **levels** (the same fact at 2, 3…; `HavenUpgrade.value`, each after the one
   before): Workshop II (candles, lanterns, a Forge Builder's forge, an Apiarist's bee box); the smithy's two upgrades,

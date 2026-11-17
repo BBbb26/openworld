@@ -112,7 +112,7 @@ are retained but no longer loaded.
 
 1200 health, armour 2; phase II at half health (the encounter system's: shorter wind-ups, harder
 blows). Proved by `bosses.test.ts` (all four kits' skills, art) and `boss-balance.test.ts` (every
-profession loses to him ignoring the warnings; a dodging warrior beats him). He is in the Boss
+profession loses to him ignoring the warnings; a dodging swordsman beats him). He is in the Boss
 Studio and the Boss Challenge; his campaign place (the East Road, his kingdom of thorns) and his
 balance for a Chapter 1 player come with the chapter.
 
@@ -361,12 +361,10 @@ in the world (`relic`):
 | Crown of Thorns | *None Cross That Do Not Kneel*: 20% of blows force the struck to kneel (1 s, `knelt`) |
 | Nightfang | *Tooth of the Night*: +25% critical chance at night |
 | Mirrorshard | *Stolen Face*: a critical draws back 3 more health |
-| Oathbrand | *Oath Kept*: below 30% health, lifesteal ×3 |
 | Galestring | *Running Wind*: each hit, +30% movement speed for 2 s |
 | Starfall | *Falling Star*: every fifth hit is a critical |
 | Emberheart | *Heart of Embers*: 25% of hits set the struck burning |
 | Rimecrown | *Crown of Rime*: 20% of hits freeze the struck a moment |
-| The Unfallen Wall | *Unfallen*: once a minute, a felling blow is turned aside |
 | Dragonsbane | *Dragonslayer*: double damage against dragons and whelps |
 
 What a blow does to the struck (kneeling, burning, frozen) travels with it (`afflict`, as bleeding does) and the

@@ -1585,14 +1585,14 @@ req('W9', 'a recipe derived from what a thing is made of, made anywhere from the
   const f = fresh()
   const c = f.eng.controls
   const home = W(f).posOf(W(f).player)!
-  const recipe = RECIPE_BY_ID['item/armor/shield']
-  expect(recipe).toMatchObject({ station: 'hands', unlockedBy: { fact: 'haven.build.workshop' }, needs: [{ type: 'item/material/plank', count: 3 }, { type: 'item/material/stick', count: 1 }] })
+  const recipe = RECIPE_BY_ID['item/armor/scabbard']
+  expect(recipe).toMatchObject({ station: 'hands', unlockedBy: { fact: 'haven.build.workshop' }, needs: [{ type: 'item/material/plank', count: 2 }, { type: 'item/material/stick', count: 1 }] })
   const supply = () =>
     author(f, () => {
-      for (let i = 0; i < 3; i++) W(f).create('item/material/plank', { on: 'inside', holder: 'player' })
+      for (let i = 0; i < 2; i++) W(f).create('item/material/plank', { on: 'inside', holder: 'player' })
       W(f).create('item/material/stick', { on: 'inside', holder: 'player' })
     })
-  const shields = () => (W(f).player.contents ?? []).map((id) => W(f).get(id)!).filter((e) => e.type === 'item/armor/shield')
+  const scabbards = () => (W(f).player.contents ?? []).map((id) => W(f).get(id)!).filter((e) => e.type === 'item/armor/scabbard')
   supply()
   c.sync()
   // beside the village's bench in the woodcutter's yard, the workshop not yet built: nothing is made, nothing used up
@@ -1600,8 +1600,8 @@ req('W9', 'a recipe derived from what a thing is made of, made anywhere from the
   const at = bench.place as { x: number; y: number }
   stand(f, at.x, at.y + 1, 'up', FIRSTLIGHT.map)
   expect(c.craft(recipe)).toBe(false)
-  expect(shields()).toHaveLength(0)
-  expect(c.count('item/material/plank')).toBe(3)
+  expect(scabbards()).toHaveLength(0)
+  expect(c.count('item/material/plank')).toBe(2)
   // the bench itself: a hand on it opens its panel (the world's learned recipes for one are made there)
   f.eng.act('hands', 'player', { e: bench.id })
   expect(W(f).fx).toContainEqual(expect.objectContaining({ t: 'panel', panel: 'station:workbench', by: bench.id }))
@@ -1609,16 +1609,16 @@ req('W9', 'a recipe derived from what a thing is made of, made anywhere from the
   author(f, () => W(f).setFact('haven.build.workshop', 1))
   stand(f, home.x, home.y, 'up', home.map)
   expect(c.craft(recipe)).toBe(true)
-  const plain = shields()[0]
-  expect(plain.name).toEqual({ en: 'Wooden Shield', zh: '木盾牌' })
+  const plain = scabbards()[0]
+  expect(plain.name).toEqual({ en: 'Wooden Scabbard', zh: '木刀鞘' })
   expect(W(f).materialOf(plain)?.id).toBe('wood')
   // a maker well above the recipe's level makes it finer
   author(f, () => W(f).setProp(W(f).player, 'level', 4))
   supply()
   c.sync()
   expect(c.craft(recipe)).toBe(true)
-  const fine = shields().find((e) => e.id !== plain.id)!
-  expect(fine.name).toEqual({ en: 'Fine Wooden Shield', zh: '精良木盾牌' })
+  const fine = scabbards().find((e) => e.id !== plain.id)!
+  expect(fine.name).toEqual({ en: 'Fine Wooden Scabbard', zh: '精良木刀鞘' })
   expect(W(f).hasTag(fine, 'quality:fine')).toBe(true)
   expect(records(f)).toHaveLength(0)
 })
@@ -2417,7 +2417,7 @@ req('S3', 'each profession\'s forged gear covers the whole body (head, ear, neck
   const f = fresh()
   const w = W(f)
   const sets = w.onto.data.sets!
-  expect(sets.map((s) => s.id).slice(0, 8)).toEqual(['shadowfang', 'shadowfang_trinkets', 'oathguard', 'oathguard_trinkets', 'windrunner', 'windrunner_trinkets', 'starweave', 'starweave_trinkets'])
+  expect(sets.map((s) => s.id).slice(0, 8)).toEqual(['shadowfang', 'shadowfang_trinkets', 'windrunner', 'windrunner_trinkets', 'starweave', 'starweave_trinkets', 'watercutter', 'watercutter_trinkets'])
   for (const set of SET_DEFS) {
     const slots = new Set(set.pieces.map((p) => p.slot))
     expect([set.id, [...slots].sort()]).toEqual([set.id, ['arm', 'body', 'ear', 'feet', 'hands', 'head', 'neck', 'ring', 'shoulders', 'waist', 'weapon']])

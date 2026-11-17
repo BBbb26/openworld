@@ -3,7 +3,7 @@
 // a blow is, how far it reaches, how fast one steps and strikes, what the struck one takes.
 
 import { DIRS, registerModule, weaponOf, type Combat, type Engine, type EngineModule, type Entity, type SkillDef, type Strike as KernelStrike, type Text } from '@openworld/engine'
-import { castCooldown, castLeft, castSkill, cannotCast, knownActives, onDefeat, rainTick, SKILLBAR_SLOTS } from './actives.ts'
+import { afterBlow, castCooldown, castLeft, castSkill, cannotCast, hasten, knownActives, onDefeat, rainTick, SKILLBAR_SLOTS } from './actives.ts'
 import { bindSkills, combatDamage, combatDelay, dash, combatStrike, finishCombatStrike, rangeBonus, recordCombatStep, vowsOf, type Strike } from './combat.ts'
 
 /** What the Vow of the Thorn pricks the one who struck its keeper for (before their defence). */
@@ -20,7 +20,7 @@ const professionsOf = (eng: Engine) => professions.get(eng) ?? professions.set(e
 
 const words = (t: Text) => (typeof t === 'string' ? { en: t, zh: t } : { en: t.en, zh: t.zh ?? t.en })
 
-/** "Only a warrior can fight with the sword": what is said when another profession's weapon is taken up. */
+/** "Only an assassin can fight with the dagger": what is said when another profession's weapon is taken up. */
 function onlyFor(eng: Engine, item: Entity, act: 'fight' | 'wear' | 'aim'): Text {
   const w = eng.world
   const need = itemProfession(w, item) ?? ''
@@ -43,13 +43,14 @@ function classCombat(eng: Engine): Combat {
     strike(a, victim, base, range, weapon, primary) {
       const s = combatStrike(w, a, victim, base, range, weapon, primary)
       // what the act carries beyond its power: the struck one reads it again (wounded)
-      return Object.assign(s, { params: { ...(s.critical && { critical: true }), ...(s.bleed && { bleed: s.bleed }), ...(s.drain && { drain: s.drain }), ...(s.afflict && { afflict: s.afflict.status, afflictFor: s.afflict.ticks }), ...(s.ends && { ends: s.ends }) } })
+      return Object.assign(s, { params: { ...(s.critical && { critical: true }), ...(s.bleed && { bleed: s.bleed }), ...(s.drain && { drain: s.drain }), ...(s.afflict && { afflict: s.afflict.status, afflictFor: s.afflict.ticks }), ...(s.ends && { ends: s.ends }), ...(s.element && { element: s.element }) } })
     },
     struck(a, victim, strike, before, range, primary) {
       const s: Strike = { critical: false, charged: false, comboHits: 0, bleed: 0, drain: 0, ...(strike as KernelStrike & Partial<Strike>) }
       // a defeat is answered by the striker's talents (actives.ts onDefeat): counted before, compared after
       const defeats = a.combat?.defeats ?? 0
       finishCombatStrike(w, a, victim, s, before, range, primary)
+      if (primary) afterBlow(eng, a, victim, s, before)
       if ((a.combat?.defeats ?? 0) > defeats) onDefeat(eng, a)
     },
     besides(a, victim, range) {
@@ -66,7 +67,12 @@ function classCombat(eng: Engine): Combat {
       }
       return out
     },
-    damage: (e, harm, attacker, pierce) => combatDamage(eng, e, harm, attacker, pierce),
+    damage(e, harm, attacker, pierce) {
+      const taken = combatDamage(eng, e, harm, attacker, pierce)
+      // Sky Walker (Skywing's): a blow dodged brings every skill a second nearer, and the next blow is sure
+      if (!taken && e.combat?.dodgeTick === w.state.tick && w.hasTag(e, 'skill:sky-walker')) (hasten(eng, e, 10), (e.combat.sureNext = true))
+      return taken
+    },
     lethal(e, hp) {
       // Phoenix (the skill): once a day, any lethal damage leaves 30% health and a moment untouchable
       if (hp > 0 || !w.hasTag(e, 'skill:phoenix') || w.prop(e, 'phoenixDay') === w.calendar().day) return hp
@@ -85,24 +91,24 @@ function classCombat(eng: Engine): Combat {
       // a relic's affliction (kneeling, burning, frozen): the struck takes it as its own status
       const afflict = by?.params?.afflict
       const afflictFor = by?.params?.afflictFor
-      // (Fortitude: what holds one still — a stun, a freeze, kneeling — holds half as long)
-      const holds = typeof afflict === 'string' && !!w.onto.status(afflict)?.immobilize
-      const held = holds && w.hasTag(e, 'skill:fortitude')
-      // (Unbreakable Will: while it lasts nothing holds one still)
-      const unheld = holds && (e.combat?.buffs?.['unbreakable-will'] ?? 0) > w.state.tick
-      if (!unheld && typeof afflict === 'string' && typeof afflictFor === 'number' && afflictFor > 0 && w.get(e.id) && w.num(e, 'hp') > 0) eng.applyStatus({ e: e.id }, afflict, held ? Math.max(1, Math.round(afflictFor / 2)) : afflictFor, attacker?.id)
+      if (typeof afflict === 'string' && typeof afflictFor === 'number' && afflictFor > 0 && w.get(e.id) && w.num(e, 'hp') > 0) eng.applyStatus({ e: e.id }, afflict, afflictFor, attacker?.id)
       const drain = by?.params?.drain
       if (typeof drain === 'number' && drain > 0 && attacker && attacker.id !== e.id)
         eng.queue({ kind: 'impulse/restore', host: { e: attacker.id }, roles: { source: { e: e.id }, actor: { e: attacker.id } }, params: { which: 'hp', amount: drain }, cause: by?.cause, origin: by?.origin, depth: (by?.depth ?? 0) + 1 })
       // the Vow of the Thorn (content items.ts VOWS): whoever struck its keeper hand to hand is pricked — a blow of the
       // keeper's back at them, the piece its instrument; a thorn's blow is not answered with thorns (`thorn`)
-      // Thorned Mail and Frost Armour (docs/advancement.md): who strikes hand to hand is pricked, or frozen a moment one time in five
+      // Frost Armour (docs/advancement.md): who strikes hand to hand is frozen a moment one time in five; while an Immolate
+      // or a Thunder Shroud is up, set burning or electrified
       if (by?.kind === 'impulse/strike' && !by.params?.thorn && attacker && attacker.id !== e.id && w.get(e.id) && w.get(attacker.id)) {
         const ap = w.posOf(e)
         const tp = w.posOf(attacker)
         const near = !!ap && !!tp && ap.map === tp.map && Math.max(Math.abs(ap.x - tp.x), Math.abs(ap.y - tp.y)) <= 1
-        if (near && w.hasTag(e, 'skill:thorned-mail')) eng.queue({ kind: 'impulse/strike', host: { e: attacker.id }, roles: { actor: { e: e.id } }, params: { power: 2, thorn: true }, cause: by.cause, origin: by.origin, depth: (by.depth ?? 0) + 1 })
         if (near && w.hasTag(e, 'skill:frost-armour') && w.rand() < 0.2) eng.queue({ kind: 'impulse/strike', host: { e: attacker.id }, roles: { actor: { e: e.id } }, params: { power: 1, thorn: true, afflict: 'frozen', afflictFor: 5, element: 'ice' }, cause: by.cause, origin: by.origin, depth: (by.depth ?? 0) + 1 })
+        const up = (id: string) => (e.combat?.buffs?.[id] ?? 0) > w.state.tick
+        if (near && up('immolate')) eng.queue({ kind: 'impulse/strike', host: { e: attacker.id }, roles: { actor: { e: e.id } }, params: { power: 1, thorn: true, afflict: 'burning', afflictFor: 30, element: 'fire' }, cause: by.cause, origin: by.origin, depth: (by.depth ?? 0) + 1 })
+        // An Eye for an Eye (an Avenger's): struck back one time in three, by six tenths of one's attack
+        if (near && w.hasTag(e, 'skill:eye-for-an-eye') && w.rand() < 1 / 3) eng.queue({ kind: 'impulse/strike', host: { e: attacker.id }, roles: { actor: { e: e.id } }, params: { power: Math.max(1, Math.round(w.stat(e, 'atk', 1) * 0.6)), thorn: true }, cause: by.cause, origin: by.origin, depth: (by.depth ?? 0) + 1 })
+        if (near && up('thunder-shroud')) eng.queue({ kind: 'impulse/strike', host: { e: attacker.id }, roles: { actor: { e: e.id } }, params: { power: 1, thorn: true, afflict: 'electrified', afflictFor: 5, element: 'lightning' }, cause: by.cause, origin: by.origin, depth: (by.depth ?? 0) + 1 })
       }
       if (by?.kind === 'impulse/strike' && !by.params?.thorn && attacker && attacker.id !== e.id && w.get(e.id) && w.get(attacker.id) && vowsOf(w, e).has('thorn')) {
         const ap = w.posOf(e)
@@ -221,7 +227,7 @@ export const classesModule: EngineModule = {
     eng.combat = classCombat(eng)
     // the passives in data read the engine's skills (combat.ts paid)
     bindSkills(w, eng.skills)
-    // a profession's piece (the warrior's shield) works only for its own
+    // a profession's piece (the swordsman's scabbard) works only for its own
     w.wears.push((e, item) => canWield(w, e, item))
     // what a cast leaves falling (an Arrow Rain's volleys)
     eng.hooks.tick.push({ phase: 'status', run: (active) => rainTick(eng, active) })

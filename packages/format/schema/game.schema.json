@@ -2304,6 +2304,10 @@
         "lastHurtTick": {
           "type": "number"
         },
+        "hurtBy": {
+          "type": "string",
+          "description": "Who struck one last (an Avenger's Vengeance answers them)."
+        },
         "lastHurtBy": {
           "$ref": "#/definitions/Id",
           "description": "Who struck it last, and what they were (kept when they are gone): who felled it, when it falls."
@@ -2333,17 +2337,6 @@
           "type": "number"
         },
         "attackCarry": {
-          "type": "number"
-        },
-        "retaliateUntil": {
-          "type": "number",
-          "description": "Warrior: a Retaliation is ready until this tick (after taking a hit)."
-        },
-        "rampageStacks": {
-          "type": "number",
-          "description": "Warrior: Rampage stacks, and when they lapse."
-        },
-        "rampageUntil": {
           "type": "number"
         },
         "markTarget": {
@@ -2385,7 +2378,7 @@
         },
         "starHits": {
           "type": "number",
-          "description": "Relics (a Stigmatic piece's power): Starfall's hits toward the fifth, the gale's speed until, the Unfallen Wall's last turned blow."
+          "description": "Relics (a Stigmatic piece's power): Starfall's hits toward the fifth, the gale's speed until."
         },
         "galeUntil": {
           "type": "number"
@@ -2397,12 +2390,36 @@
         "bloodUntil": {
           "type": "number"
         },
+        "agonyStacks": {
+          "type": "number",
+          "description": "Agony (a Sacrificer's): blows taken this while, each a share more damage."
+        },
+        "agonyUntil": {
+          "type": "number"
+        },
+        "avatarTick": {
+          "type": "number",
+          "description": "Undying Avatar's while: when it last held one up."
+        },
+        "bladeUntil": {
+          "type": "number",
+          "description": "A Spellblade's: the blows after a cast that strike harder (until when, how many, the cast's element), and an enchantment of the three elements' count (which one the next blow carries)."
+        },
+        "bladeHits": {
+          "type": "number"
+        },
+        "bladeElement": {
+          "type": "string"
+        },
+        "imbueHits": {
+          "type": "number"
+        },
         "buffs": {
           "type": "object",
           "additionalProperties": {
             "type": "number"
           },
-          "description": "The advancements' skills (docs/advancement.md): the buffs up (a skill's id → until), a mark on a foe, a ward, a sure critical readied, Ascendance's stacks, Shadow Lord's count, the last felled, Living Legend's minute."
+          "description": "The advancements' skills (docs/advancement.md): the buffs up (a skill's id → until), a mark on a foe, a ward, a sure critical readied, Shadow Lord's count, the last felled (and what it was in: a Corpse Burst's poison, a Wildfire's fire)."
         },
         "mark": {
           "type": "object",
@@ -2437,12 +2454,6 @@
         "sureNext": {
           "type": "boolean"
         },
-        "ascStacks": {
-          "type": "number"
-        },
-        "ascUntil": {
-          "type": "number"
-        },
         "shadowHits": {
           "type": "number"
         },
@@ -2464,6 +2475,15 @@
             "poisoned": {
               "type": "boolean"
             },
+            "hexed": {
+              "type": "boolean"
+            },
+            "hunted": {
+              "type": "boolean"
+            },
+            "burning": {
+              "type": "boolean"
+            },
             "marked": {
               "type": "boolean"
             },
@@ -2482,18 +2502,12 @@
           ],
           "additionalProperties": false
         },
-        "legendTick": {
-          "type": "number"
-        },
         "regenTick": {
-          "type": "number"
-        },
-        "unfallenTick": {
           "type": "number"
         },
         "hasteUntil": {
           "type": "number",
-          "description": "Active skills (actives.ts): Gale Step's speed, a War Cry's guard and strength, a Smoke Bomb's veil — until these ticks."
+          "description": "Active skills (actives.ts): Gale Step's speed, a rally's guard and strength, a Smoke Bomb's veil — until these ticks."
         },
         "rallyUntil": {
           "type": "number"
@@ -2532,6 +2546,9 @@
             "look": {
               "type": "string"
             },
+            "missile": {
+              "type": "string"
+            },
             "radius": {
               "type": "number"
             },
@@ -2553,9 +2570,41 @@
           "additionalProperties": false,
           "description": "Arrow Rain: volleys still to fall on a 3×3 around (x, y), the next at tick `next`."
         },
+        "doom": {
+          "type": "object",
+          "properties": {
+            "target": {
+              "type": "string"
+            },
+            "at": {
+              "type": "number"
+            },
+            "power": {
+              "type": "number"
+            },
+            "look": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "target",
+            "at",
+            "power",
+            "look"
+          ],
+          "additionalProperties": false,
+          "description": "A doom pronounced (an Inquisitor's): on whom, when its blow falls, how hard, in what colours."
+        },
+        "sufferTarget": {
+          "type": "string",
+          "description": "The Five Sufferings laid in turn (an Avenger's third): on whom, and how many so far."
+        },
+        "sufferN": {
+          "type": "number"
+        },
         "ironUntil": {
           "type": "number",
-          "description": "Iron Guard: blows taken much lighter, steps slower, until this tick. Hawk Eye: reach and criticals, until this tick."
+          "description": "A `guard`: blows taken much lighter, steps slower, until this tick. Hawk Eye: reach and criticals, until this tick."
         },
         "aimUntil": {
           "type": "number"

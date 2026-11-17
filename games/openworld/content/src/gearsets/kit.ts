@@ -11,7 +11,7 @@ import { RELICS, SET_POWERS, VOWS } from '../powers.ts'
 
 export type Slot = 'head' | 'shoulders' | 'body' | 'hands' | 'waist' | 'feet' | 'neck' | 'ear' | 'ring'
 export type Chapter = 'ch1' | 'ch2' | 'ch3' | 'ch4' | 'ch5' | 'fin'
-export type Lean = 'any' | 'assassin' | 'warrior' | 'ranger' | 'mage'
+export type Lean = 'any' | 'assassin' | 'ranger' | 'mage' | 'swordsman' | 'cleric'
 
 /**
  * Where a piece is found — the remains or a chest on a map (the demo lays it: tools/src/demo/sets), a person's
@@ -113,7 +113,7 @@ const SAY: Record<string, (n: number) => [string, string]> = {
   luck: (n) => [`luck +${pct(n)}`, `幸运 +${pct(n)}`],
   moveHaste: (n) => [`movement speed +${pct(n)}`, `移动速度 +${pct(n)}`],
   attackHaste: (n) => [`attack speed +${pct(n)}`, `攻击速度 +${pct(n)}`],
-  block: (n) => [`block with a shield +${pct(n)}`, `持盾格挡 +${pct(n)}`],
+  block: (n) => [`block with something in the off hand +${pct(n)}`, `副手格挡 +${pct(n)}`],
   holdFast: (n) => [`standing your ground, ${pct(n)} less harm`, `站定时受到的伤害 -${pct(n)}`],
   'night:def': (n) => [`defence +${n} at night`, `夜间防御 +${n}`],
   'night:atk': (n) => [`attack +${n} at night`, `夜间攻击 +${n}`],

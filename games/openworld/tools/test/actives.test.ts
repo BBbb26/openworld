@@ -77,8 +77,8 @@ describe('the skill bar', () => {
     expect(eng.world.num(s, 'hp')).toBe(hp)
     for (let i = 0; i < 80; i++) eng.tick()
     expect(castLeft(eng, p, 'whirlwind')).toBe(0)
-    // a warrior's skill, the player now a mage: not cast
-    know(eng, 'shield-bash')
+    // a swordsman's skill, the player now a mage: not cast
+    know(eng, 'cross-cut')
     eng.author(() => eng.world.setProp(p, 'profession', 'mage'))
     expect(cast(eng, 0)).toBe(false)
   })
@@ -89,6 +89,7 @@ const onArena = (eng: Engine, type: string) => eng.world.entitiesOnMap('arena').
 const buffed = (eng: Engine, p: Entity, id: string) => (p.combat?.buffs?.[id] ?? 0) > eng.world.state.tick
 const status = (eng: Engine, s: Entity, id: string) => eng.world.hasStatus({ e: s.id }, id)
 const after = (eng: Engine, ticks: number) => { for (let i = 0; i < ticks; i++) eng.tick() }
+const wounded = (eng: Engine, p: Entity) => eng.author(() => eng.world.setProp(p, 'hp', 1))
 
 const ADVANCED_CASES: Record<string, (eng: Engine, p: Entity, x: number, y: number) => () => void> = {
   // the assassin
@@ -118,6 +119,25 @@ const ADVANCED_CASES: Record<string, (eng: Engine, p: Entity, x: number, y: numb
     return () => expect([hurt(eng, s), status(eng, s, 'poisoned'), onArena(eng, SUMMONS.skeleton).filter((e) => e.props?.companion === p.id).length]).toEqual([true, true, 4])
   },
   'umbral-step': (eng, p) => () => expect([(p.combat?.veilUntil ?? 0) > eng.world.state.tick, p.combat?.sureNext]).toEqual([true, true]),
+  'shade-stab': (eng, _p, x, y) => {
+    const s = slime(eng, x + 3, y)
+    return () => expect([hurt(eng, s), status(eng, s, 'bleeding')]).toEqual([true, true])
+  },
+  'shadow-dance': (eng, p) => () => expect(buffed(eng, p, 'shadow-dance')).toBe(true),
+  'shadow-double': (eng, p) => () => expect(onArena(eng, SUMMONS.phantom).filter((e) => e.props?.companion === p.id)).toHaveLength(1),
+  'chains-of-binding': (eng, _p, x, y) => {
+    const two = [slime(eng, x + 3, y), slime(eng, x + 4, y + 1)]
+    return () => expect(two.map((s) => [hurt(eng, s), status(eng, s, 'webbed')])).toEqual([[true, true], [true, true]])
+  },
+  'hex-wave': (eng, _p, x, y) => {
+    const s = slime(eng, x + 2, y + 1)
+    return () => expect([hurt(eng, s), status(eng, s, 'hexed')]).toEqual([true, true])
+  },
+  'hunters-sanctum': (eng, p) => () => expect([onArena(eng, HAZARDS.sigil).length > 0, buffed(eng, p, 'hunters-sanctum')]).toEqual([true, true]),
+  'ghost-howl': (eng, _p, x, y) => {
+    const s = slime(eng, x + 3, y + 2)
+    return () => expect([hurt(eng, s), status(eng, s, 'stunned')]).toEqual([true, true])
+  },
   blur: (eng, p) => () => expect(buffed(eng, p, 'blur')).toBe(true),
   'thousand-shadows': (eng, _p, x, y) => {
     const three = [slime(eng, x + 2, y), slime(eng, x, y + 3), slime(eng, x - 3, y)]
@@ -128,6 +148,119 @@ const ADVANCED_CASES: Record<string, (eng: Engine, p: Entity, x: number, y: numb
   'demon-prison': (eng, _p, x, y) => {
     const s = slime(eng, x + 1, y + 1)
     return () => expect([hurt(eng, s), status(eng, s, 'stunned'), onArena(eng, HAZARDS.sigil).length > 0]).toEqual([true, true, true])
+  },
+  // the swordsman
+  'cross-cut': (eng, _p, x, y) => {
+    const s = slime(eng, x + 1, y - 1)
+    return () => expect(hurt(eng, s)).toBe(true)
+  },
+  'rising-slash': (eng, _p, x, y) => {
+    const s = slime(eng, x + 1, y)
+    return () => expect([hurt(eng, s), status(eng, s, 'knelt')]).toEqual([true, true])
+  },
+  'step-cut': (eng, _p, x, y) => {
+    const s = slime(eng, x + 3, y)
+    return () => expect(hurt(eng, s)).toBe(true)
+  },
+  'whirl-cut': (eng, _p, x, y) => {
+    const s = slime(eng, x + 1, y + 1)
+    return () => expect(hurt(eng, s)).toBe(true)
+  },
+  'focus-stance': (eng, p) => () => expect(buffed(eng, p, 'focus-stance')).toBe(true),
+  'piercing-thrust': (eng, _p, x, y) => {
+    const two = [slime(eng, x + 1, y), slime(eng, x + 2, y)]
+    return () => expect(two.every((s) => hurt(eng, s))).toBe(true)
+  },
+  'heaven-rending': (eng, _p, x, y) => {
+    const s = slime(eng, x + 3, y + 1)
+    return () => expect(hurt(eng, s)).toBe(true)
+  },
+  'sheath-cut': (eng, p) => () => expect(buffed(eng, p, 'sheath-cut')).toBe(true),
+  'wind-cutter': (eng, _p, x, y) => {
+    const s = slime(eng, x + 4, y)
+    return () => expect(hurt(eng, s)).toBe(true)
+  },
+  iaido: (eng, p, x, y) => {
+    const two = [slime(eng, x + 1, y), slime(eng, x + 2, y)]
+    return () => expect([two.every((s) => hurt(eng, s)), eng.world.posOf(p)!.x > x + 2]).toEqual([true, true])
+  },
+  'phantom-sword-dance': (eng, _p, x, y) => {
+    const s = slime(eng, x + 1, y - 1)
+    return () => expect(hurt(eng, s)).toBe(true)
+  },
+  'swallow-return': (eng, _p, x, y) => {
+    const s = slime(eng, x + 1, y)
+    return () => expect(hurt(eng, s)).toBe(true)
+  },
+  'flash-step': (eng, p, x) => () => expect(eng.world.posOf(p)!.x).toBeGreaterThan(x),
+  issen: (eng, _p, x, y) => {
+    const s = slime(eng, x + 5, y - 1)
+    return () => expect(hurt(eng, s)).toBe(true)
+  },
+  'mirror-stance': (eng, p) => () => expect(buffed(eng, p, 'mirror-stance')).toBe(true),
+  'void-slash': (eng, _p, x, y) => {
+    const s = slime(eng, x + 5, y)
+    return () => expect(hurt(eng, s)).toBe(true)
+  },
+  'ten-thousand-swords': (eng, _p, x, y) => {
+    const s = slime(eng, x + 2, y + 1)
+    return () => (after(eng, 15), expect(hurt(eng, s)).toBe(true))
+  },
+  'blood-offering': (eng, p) => {
+    const hp = eng.world.num(p, 'hp')
+    return () => expect([buffed(eng, p, 'blood-offering'), eng.world.num(p, 'hp') < hp]).toEqual([true, true])
+  },
+  'crimson-whirl': (eng, _p, x, y) => {
+    const s = slime(eng, x + 1, y)
+    return () => expect([hurt(eng, s), status(eng, s, 'bleeding')]).toEqual([true, true])
+  },
+  'rending-sacrifice': (eng, _p, x, y) => {
+    const s = slime(eng, x + 1, y + 1)
+    return () => expect(hurt(eng, s)).toBe(true)
+  },
+  frenzy: (eng, p) => () => expect(buffed(eng, p, 'frenzy')).toBe(true),
+  'sixth-suffering': (eng, p) => () => expect(buffed(eng, p, 'sixth-suffering')).toBe(true),
+  'flesh-for-blade': (eng, p) => () => expect(buffed(eng, p, 'flesh-for-blade')).toBe(true),
+  'pain-spread': (eng, _p, x, y) => {
+    const s = slime(eng, x + 2, y)
+    return () => expect([hurt(eng, s), status(eng, s, 'bleeding')]).toEqual([true, true])
+  },
+  'final-offering': (eng, _p, x, y) => {
+    const s = slime(eng, x + 3, y)
+    return () => expect(hurt(eng, s)).toBe(true)
+  },
+  'flame-enchant': (eng, p) => () => expect(buffed(eng, p, 'flame-enchant')).toBe(true),
+  'frost-enchant': (eng, p) => () => expect(buffed(eng, p, 'frost-enchant')).toBe(true),
+  'thunder-enchant': (eng, p) => () => expect(buffed(eng, p, 'thunder-enchant')).toBe(true),
+  'flame-slash': (eng, _p, x, y) => {
+    const s = slime(eng, x + 1, y - 1)
+    return () => expect([hurt(eng, s), status(eng, s, 'burning')]).toEqual([true, true])
+  },
+  'thunder-thrust': (eng, _p, x, y) => {
+    const two = [slime(eng, x + 1, y), slime(eng, x + 3, y)]
+    return () => expect(two.every((s) => hurt(eng, s))).toBe(true)
+  },
+  'frost-ring': (eng, _p, x, y) => {
+    const s = slime(eng, x - 1, y + 1)
+    return () => expect([hurt(eng, s), status(eng, s, 'frozen')]).toEqual([true, true])
+  },
+  'trinity-cut': (eng, _p, x, y) => {
+    const s = slime(eng, x + 1, y + 1)
+    // (fire, ice and lightning in turn: the elements answer one another as they always do, the last one stuns)
+    return () => expect([hurt(eng, s), status(eng, s, 'electrified')]).toEqual([true, true])
+  },
+  'prism-enchant': (eng, p) => () => expect(buffed(eng, p, 'prism-enchant')).toBe(true),
+  raikiri: (eng, p, x, y) => {
+    const two = [slime(eng, x + 1, y), slime(eng, x + 3, y)]
+    return () => expect([two.every((s) => hurt(eng, s) && status(eng, s, 'electrified')), eng.world.posOf(p)!.x > x + 3]).toEqual([true, true])
+  },
+  'meteor-cut': (eng, p, x, y) => {
+    const s = slime(eng, x + 4, y)
+    return () => expect([hurt(eng, s), status(eng, s, 'burning'), eng.world.posOf(p)?.x]).toEqual([true, true, x + 3])
+  },
+  'ten-thousand-thunders': (eng, _p, x, y) => {
+    const s = slime(eng, x + 2, y + 1)
+    return () => (after(eng, 15), expect(hurt(eng, s)).toBe(true))
   },
   'death-mark': (eng, p, x, y) => {
     const s = slime(eng, x + 3, y)
@@ -142,44 +275,6 @@ const ADVANCED_CASES: Record<string, (eng: Engine, p: Entity, x: number, y: numb
     return () => expect([hurt(eng, s), status(eng, s, 'stunned')]).toEqual([true, true])
   },
   caltrops: (eng) => () => expect(onArena(eng, HAZARDS.caltrops)).toHaveLength(9),
-  // the warrior
-  bastion: (eng, p) => () => expect(buffed(eng, p, 'bastion')).toBe(true),
-  challenge: (eng, p, x, y) => {
-    const s = slime(eng, x + 2, y)
-    return () => expect([hurt(eng, s), buffed(eng, p, 'challenge')]).toEqual([true, true])
-  },
-  aegis: (eng, p) => () => expect(buffed(eng, p, 'aegis')).toBe(true),
-  'blood-rage': (eng, p) => {
-    const hp = eng.world.num(p, 'hp')
-    return () => expect([eng.world.num(p, 'hp') < hp, buffed(eng, p, 'blood-rage')]).toEqual([true, true])
-  },
-  'reaving-spin': (eng, _p, x, y) => {
-    const s = slime(eng, x + 1, y)
-    return () => expect(hurt(eng, s)).toBe(true)
-  },
-  'leap-of-ruin': (eng, p, x, y) => {
-    const s = slime(eng, x + 4, y)
-    return () => expect([hurt(eng, s), status(eng, s, 'stunned'), eng.world.posOf(p)?.x]).toEqual([true, true, x + 3])
-  },
-  kneel: (eng, _p, x, y) => {
-    const s = slime(eng, x + 2, y)
-    return () => expect([hurt(eng, s), status(eng, s, 'knelt')]).toEqual([true, true])
-  },
-  'briar-line': (eng) => () => expect(onArena(eng, HAZARDS.briars)).toHaveLength(4),
-  'crown-of-thorns': (eng, p) => () => expect([onArena(eng, HAZARDS.briars).length, buffed(eng, p, 'crown-of-thorns')]).toEqual([16, true]),
-  'unbreakable-will': (eng, p) => () => expect(buffed(eng, p, 'unbreakable-will')).toBe(true),
-  godslayer: (eng, _p, x, y) => {
-    const s = slime(eng, x + 1, y - 1)
-    return () => expect(hurt(eng, s)).toBe(true)
-  },
-  hamstring: (eng, _p, x, y) => {
-    const s = slime(eng, x + 1, y)
-    return () => expect([hurt(eng, s), status(eng, s, 'mired')]).toEqual([true, true])
-  },
-  sunder: (eng, p, x, y) => {
-    const s = slime(eng, x + 1, y)
-    return () => expect([hurt(eng, s), p.combat?.mark?.target]).toEqual([true, s.id])
-  },
   // the ranger
   deadeye: (eng, _p, x, y) => {
     const s = slime(eng, x + 5, y)
@@ -203,13 +298,59 @@ const ADVANCED_CASES: Record<string, (eng: Engine, p: Entity, x: number, y: numb
     return () => expect([hurt(eng, s), status(eng, s, 'bleeding')]).toEqual([true, true])
   },
   'the-pack': (eng) => () => expect(onArena(eng, SUMMONS.wolf)).toHaveLength(3),
-  'wind-arrow': (eng, _p, x, y) => {
-    const two = [slime(eng, x + 2, y), slime(eng, x + 3, y)]
-    return () => expect(two.every((s) => hurt(eng, s) && status(eng, s, 'stunned'))).toBe(true)
+  'mark-prey': (eng, _p, x, y) => {
+    const s = slime(eng, x + 3, y)
+    return () => expect([hurt(eng, s), status(eng, s, 'hunted')]).toEqual([true, true])
   },
-  'thousand-arrows': (eng, _p, x, y) => {
-    const two = [slime(eng, x + 3, y), slime(eng, x + 5, y + 3)]
-    return () => (after(eng, 25), expect(two.every((s) => hurt(eng, s))).toBe(true))
+  'hunting-net': (eng, _p, x, y) => {
+    const two = [slime(eng, x + 3, y), slime(eng, x + 4, y + 1)]
+    return () => expect(two.every((s) => hurt(eng, s) && status(eng, s, 'webbed'))).toBe(true)
+  },
+  'dawn-flight': (eng, _p, x, y) => {
+    const s = slime(eng, x - 3, y + 2)
+    return () => expect([hurt(eng, s), status(eng, s, 'hunted')]).toEqual([true, true])
+  },
+  'pinning-shot': (eng, _p, x, y) => {
+    const s = slime(eng, x + 4, y)
+    return () => expect([hurt(eng, s), status(eng, s, 'webbed')]).toEqual([true, true])
+  },
+  'hold-breath': (eng, p) => () => expect(buffed(eng, p, 'hold-breath')).toBe(true),
+  sunpiercer: (eng, _p, x, y) => {
+    const two = [slime(eng, x + 2, y), slime(eng, x + 13, y)]
+    return () => expect(two.every((s) => hurt(eng, s))).toBe(true)
+  },
+  'sight-lock': (eng, p, x, y) => {
+    const s = slime(eng, x + 10, y + 4)
+    return () => expect(p.combat?.mark?.target).toBe(s.id)
+  },
+  'one-shot': (eng, _p, x, y) => {
+    const s = slime(eng, x + 13, y)
+    return () => expect(hurt(eng, s)).toBe(true)
+  },
+  flit: (eng, p, x, y) => {
+    slime(eng, x + 1, y)
+    return () => expect(eng.world.posOf(p)?.x).toBe(x + 4)
+  },
+  'arrow-flurry': (eng, _p, x, y) => {
+    const s = slime(eng, x + 3, y)
+    return () => expect(hurt(eng, s)).toBe(true)
+  },
+  crosswind: (eng, _p, x, y) => {
+    const s = slime(eng, x + 2, y + 1)
+    return () => expect([hurt(eng, s), status(eng, s, 'mired')]).toEqual([true, true])
+  },
+  'gale-dance': (eng, _p, x, y) => {
+    const two = [slime(eng, x + 2, y), slime(eng, x + 3, y + 2)]
+    return () => expect(two.every((s) => hurt(eng, s))).toBe(true)
+  },
+  wingbeat: (eng, p) => () => expect(buffed(eng, p, 'wingbeat')).toBe(true),
+  'flying-feathers': (eng, _p, x, y) => {
+    const two = [slime(eng, x + 3, y), slime(eng, x + 3, y + 1)]
+    return () => expect(two.every((s) => hurt(eng, s) && status(eng, s, 'mired'))).toBe(true)
+  },
+  'falling-feathers': (eng, p, x, y) => {
+    const s = slime(eng, x + 1, y + 2)
+    return () => (expect(buffed(eng, p, 'falling-feathers')).toBe(true), after(eng, 15), expect(hurt(eng, s)).toBe(true))
   },
   volley: (eng, _p, x, y) => {
     const two = [slime(eng, x + 3, y), slime(eng, x + 4, y + 1)]
@@ -242,29 +383,175 @@ const ADVANCED_CASES: Record<string, (eng: Engine, p: Entity, x: number, y: numb
     const s = slime(eng, x + 2, y + 1)
     return () => (after(eng, 15), expect(hurt(eng, s)).toBe(true))
   },
-  sunburst: (eng, _p, x, y) => {
+  'ice-spikes': (eng, _p, x, y) => {
+    const s = slime(eng, x + 2, y + 1)
+    return () => expect([hurt(eng, s), status(eng, s, 'frozen')]).toEqual([true, true])
+  },
+  'frozen-ground': (eng) => () => expect(onArena(eng, HAZARDS.frost)).toHaveLength(9),
+  'dragons-breath': (eng, _p, x, y) => {
+    const two = [slime(eng, x + 2, y), slime(eng, x + 4, y)]
+    return () => expect(two.every((s) => hurt(eng, s) && status(eng, s, 'burning'))).toBe(true)
+  },
+  pyroblast: (eng, _p, x, y) => {
+    const s = slime(eng, x + 5, y)
+    return () => expect(hurt(eng, s)).toBe(true)
+  },
+  'lightning-bolt': (eng, _p, x, y) => {
+    const s = slime(eng, x + 5, y)
+    return () => expect(hurt(eng, s)).toBe(true)
+  },
+  thunderclap: (eng, _p, x, y) => {
+    const s = slime(eng, x + 2, y - 1)
+    return () => expect([hurt(eng, s), status(eng, s, 'electrified')]).toEqual([true, true])
+  },
+  'thunder-spear': (eng, _p, x, y) => {
+    const two = [slime(eng, x + 2, y), slime(eng, x + 5, y)]
+    return () => expect(two.every((s) => hurt(eng, s))).toBe(true)
+  },
+  'lightning-step': (eng, p, x, y) => {
     const s = slime(eng, x + 2, y)
-    return () => expect([hurt(eng, s), status(eng, s, 'stunned')]).toEqual([true, true])
+    return () => expect([hurt(eng, s), eng.world.posOf(p)?.x]).toEqual([true, x + 4])
   },
-  sanctuary: (eng, p) => () => expect([onArena(eng, HAZARDS.holy).length, buffed(eng, p, 'sanctuary')]).toEqual([9, true]),
-  daybreak: (eng, _p, x, y) => {
-    const s = slime(eng, x + 3, y)
+  'thunder-prison': (eng, _p, x, y) => {
+    const two = [slime(eng, x + 3, y), slime(eng, x + 5, y + 2)]
+    return () => (after(eng, 25), expect(two.every((s) => hurt(eng, s))).toBe(true))
+  },
+  glacier: (eng, _p, x, y) => {
+    const two = [slime(eng, x + 2, y), slime(eng, x + 5, y + 1)]
+    return () => expect(two.every((s) => hurt(eng, s) && status(eng, s, 'frozen'))).toBe(true)
+  },
+  'cold-wave': (eng, _p, x, y) => {
+    const s = slime(eng, x + 3, y - 2)
+    return () => expect([hurt(eng, s), status(eng, s, 'frozen')]).toEqual([true, true])
+  },
+  'endless-winter': (eng, _p, x, y) => {
+    const s = slime(eng, x + 3, y + 2)
+    return () => (after(eng, 15), expect(hurt(eng, s)).toBe(true))
+  },
+  immolate: (eng, p) => () => expect(buffed(eng, p, 'immolate')).toBe(true),
+  'scorched-earth': (eng, _p, x, y) => {
+    const two = [slime(eng, x + 2, y), slime(eng, x + 5, y - 1)]
+    return () => expect(two.every((s) => hurt(eng, s) && status(eng, s, 'burning'))).toBe(true)
+  },
+  worldfire: (eng, _p, x, y) => {
+    const two = [slime(eng, x + 3, y), slime(eng, x + 5, y + 3)]
+    return () => expect(two.every((s) => hurt(eng, s) && status(eng, s, 'burning'))).toBe(true)
+  },
+  'judgement-bolt': (eng, _p, x, y) => {
+    const s = slime(eng, x + 6, y)
     return () => expect(hurt(eng, s)).toBe(true)
   },
-  'time-warp': (eng, p) => {
-    eng.author(() => eng.world.addTag(p, 'skill:frost-nova'))
-    eng.setCooldown(`skill:frost-nova:${p.id}`, 100)
-    return () => expect(eng.cooldown(`skill:frost-nova:${p.id}`) - eng.world.state.tick).toBeLessThan(60)
-  },
-  convergence: (eng, _p, x, y) => {
-    const s = slime(eng, x + 3, y)
-    return () => expect(hurt(eng, s)).toBe(true)
+  'thunder-shroud': (eng, p) => () => expect(buffed(eng, p, 'thunder-shroud')).toBe(true),
+  'wrath-of-heaven': (eng, _p, x, y) => {
+    const s = slime(eng, x + 3, y - 2)
+    return () => (after(eng, 15), expect(hurt(eng, s)).toBe(true))
   },
   'arcane-missiles': (eng, _p, x, y) => {
     const s = slime(eng, x + 3, y)
     return () => expect(hurt(eng, s)).toBe(true)
   },
   'mana-ward': (eng, p) => () => expect(p.combat?.ward).toBeGreaterThan(0),
+  // the cleric
+  smite: (eng, _p, x, y) => {
+    const s = slime(eng, x + 1, y)
+    return () => expect([hurt(eng, s), status(eng, s, 'stunned')]).toEqual([true, true])
+  },
+  prayer: (eng, p) => (wounded(eng, p), () => expect(eng.world.num(p, 'hp')).toBeGreaterThan(1)),
+  consecrate: (eng, p) => () => expect([onArena(eng, HAZARDS.holy).length, buffed(eng, p, 'consecrate')]).toEqual([9, true]),
+  rebuke: (eng, _p, x, y) => {
+    const s = slime(eng, x + 1, y + 1)
+    return () => expect([hurt(eng, s), status(eng, s, 'knelt')]).toEqual([true, true])
+  },
+  'holy-light': (eng, _p, x, y) => {
+    const s = slime(eng, x + 4, y)
+    return () => expect(hurt(eng, s)).toBe(true)
+  },
+  blessing: (eng, p) => () => expect(buffed(eng, p, 'blessing')).toBe(true),
+  'divine-wrath': (eng, _p, x, y) => {
+    const s = slime(eng, x + 2, y + 2)
+    return () => expect([hurt(eng, s), status(eng, s, 'stunned')]).toEqual([true, true])
+  },
+  'hammer-of-heaven': (eng, _p, x, y) => {
+    const s = slime(eng, x + 2, y + 1)
+    return () => expect(hurt(eng, s)).toBe(true)
+  },
+  'ward-of-light': (eng, p) => () => expect(p.combat?.ward).toBeGreaterThan(0),
+  'healing-light': (eng, p) => (wounded(eng, p), () => expect(eng.world.num(p, 'hp')).toBeGreaterThan(1)),
+  'guardian-light': (eng, p, x, y) => {
+    const s = slime(eng, x + 2, y)
+    return () => expect([hurt(eng, s), buffed(eng, p, 'guardian-light')]).toEqual([true, true])
+  },
+  renew: (eng, p) => () => expect(buffed(eng, p, 'renew')).toBe(true),
+  'radiant-blow': (eng, _p, x, y) => {
+    const s = slime(eng, x + 1, y)
+    return () => expect([hurt(eng, s), status(eng, s, 'stunned')]).toEqual([true, true])
+  },
+  'divine-intervention': (eng, p) => () => expect(buffed(eng, p, 'divine-intervention')).toBe(true),
+  scourge: (eng, _p, x, y) => {
+    const s = slime(eng, x + 1, y + 1)
+    return () => expect([hurt(eng, s), status(eng, s, 'bleeding')]).toEqual([true, true])
+  },
+  'black-flame': (eng, _p, x, y) => {
+    const s = slime(eng, x + 4, y)
+    return () => expect([hurt(eng, s), status(eng, s, 'burning')]).toEqual([true, true])
+  },
+  wrath: (eng, p) => () => expect(buffed(eng, p, 'wrath')).toBe(true),
+  torment: (eng, _p, x, y) => {
+    const s = slime(eng, x + 3, y)
+    eng.author(() => eng.applyStatus({ e: s.id }, 'bleeding', 50))
+    return () => expect([hurt(eng, s), status(eng, s, 'bleeding')]).toEqual([true, false])
+  },
+  'night-of-wrath': (eng, _p, x, y) => {
+    const s = slime(eng, x + 2, y + 2)
+    return () => expect([hurt(eng, s), status(eng, s, 'burning'), status(eng, s, 'bleeding')]).toEqual([true, true, true])
+  },
+  'brand-heretic': (eng, p, x, y) => {
+    const s = slime(eng, x + 4, y + 3)
+    return () => expect([hurt(eng, s), status(eng, s, 'branded'), p.combat?.mark?.target === s.id]).toEqual([true, true, true])
+  },
+  'burn-the-heretic': (eng, _p, x, y) => {
+    const s = slime(eng, x + 3, y)
+    return () => expect([hurt(eng, s), status(eng, s, 'burning')]).toEqual([true, true])
+  },
+  shackles: (eng, _p, x, y) => {
+    const s = slime(eng, x + 3, y)
+    return () => expect([hurt(eng, s), status(eng, s, 'webbed')]).toEqual([true, true])
+  },
+  'purging-flame': (eng, _p, x, y) => {
+    const two = [slime(eng, x + 3, y), slime(eng, x + 4, y + 1)]
+    return () => expect(two.every((s) => hurt(eng, s))).toBe(true)
+  },
+  sentence: (eng, _p, x, y) => {
+    const s = slime(eng, x + 4, y)
+    return () => expect([hurt(eng, s), status(eng, s, 'stunned')]).toEqual([true, true])
+  },
+  'call-the-faithful': (eng, p) => () => expect(onArena(eng, SUMMONS.disciple).filter((e) => e.props?.companion === p.id)).toHaveLength(2),
+  psalm: (eng, p) => (wounded(eng, p), () => expect(eng.world.num(p, 'hp')).toBeGreaterThan(1)),
+  'gate-of-heaven': (eng, p, x, y) => {
+    const s = slime(eng, x + 2, y)
+    return () => expect([hurt(eng, s), onArena(eng, SUMMONS.seraph).filter((e) => e.props?.companion === p.id).length]).toEqual([true, 1])
+  },
+  'thorn-crown': (eng) => () => expect(onArena(eng, HAZARDS.briars)).toHaveLength(16),
+  'spear-of-sorrow': (eng, _p, x, y) => {
+    const two = [slime(eng, x + 2, y), slime(eng, x + 4, y)]
+    return () => expect(two.every((s) => hurt(eng, s))).toBe(true)
+  },
+  'all-five': (eng, _p, x, y) => {
+    const s = slime(eng, x + 3, y + 1)
+    return () => expect([hurt(eng, s), status(eng, s, 'bleeding'), status(eng, s, 'webbed')]).toEqual([true, true, true])
+  },
+  doom: (eng, _p, x, y) => {
+    const s = slime(eng, x + 3, y)
+    return () => (expect(hurt(eng, s)).toBe(false), after(eng, 55), expect(hurt(eng, s)).toBe(true))
+  },
+  confess: (eng, _p, x, y) => {
+    const s = slime(eng, x + 2, y)
+    return () => expect([hurt(eng, s), status(eng, s, 'knelt')]).toEqual([true, true])
+  },
+  'last-judgement': (eng, _p, x, y) => {
+    const s = slime(eng, x + 5, y)
+    return () => expect([hurt(eng, s), status(eng, s, 'branded')]).toEqual([true, true])
+  },
 }
 
 describe('each active skill does what it says', () => {
@@ -297,19 +584,6 @@ describe('each active skill does what it says', () => {
     flurry: (eng, _p, x, y) => {
       const s = slime(eng, x + 1, y)
       return () => expect(200 - eng.world.num(s, 'hp')).toBeGreaterThanOrEqual(4)
-    },
-    'shield-bash': (eng, _p, x, y) => {
-      const s = slime(eng, x + 1, y)
-      return () => expect([hurt(eng, s), eng.world.hasStatus({ e: s.id }, 'stunned')]).toEqual([true, true])
-    },
-    charge: (eng, p, x, y) => {
-      const s = slime(eng, x + 3, y)
-      return () => expect([hurt(eng, s), eng.world.posOf(p)?.x]).toEqual([true, x + 2])
-    },
-    'war-cry': (eng, p) => () => expect(p.combat?.rallyUntil).toBeGreaterThan(eng.world.state.tick),
-    earthsplitter: (eng, _p, x, y) => {
-      const hit = [slime(eng, x + 2, y), slime(eng, x + 3, y + 1)]
-      return () => expect(hit.every((s) => hurt(eng, s))).toBe(true)
     },
     multishot: (eng, _p, x, y) => {
       const lines = [slime(eng, x + 3, y), slime(eng, x + 3, y + 1), slime(eng, x + 2, y - 1)]
@@ -360,15 +634,6 @@ describe('each active skill does what it says', () => {
     'vanishing-strikes': (eng, _p, x, y) => {
       const three = [slime(eng, x + 2, y), slime(eng, x, y + 3), slime(eng, x - 3, y)]
       return () => expect(three.every((s) => hurt(eng, s))).toBe(true)
-    },
-    'wide-slash': (eng, _p, x, y) => {
-      const row = [slime(eng, x + 1, y - 1), slime(eng, x + 1, y), slime(eng, x + 1, y + 1)]
-      return () => expect(row.every((s) => hurt(eng, s))).toBe(true)
-    },
-    'iron-guard': (eng, p) => () => expect(p.combat?.ironUntil).toBeGreaterThan(eng.world.state.tick),
-    'heaven-splitter': (eng, _p, x, y) => {
-      const hit = [slime(eng, x + 2, y), slime(eng, x + 5, y + 1)]
-      return () => expect(hit.every((s) => hurt(eng, s) && eng.world.hasStatus({ e: s.id }, 'stunned'))).toBe(true)
     },
     'concussive-shot': (eng, _p, x, y) => {
       const s = slime(eng, x + 4, y)
@@ -421,7 +686,7 @@ describe('each active skill does what it says', () => {
 })
 
 describe('what the buffs do in a fight', () => {
-  it('Gale Step quickens the step, a War Cry guards and strengthens, a Smoke Bomb hides one, Envenom makes blows bleed', () => {
+  it('Gale Step quickens the step, a Smoke Bomb hides one, Envenom makes blows bleed', () => {
     const { eng, p, x, y } = field()
     const w = eng.world
     const s = slime(eng, x + 1, y)
@@ -429,13 +694,6 @@ describe('what the buffs do in a fight', () => {
     know(eng, 'gale-step')
     cast(eng, 0)
     expect(combatDelay(w, p, 100, 'move')).toBeLessThan(step)
-    // a War Cry: blows taken lighter, blows dealt heavier
-    const taken = eng.author(() => combatDamage(eng, p, 10, s, false))
-    const dealt = combatStrike(w, p, s, 10, 1, undefined, false).power
-    know(eng, 'war-cry')
-    cast(eng, 0)
-    expect(eng.author(() => combatDamage(eng, p, 10, s, false))).toBeLessThan(taken)
-    expect(combatStrike(w, p, s, 10, 1, undefined, false).power).toBeGreaterThan(dealt)
     // Envenom: the next blows open a bleed, five of them
     know(eng, 'envenom')
     cast(eng, 0)
@@ -574,11 +832,12 @@ describe('the professions, deeper: enhancements and talents', () => {
     void x
   })
 
-  it('a defeat answered: Master Assassin readies Shadow Strike; Undying Spirit hastens every skill, Bloodthirst mends', () => {
-    /** Fell a weak slime beside the player with a blow. */
-    const fell = (eng: Engine, p: Entity) => {
+  it('a defeat answered: Master Assassin readies Shadow Strike; All Is Kindling hastens every skill when the felled was burning', () => {
+    /** Fell a weak slime beside the player with a blow (burning, if so). */
+    const fell = (eng: Engine, p: Entity, burning = false) => {
       const at = eng.world.posOf(p)!
       const weak = eng.author(() => eng.world.create('actor/creature/slime/green_slime', { on: 'tile', map: 'arena', x: at.x + 1, y: at.y }, { props: { hp: 1, maxHp: 1 } }))
+      if (burning) eng.author(() => eng.applyStatus({ e: weak.id }, 'burning', 50))
       p.facing = 'right'
       eng.setCooldown('atk:player', 0)
       expect(eng.attack(p, { e: weak.id })).toBe(true)
@@ -595,19 +854,19 @@ describe('the professions, deeper: enhancements and talents', () => {
     a.eng.author(() => a.eng.teleport(a.p, { map: 'arena', x: 5, y: 5 }))
     fell(a.eng, a.p)
     expect(castLeft(a.eng, a.p, 'shadow-strike')).toBe(0)
-    // the warrior
+    // the Worldfire's: a foe that falls burning
     const b = field()
-    learn(b.eng, 'whirlwind', 'undying-spirit', 'bloodthirst')
+    learn(b.eng, 'whirlwind', 'all-is-kindling')
     setSkill(b.eng, 0, 'whirlwind')
     cast(b.eng, 0)
     const whirl = castLeft(b.eng, b.p, 'whirlwind')
-    b.eng.author(() => b.eng.world.setProp(b.p, 'hp', 10))
     fell(b.eng, b.p)
-    expect(castLeft(b.eng, b.p, 'whirlwind')).toBeLessThanOrEqual(whirl - 10)
-    expect(b.eng.world.num(b.p, 'hp')).toBeGreaterThan(10)
+    expect(castLeft(b.eng, b.p, 'whirlwind')).toBe(whirl - 1)
+    fell(b.eng, b.p, true)
+    expect(castLeft(b.eng, b.p, 'whirlwind')).toBeLessThanOrEqual(whirl - 1 - 20)
   })
 
-  it('the talents that shape a blow: Venom Mastery, Nightstalker; Nimble Blade dodges; Fortitude shrugs off a stun', () => {
+  it('the talents that shape a blow: Venom Mastery, Nightstalker; Nimble Blade dodges', () => {
     const { eng, p, x, y } = field()
     const w = eng.world
     const s = slime(eng, x + 1, y)
@@ -630,14 +889,6 @@ describe('the professions, deeper: enhancements and talents', () => {
     let missed = 0
     for (let i = 0; i < 400; i++) if (eng.author(() => combatDamage(eng, p, 5, s, false)) === 0) missed++
     expect(missed).toBeGreaterThan(10)
-    // Fortitude: a stun holds half as long
-    eng.author(() => w.setProp(p, 'hp', 500))
-    learn(eng, 'fortitude')
-    eng.author(() => w.setProp(p, 'profession', 'warrior'))
-    s.facing = 'left'
-    eng.act('use', s.id, { e: p.id }, { instrument: null, params: { attack: true, power: 1, afflict: 'stunned', afflictFor: 20 } })
-    expect(Object.values(p.statuses ?? {}).length).toBeGreaterThan(0)
-    expect((p.statuses?.stunned ?? 0) - w.state.tick).toBeLessThanOrEqual(10)
   })
 
   it('Deadly Shot: a bow\'s criticals cut deeper; Elementalist: a staff with an element strikes harder', () => {
@@ -661,17 +912,9 @@ describe('the professions, deeper: enhancements and talents', () => {
     expect(combatStrike(m.eng.world, m.p, t, 10, 3, staff, false).power).toBeGreaterThan(plain)
   })
 
-  it('Iron Guard: blows much lighter, steps slower; Hawk Eye: a bow reaches farther', () => {
-    const { eng, p, x, y } = field()
+  it('Hawk Eye: a bow reaches farther', () => {
+    const { eng, p } = field()
     const w = eng.world
-    const s = slime(eng, x + 1, y)
-    const taken = eng.author(() => combatDamage(eng, p, 20, s, false))
-    const step = combatDelay(w, p, 100, 'move')
-    learn(eng, 'iron-guard')
-    setSkill(eng, 0, 'iron-guard')
-    cast(eng, 0)
-    expect(eng.author(() => combatDamage(eng, p, 20, s, false))).toBeLessThan(taken)
-    expect(combatDelay(w, p, 100, 'move')).toBeGreaterThan(step)
     const bow = eng.author(() => w.create('item/weapon/ranged/bow', { on: 'hand', holder: p.id }, { props: { power: 3, range: 6 } }))
     const far = eng.reachOf('use', p, undefined, bow)!
     learn(eng, 'hawk-eye')

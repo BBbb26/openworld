@@ -50,33 +50,46 @@ describe('the skill tree', () => {
     expect(SKILL_BRANCHES.filter((b) => b.direction === 'profession').map((b) => b.id)).toEqual(['profession', 'path', 'mastery'])
     expect(SKILL_BRANCHES.filter((b) => b.direction === 'life').map((b) => b.id)).toEqual(['gathering', 'agriculture', 'husbandry', 'smithing'])
     for (const direction of SKILL_DIRECTIONS) {
-      const hubs = layoutBranches(direction.id)
-      const nodes = layoutSkills(SKILLS, direction.id, 'assassin')
-      expect([...hubs.keys()]).toEqual(SKILL_BRANCHES.filter((b) => b.direction === direction.id).map((b) => b.id))
-      expect([...nodes.keys()].sort()).toEqual(skillsForProfession('assassin').filter((s) => hubs.has(s.branch)).map((s) => s.id).sort())
+      expect([...layoutBranches(direction.id).keys()]).toEqual(SKILL_BRANCHES.filter((b) => b.direction === direction.id).map((b) => b.id))
+      const tree = layoutTree(SKILLS, direction.id, 'assassin')
+      const { hubs, nodes, ways, groupOf } = tree
+      // every skill of the profession drawn, every path's among them
+      expect([...nodes.keys()].sort()).toEqual(SKILLS.filter((s) => (!s.profession || s.profession === 'assassin') && SKILL_BRANCHES.some((b) => b.id === s.branch && b.direction === direction.id)).map((s) => s.id).sort())
       // the start in the middle, each branch growing its own way: a skill lies farther out that way than what it needs
-      const ways = layoutTree(SKILLS, direction.id, 'assassin').ways
-      const out = (p: { x: number; y: number }, branch: string) => ({ up: -p.y, down: p.y, left: -p.x, right: p.x })[ways.get(branch)!]
+      const out = (p: { x: number; y: number }, key: string) => ({ up: -p.y, down: p.y, left: -p.x, right: p.x })[ways.get(key)!]
       // (each its own way, but a branch after another goes on its way)
       const after = new Set(SKILL_BRANCHES.filter((b) => b.after).map((b) => b.id))
-      expect(new Set([...ways].filter(([b]) => !after.has(b)).map(([, w]) => w)).size).toBe([...hubs.keys()].filter((b) => !after.has(b)).length)
-      for (const b of hubs.keys()) expect(out(hubs.get(b)!, b)).toBeGreaterThan(0)
+      const own = tree.groups.filter((g) => !after.has(g.branch))
+      expect(new Set(own.map((g) => ways.get(g.key))).size).toBe(own.length)
+      for (const key of hubs.keys()) expect(out(hubs.get(key)!, key)).toBeGreaterThan(0)
       for (const s of SKILLS.filter((s) => nodes.has(s.id))) {
-        const child = nodes.get(s.id)!
-        for (const parent of s.requires?.length ? s.requires.map((r) => nodes.get(r)!) : [hubs.get(s.branch)!])
-          expect(out(child, s.branch)).toBeGreaterThan(out(parent, s.branch))
+        const key = groupOf.get(s.id)!
+        for (const parent of s.requires?.length ? s.requires.map((r) => nodes.get(r)!) : [hubs.get(key)!]) expect(out(nodes.get(s.id)!, key)).toBeGreaterThan(out(parent, key))
       }
     }
-    // the profession's own tree grows up; the path goes on beyond it out of its last skill, the mastery beyond the path
+    // the profession's own tree grows up; its three paths go on beyond it side by side, every one shown, each out of its
+    // last row; each path's third over it, out of that path's last row
     const tower = layoutTree(SKILLS, 'profession', 'assassin', 'necromancer')
-    expect(Object.fromEntries(tower.ways)).toEqual({ profession: 'up', path: 'up', mastery: 'up' })
-    const top = (b: string) => tower.panels.get(b)!.y
-    expect(tower.hubs.get('path')!.y).toBeLessThan(top('profession'))
-    expect(tower.hubs.get('mastery')!.y).toBeLessThan(top('path'))
-    const lastOf = (b: string) => Math.min(...SKILLS.filter((s) => s.branch === b && tower.nodes.has(s.id)).map((s) => tower.nodes.get(s.id)!.y))
+    const paths = ['necromancer', 'shadowdancer', 'demonhunter']
+    expect(tower.groups.map((g) => g.key)).toEqual(['profession', ...paths.map((p) => `path:${p}`), ...paths.map((p) => `mastery:${p}`)])
+    expect(new Set(tower.ways.values())).toEqual(new Set(['up']))
+    const top = (key: string) => tower.panels.get(key)!.y
+    const middle = (key: string) => tower.panels.get(key)!.x + tower.panels.get(key)!.w / 2
+    const lastOf = (key: string) => Math.min(...SKILLS.filter((s) => tower.groupOf.get(s.id) === key).map((s) => tower.nodes.get(s.id)!.y))
     expect(tower.trunks.get('profession')).toEqual({ x: 0, y: 0 })
-    expect(tower.trunks.get('path')!.y).toBe(lastOf('profession'))
-    expect(tower.trunks.get('mastery')!.y).toBe(lastOf('path'))
+    for (const p of paths) {
+      expect(tower.hubs.get(`path:${p}`)!.y).toBeLessThan(top('profession'))
+      expect(tower.trunks.get(`path:${p}`)!.y).toBe(lastOf('profession'))
+      expect(tower.hubs.get(`mastery:${p}`)!.y).toBeLessThan(top(`path:${p}`))
+      expect(tower.trunks.get(`mastery:${p}`)!.y).toBe(lastOf(`path:${p}`))
+      expect(middle(`mastery:${p}`)).toBeCloseTo(middle(`path:${p}`), 5)
+    }
+    // the three side by side, left to right as the trainer lists them
+    expect(paths.map((p) => middle(`path:${p}`))).toEqual([...paths.map((p) => middle(`path:${p}`))].sort((u, v) => u - v))
+    // the ranger's too: each path's third over it (no profession's paths share one mastery any more)
+    const ranger = layoutTree(SKILLS, 'profession', 'ranger', 'skirmisher')
+    expect(ranger.groups.filter((g) => g.branch === 'mastery').map((g) => g.key)).toEqual(['mastery:hunter', 'mastery:sharpshooter', 'mastery:skirmisher'])
+    expect(ranger.panels.get('mastery:skirmisher')!.x + ranger.panels.get('mastery:skirmisher')!.w / 2).toBeCloseTo(ranger.panels.get('path:skirmisher')!.x + ranger.panels.get('path:skirmisher')!.w / 2, 5)
     const combat = skillsForProfession('assassin').filter((s) => layoutBranches('combat').has(s.branch) || s.branch === 'profession')
     // the shared talents and the assassin's tree: the active skills are everyone's four and the profession's nine (actives.ts;
     // two of its four more since docs/advancement.md §3)
@@ -93,7 +106,7 @@ describe('the skill tree', () => {
     }
     for (const s of SKILLS) visit(s.id)
     for (const direction of SKILL_DIRECTIONS)
-      for (const profession of ['', 'assassin', 'warrior', 'ranger', 'mage']) {
+      for (const profession of ['', 'assassin', 'ranger', 'mage', 'swordsman', 'cleric']) {
         const tree = layoutTree(SKILLS, direction.id, profession)
         const places = [{ x: 0, y: 0 }, ...tree.nodes.values(), ...tree.hubs.values()]
         for (let i = 0; i < places.length; i++) for (const p of places.slice(i + 1)) expect(Math.hypot(p.x - places[i].x, p.y - places[i].y)).toBeGreaterThan(90)
@@ -115,12 +128,12 @@ describe('the skill tree', () => {
     p.props!.profession = 'assassin'
     p.props!.skillPoints = 10
     expect(eng.controls.learn(SKILL_BY_ID['assassin-training'])).toBe(true)
-    p.props!.profession = 'warrior'
+    p.props!.profession = 'swordsman'
     expect(cannotLearn(p, SKILL_BY_ID.ambush)).toBe('profession')
     expect(eng.controls.learn(SKILL_BY_ID.ambush)).toBe(false)
     expect(p.props!.skillPoints).toBe(9)
-    expect(skillsForProfession('warrior').filter((s) => s.profession).every((s) => s.profession === 'warrior')).toBe(true)
-    for (const profession of ['warrior', '', 'unknown']) {
+    expect(skillsForProfession('swordsman').filter((s) => s.profession).every((s) => s.profession === 'swordsman')).toBe(true)
+    for (const profession of ['swordsman', '', 'unknown']) {
       expect(skillsForProfession(profession).some((s) => s.profession && s.profession !== profession)).toBe(false)
       expect(layoutSkills(SKILLS, 'profession', profession).has('assassin-training')).toBe(false)
       expect(layoutBranches('profession').has('profession')).toBe(true)
@@ -140,8 +153,8 @@ describe('the skill tree', () => {
     // the early absolute 150 is Iron Stomach's 450 on the old pace, 720 on today's (480 + 240)
     expect(loaded.engine.world.player.props!.hungerEvery).toBe(720)
     expect(loaded.engine.world.player.tags).toEqual(p.tags)
-    loaded.engine.world.player.props!.profession = 'warrior'
-    expect(Game.load(structuredClone(loaded.save()), index, onto, new RuleLibrary([...BASE_RULES, ...STORY_RULES])).engine.world.player.props!.profession).toBe('warrior')
+    loaded.engine.world.player.props!.profession = 'swordsman'
+    expect(Game.load(structuredClone(loaded.save()), index, onto, new RuleLibrary([...BASE_RULES, ...STORY_RULES])).engine.world.player.props!.profession).toBe('swordsman')
   })
 
   it('needs both arms and two points for a capstone', () => {
@@ -456,7 +469,7 @@ describe('automatic combat talents', () => {
     // another profession: the dagger's blow is refused
     w.author(() => w.place(w.get('axe')!, { on: 'inside', holder: 'actor' }))
     w.author(() => w.place(w.get('dagger')!, { on: 'hand', holder: 'actor' }))
-    w.player.props!.profession = 'warrior'
+    w.player.props!.profession = 'swordsman'
     expect(blow(eng)).toBe(0)
   })
 
@@ -535,7 +548,7 @@ describe('automatic combat talents', () => {
     ranged.world.author(() => ranged.world.add({ id: 'wand', type: 'item/weapon/magic/wand', place: { on: 'hand', holder: 'actor' } }))
     blow(ranged)
     expect(ranged.world.player.props!.hp).toBe(20)
-    // a melee blow with another's weapon (the warrior's sword) is no assassin's
+    // a melee blow with a common weapon (the sword, anyone's) is no assassin's
     const sword = duel(['shadow-recovery'])
     sword.world.player.props!.hp = 20
     sword.world.get('foe')!.props!.hp = 1
@@ -550,8 +563,8 @@ describe('automatic combat talents', () => {
     const seed = eng.world.state.rng
     expect(blow(eng)).toBe(23)
     expect(eng.world.state.rng).toBe(seed)
-    eng.world.player.props!.profession = 'warrior'
-    eng.world.author(() => eng.world.place(eng.world.get('dagger')!, { on: 'inside', holder: 'actor' })) // bare hands: the dagger is no warrior's
+    eng.world.player.props!.profession = 'swordsman'
+    eng.world.author(() => eng.world.place(eng.world.get('dagger')!, { on: 'inside', holder: 'actor' })) // bare hands: the dagger is no swordsman's
     eng.world.get('foe')!.facing = 'up'
     eng.world.state.tick = 100
     expect(blow(eng)).toBe(10)

@@ -99,7 +99,7 @@ export const CH1_SETS: SetDef[] = [
     ],
   },
   {
-    id: 'thornward', en: 'Thornward', zh: '荆卫', chapter: 'ch1', level: 5, lean: 'warrior', look: 'ivory',
+    id: 'thornward', en: 'Thornward', zh: '荆卫', chapter: 'ch1', level: 5, lean: 'cleric', look: 'ivory',
     palette: ['#ece6d6', '#3f5a3a', '#aab1bc', '#ffffff'],
     pieces: [
       P('head', F.helmet, 'Thornward Helm', '荆卫战盔',

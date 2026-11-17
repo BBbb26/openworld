@@ -15,7 +15,7 @@ const FUSED = `creation_${PACKAGE}_r1_stormfused`
 const engines: Engine[] = []
 function world(type = 'item/weapon/magic/wand') {
   const eng = buildSandbox({ terrain: Array.from({ length: 7 }, () => Array(14).fill('grass')), entities: [
-    { key: 'actor', type: 'actor/person/player', x: 2, y: 3, props: { hp: 100, maxHp: 100, hunger: 100, maxHunger: 100, ...(type === 'item/weapon/blade/sword' && { profession: 'warrior' }) } },
+    { key: 'actor', type: 'actor/person/player', x: 2, y: 3, props: { hp: 100, maxHp: 100, hunger: 100, maxHunger: 100, ...(type === 'item/weapon/blade/katana' && { profession: 'swordsman' }) } },
     { key: 'blade', type, x: 2, y: 3, inside: 'actor' },
     { key: 'skeleton', type: 'actor/creature/undead/skeleton', x: 3, y: 3, props: { hp: 100, maxHp: 100 } },
   ], event: {} }, buildOntology(), new RuleLibrary([...BASE_RULES, ...STORY_RULES]))
@@ -63,8 +63,8 @@ afterEach(() => {
 })
 
 describe('stormforge fire-thunder blade', () => {
-  it('appends switchable fusion to an equipped longsword and keeps its original strike after reload', () => {
-    const typeId = 'item/weapon/blade/sword', eng = world(typeId), target = { e: 'skeleton' }
+  it('appends switchable fusion to an equipped katana and keeps its original strike after reload', () => {
+    const typeId = 'item/weapon/blade/katana', eng = world(typeId), target = { e: 'skeleton' }
     installWorkshopMechanismProvider(stormforge, engines)
     eng.controls.wear('blade', true)
     const base: WorkshopDraft = { id: PACKAGE, revision: 1, typeId, plan: { version: 1, uses: [
@@ -89,7 +89,7 @@ describe('stormforge fire-thunder blade', () => {
     const blocked = trialWorkshopPackage(loaded, { ...next, revision: 3, appendFrom: 2 })
     expect(blocked.errors.some(error => error.startsWith('strike: Combat refused'))).toBe(true)
     expect(blocked.comparisons?.find(comparison => comparison.use === 'strike')?.baseline.errors[0]).toMatch(/Combat refused/)
-    loaded.author(() => loaded.world.setProp(loaded.world.player, 'profession', 'warrior'))
+    loaded.author(() => loaded.world.setProp(loaded.world.player, 'profession', 'swordsman'))
     expect(runWorkshopUse(loaded, PACKAGE, 'strike', target, 'blade')).toBe(true)
     expect(loaded.trace.some(t => t.ev.kind === 'act/use' && t.ev.host.e === 'blade' && t.ev.params?.attack === true)).toBe(true)
     expect(runWorkshopUse(loaded, PACKAGE, 'fuse', undefined, 'blade')).toBe(true)

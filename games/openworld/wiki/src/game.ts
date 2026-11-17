@@ -6,7 +6,7 @@ import { APPEAR_EVERY, CODEX_SIGHT, MAGNET, ROW, SLOT_COUNT, TICKS_PER_HOUR, TIC
 import { BOON_REACH, HUNGER_EFFECT_EVERY, HUNGER_EVERY, HUNGRY_BELOW, HUNGRY_PACE, PROFESSION_LEVEL } from '@openworld/modules'
 import {
   BOONS, BOSSES, COIN, EFFICIENCY, ELEMENT_NAMES, ELEMENTS, FALL_DAMAGE, FED_FOR, FORMS, LAYS_EVERY, LEGENDARY_ARMS, MATERIALS, NIGHT_CAP, NIGHT_EVERY, PLACEMENTS,
-  QUALITIES, RECIPES, RECOVERY, RELICS, ROOM_SIZE, SAFE_FALL, SHOPS, SKILL_BRANCHES, SKILL_DIRECTIONS, SKILL_PROFESSIONS, SKILLS, STOREYS, TERRAIN_CHARS,
+  OFFHANDS, QUALITIES, RECIPES, RECOVERY, RELICS, ROOM_SIZE, SAFE_FALL, SHOPS, SKILL_BRANCHES, SKILL_DIRECTIONS, SKILL_PROFESSIONS, SKILLS, STOREYS, TERRAIN_CHARS,
   TERRAINS, TREE_GROWS, VOWS, buildOntology, type Form, LOOK_BODIES, LOOK_PARTS, type BossDef,
 } from '@openworld-game/content'
 import { PEOPLE } from '../../tools/src/demo/people.ts'
@@ -122,6 +122,8 @@ export interface ItemEnt extends Ent {
   relic?: { name: string; text: string }
   /** A Vowbound form's own vow (the scallop's). */
   vow?: { name: string; text: string }
+  /** A profession's off-hand piece's power (content powers.ts OFFHANDS). */
+  offhand?: { name: string; text: string }
   quality?: string
 }
 
@@ -334,6 +336,7 @@ export function loadGame(): Game {
     const group = ITEM_GROUPS[f.id.split('/')[1]] ?? '杂物'
     const relicId = props.relic as string | undefined
     const vowId = props.vow as string | undefined
+    const handId = props.offhand as string | undefined
     const q = tags.find((g) => g.startsWith('quality:'))?.slice(8)
     const name = L(f.zh, f.en)
     return {
@@ -341,6 +344,7 @@ export function loadGame(): Game {
       makeup: (f.makeup ?? []) as any, recipe: recipeOf.get(f.id), sprite: itemSprite(f.sprite),
       relic: relicId && RELICS[relicId] ? { name: say(RELICS[relicId]), text: say(RELICS[relicId].text) } : undefined,
       vow: vowId && VOWS[vowId] ? { name: say(VOWS[vowId]), text: say(VOWS[vowId].text) } : undefined,
+      offhand: handId && OFFHANDS[handId] ? { name: say(OFFHANDS[handId]), text: say(OFFHANDS[handId].text) } : undefined,
       quality: q,
     } satisfies ItemEnt
   })

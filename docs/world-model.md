@@ -482,7 +482,7 @@ the world learns to make at one) is **opened**: a hand on it (E, the content's `
 opens its own panel (`panel: station:<x>`, the runtime's), whose recipes are made at that thing — the
 act of crafting names it (`at`), and the outcome holds it to be such a station within the hand's reach
 (a station beside the maker still serves, as a shop's stall does). What used to be a workbench's — a
-club, a shield, a bow; cloth and leather — is a `hands` recipe that **waits for a building of the
+club, a scabbard (the shield's place until it went, 2026-11-05), a bow; cloth and leather — is a `hands` recipe that **waits for a building of the
 Held Ground** (`Recipe.unlockedBy` / `TypeDef.unlockedBy`: the story fact the steward sets as he
 raises it, and its name; content `haven.ts` `HavenUpgrade.recipes`): the Workshop the first three
 (and, raised to Workshop II — `unlockedBy.level`, the fact at 2 —, candles, lanterns, a smith's own forge and
@@ -498,7 +498,7 @@ holds (a patch's new type included). The first part of the makeup is the main in
 is made takes its material (basic materials carry a `material` prop), a quality by how far its
 maker's level is above the recipe's (`Ontology.qualities`: crude below, fine from 3, masterwork
 from 6; legendary never by making), and its power from form, material and quality; its name is
-made from them ("Fine Wooden Shield"). The first tools are made at hand, a shield, a club and a
+made from them ("Fine Wooden Scabbard"). The first tools are made at hand, a scabbard, a club and a
 bow at a workbench (one stands in Firstlight Village). Chests, campfires, signs and fences have
 durability and makeup. Checks: build and break back (every building returns no more than went
 in), the economy (no step, and no two steps in a row — recipes, breaking down, an item a rule
@@ -663,7 +663,7 @@ armour that wears out, what a worn thing looks like on its wearer.
 
 The body's slots (2026-10-07): **head** (helmet, hat), **body** (breastplate), **feet** (boots), **hands**
 (gloves), **waist** (belt), **shoulders** (pauldrons, cloak), **neck** (amulet), **ring** ×2 (rings, a wedding
-band), **ear** (earring), and the off hand (**arm**: the warrior's shield). A kind of slot there are more of is
+band), **ear** (earring), and the off hand (**arm**: a profession's own piece, gear.md §3b). A kind of slot there are more of is
 data (`params.slotCount`: `ring: 2` → `wear:ring`, `wear:ring.2`; a ring goes on the first free, else the
 first). Rings add `atk` 1, an amulet `def` 1, an earring `xpRate` 0.1, a belt and pauldrons `def` 1. The frame
 carries what is worn by slot (`player.worn`); the bag shows it as a paper doll beside the grid

@@ -1,5 +1,5 @@
-// The gear icons without their backdrop (2026-10-12): the pack's six item-and-weapon skill icons (helmet, shield, armour,
-// boots, ring, amulet) are drawn on a coloured square strewn with sparkles; the bag frames gear by its quality (the
+// The gear icons without their backdrop (2026-10-12): the pack's item-and-weapon skill icons (helmet, armour, boots,
+// ring, amulet) are drawn on a coloured square strewn with sparkles; the bag frames gear by its quality (the
 // runtime's slot borders, after Dungeon Fighter), so the icon keeps only the thing. Everything reachable from the
 // icon's edge without crossing its dark outline is the backdrop, and goes.
 //
@@ -7,10 +7,9 @@
 
 import { resolve } from 'node:path'
 import { OUT, readPng, writePng } from './png.ts'
-import { Raster, writeAtlas } from './raster.ts'
 
 const PACK = resolve(OUT, '../na/Ui/Skill Icon/Items & Weapon')
-// (the pack's Guard is crossed swords on a starburst, touching the edge: the shield is drawn here instead, below)
+// (the shield, drawn here too, went with the shields, 2026-11-05)
 const ICONS = ['Helmet', 'Armor', 'Boot', 'Ring', 'Amulet']
 
 /** Dark enough to be the outline the backdrop stops at. */
@@ -70,14 +69,4 @@ for (const name of ICONS) {
   for (let i = 0; i < w * h; i++) if (gone[i]) out[i * 4 + 3] = 0
   writePng(`Items/Gear/${name}.png`, w, h, out)
 }
-// the shield: a heater shield, a steel rim round a blue field, a gold cross on it
-const shield = new Raster(16, 16)
-const rows: [number, number][] = [[3, 12], [3, 12], [3, 12], [3, 12], [3, 12], [3, 12], [4, 11], [4, 11], [5, 10], [6, 9], [7, 8]]
-rows.forEach(([a, b], i) => { for (let x = a; x <= b; x++) shield.set(x, 2 + i, x === a || x === b || i === 0 ? 'D' : 'B') })
-for (let y = 3; y <= 11; y++) shield.set(7, y, 'Y'), shield.set(8, y, 'Y')
-for (let x = 4; x <= 11; x++) shield.set(x, 5, 'Y')
-shield.set(5, 3, 'W')
-shield.set(4, 4, 'b')
-shield.outline('k')
-writeAtlas('Items/Gear/Shield.png', [[shield]], { k: [31, 26, 36, 255], D: [150, 158, 172, 255], B: [64, 104, 176, 255], b: [110, 150, 214, 255], Y: [240, 190, 60, 255], W: [246, 246, 240, 255] })
 console.log(`gear icons → ${OUT}/Items/Gear`)

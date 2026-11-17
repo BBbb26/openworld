@@ -37,6 +37,12 @@ export const LOOKS: Record<string, Look> = {
   wind: { main: 0xa8f0d8, light: 0xf0fff8, dark: 0x1e4a40, mote: 'leaf', sound: 'wind' },
   earth: { main: 0xc09060, light: 0xf0d8b0, dark: 0x3a2814, mote: 'shard', sound: 'impact' },
   arcane: { main: 0x9fb8ff, light: 0xeef2ff, dark: 0x1e2450, mote: 'light', sound: 'cast' },
+  // a swordsman's: the edge's cold light; a Sacrificer's pain
+  blade: { main: 0xcfe9ff, light: 0xffffff, dark: 0x22324a, mote: 'spark', sound: 'hit' },
+  pain: { main: 0xc8304e, light: 0xffa0b8, dark: 0x2a0612, mote: 'drop', sound: 'hurt' },
+  // a cleric's dark side: an Avenger's black flame; an Inquisitor's last days
+  penance: { main: 0x6a2a6e, light: 0xff6a7a, dark: 0x12040e, mote: 'ember', sound: 'fire' },
+  doom: { main: 0xd8a03a, light: 0xffe6a8, dark: 0x2a0a04, mote: 'ember', sound: 'thunder' },
 }
 
 /** The effects this file draws, by the vfx name's first part. */

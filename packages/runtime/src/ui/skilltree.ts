@@ -5,11 +5,11 @@
 // What a node does shows on hover; a click learns it when it is ready.
 
 import { canvasWindow, placeFloating } from './components/index.ts'
-import type { Frame, SkillDef } from '@openworld/engine'
-import { game, skillById } from '../game.ts'
+import { onPath, type Frame, type SkillDef } from '@openworld/engine'
+import { game, skillById, type SkillBranchDef } from '../game.ts'
 import { $, esc, locale, t, tx } from './common.ts'
 import { bindSkillArt, skillArt } from './skillIcons.ts'
-import { ROW, layoutTree, type TreeLayout, type Way } from './skillLayout.ts'
+import { ROW, layoutTree, type Group, type TreeLayout, type Way } from './skillLayout.ts'
 import { skillbarHint } from './skillbar.ts'
 
 export { layoutSkills } from './skillLayout.ts'
@@ -41,8 +41,13 @@ export class SkillTree {
   private get layout() {
     return this.tree.nodes
   }
-  private get branches() {
-    return this.tree.hubs
+  /** A panel's name and picture: its branch's; a path's part under that path's names, its third under the third's. */
+  private groupLook(g: Group): SkillBranchDef {
+    return game().skills.branchesFor(this.profession, g.path ?? this.path).find((b) => b.id === g.branch)!
+  }
+  /** A panel of a path not taken: shown, its skills not to be learned (only one path is: docs/advancement.md). */
+  private barred(g: Group): boolean {
+    return !!g.path && g.path !== this.path
   }
 
   constructor(
@@ -212,7 +217,8 @@ export class SkillTree {
     const have = new Set(f.player.skills)
     const profession = typeof f.player.props.profession === 'string' ? f.player.props.profession : ''
     const path = typeof f.player.props.path === 'string' ? f.player.props.path : ''
-    const sig = `${locale.value}|${this.direction}|${profession}|${path}|${points}|${level}|${[...have].join()}`
+    const advancement = Math.max(1, Number(f.player.props.advancement ?? 1))
+    const sig = `${locale.value}|${this.direction}|${profession}|${path}|${advancement}|${points}|${level}|${[...have].join()}`
     if (sig === this.sig) return
     this.sig = sig
     if (profession !== this.profession || path !== this.path) {
@@ -230,9 +236,12 @@ export class SkillTree {
     $('#skZoomIn').setAttribute('aria-label', t('skillZoomIn'))
     $('#skZoomOut').setAttribute('aria-label', t('skillZoomOut'))
     $('#skDirections').setAttribute('aria-label', t('skillDirections'))
-    // the branch tabs: the whole direction, then each branch (the profession's under its own name)
+    // the branch tabs: the whole direction, then each panel (the profession's under its own name, each path's under its)
     const zh = locale.value === 'zh'
-    $('#skBranches').innerHTML = `<button class="sk-tab" data-focus="">${zh ? '全部' : 'All'}</button>` + branchDefs.filter((b) => b.direction === this.direction).map((b) => `<button class="sk-tab ${b.id}" data-focus="${b.id}"><span class="sk-tab-icon">${skillArt(b.icon)}</span>${esc(tx(b.name))}</button>`).join('')
+    $('#skBranches').innerHTML = `<button class="sk-tab" data-focus="">${zh ? '全部' : 'All'}</button>` + this.tree.groups.map((g) => {
+      const b = this.groupLook(g)
+      return `<button class="sk-tab ${g.branch}${this.barred(g) ? ' barred' : ''}" data-focus="${g.key}"><span class="sk-tab-icon">${skillArt(b.icon)}</span>${esc(tx(b.name))}</button>`
+    }).join('')
     bindSkillArt($('#skBranches'))
     this.markTabs()
     $('#skDirections').innerHTML = game().skills.directions.map((d) => {
@@ -243,8 +252,11 @@ export class SkillTree {
 
     const visible = game().skills.all.filter((s) => this.layout.has(s.id))
     const at = (id: string) => this.layout.get(id)!
+    // (a path not taken, or a third not yet reached: shown, not to be learned)
+    const barred = (s: SkillDef) => !onPath(s, path) || (s.tier ?? 0) > advancement
     const state = (s: SkillDef) =>
-      have.has(s.id) ? 'learned' : (s.requires ?? []).some((r) => !have.has(r)) ? 'locked' : points >= (s.cost ?? 1) ? 'ready' : 'waiting'
+      have.has(s.id) ? 'learned' : barred(s) ? 'barred' : (s.requires ?? []).some((r) => !have.has(r)) ? 'locked' : points >= (s.cost ?? 1) ? 'ready' : 'waiting'
+    const groupOf = (s: SkillDef) => this.tree.groupOf.get(s.id)!
     // the links: square elbows — out from the one before, across half a row short of the skill, out into it
     const elbow = (a: { x: number; y: number }, b: { x: number; y: number }, way: Way) => {
       if (way === 'up' || way === 'down') {
@@ -254,26 +266,27 @@ export class SkillTree {
       const mid = b.x - (way === 'right' ? 1 : -1) * (ROW / 2)
       return a.y === b.y ? `M${a.x} ${a.y} H${b.x}` : `M${a.x} ${a.y} H${mid} V${b.y} H${b.x}`
     }
-    const links = visible.flatMap((s) => (s.requires?.length ? s.requires.filter((r) => this.layout.has(r)).map(at) : [this.branches.get(s.branch)!]).map((a) => {
+    const links = visible.flatMap((s) => (s.requires?.length ? s.requires.filter((r) => this.layout.has(r)).map(at) : [this.tree.hubs.get(groupOf(s))!]).map((a) => {
       const st = state(s)
-      return `<path class="sk-line ${st === 'learned' ? 'learned' : st === 'ready' ? 'ready' : 'locked'} ${s.branch}" d="${elbow(a, at(s.id), this.tree.ways.get(s.branch)!)}"/>`
+      return `<path class="sk-line ${st === 'learned' ? 'learned' : st === 'ready' ? 'ready' : 'locked'} ${s.branch}" d="${elbow(a, at(s.id), this.tree.ways.get(groupOf(s))!)}"/>`
     })).join('')
     const nodes = visible.map((s) => {
       const p = at(s.id)
       return `<button class="sk-node ${state(s)} ${s.branch}${s.ability ? ' ability' : ''}${(s.cost ?? 1) > 1 ? ' capstone' : ''}" data-skill="${s.id}" style="left:${p.x}px;top:${p.y}px" aria-label="${esc(tx(s.name))}">${skillArt(s.icon)}${(s.cost ?? 1) > 1 ? `<span class="sk-cost">${s.cost}</span>` : ''}</button>`
     }).join('')
-    const hubs = branchDefs.filter((b) => b.direction === this.direction).map((b) => {
-      const p = this.branches.get(b.id)!
-      const own = visible.filter((s) => s.branch === b.id)
+    const hubs = this.tree.groups.map((g) => {
+      const b = this.groupLook(g)
+      const p = this.tree.hubs.get(g.key)!
+      const own = visible.filter((s) => groupOf(s) === g.key)
       const pending = own.length === 0
-      return `<button class="sk-node hub ${b.id}${pending ? ' pending' : ''}" data-branch="${b.id}" data-way="${this.tree.ways.get(b.id)}" style="left:${p.x}px;top:${p.y}px" aria-label="${esc(tx(b.name))}">${skillArt(b.icon)}<span class="sk-node-name">${esc(tx(b.name))}${pending ? `<small>${t(empty(b.id))}</small>` : ''}</span></button>`
+      return `<button class="sk-node hub ${g.branch}${pending ? ' pending' : ''}${this.barred(g) ? ' barred' : ''}" data-branch="${g.key}" data-way="${this.tree.ways.get(g.key)}" style="left:${p.x}px;top:${p.y}px" aria-label="${esc(tx(b.name))}">${skillArt(b.icon)}<span class="sk-node-name">${esc(tx(b.name))}${pending ? `<small>${t(empty(g.branch))}</small>` : ''}</span></button>`
     }).join('')
-    // the trunk: out from the start to each hub, its way (a branch after another: out of that one's last skill)
-    const trunks = branchDefs.filter((b) => b.direction === this.direction).map((b) => `<path class="sk-line trunk ${b.id}" d="${elbow(this.tree.trunks.get(b.id) ?? { x: 0, y: 0 }, this.branches.get(b.id)!, this.tree.ways.get(b.id)!)}"/>`).join('')
-    // each branch's panel, behind its hub and skills
-    const panels = branchDefs.filter((b) => b.direction === this.direction).map((b) => {
-      const p = this.tree.panels.get(b.id)!
-      return `<div class="sk-panel ${b.id}" style="left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px"></div>`
+    // the trunk: out from the start to each hub, its way (a panel after another: out of that one's last skill)
+    const trunks = this.tree.groups.map((g) => `<path class="sk-line trunk ${g.branch}${this.barred(g) ? ' barred' : ''}" d="${elbow(this.tree.trunks.get(g.key) ?? { x: 0, y: 0 }, this.tree.hubs.get(g.key)!, this.tree.ways.get(g.key)!)}"/>`).join('')
+    // each panel, behind its hub and skills
+    const panels = this.tree.groups.map((g) => {
+      const p = this.tree.panels.get(g.key)!
+      return `<div class="sk-panel ${g.branch}${this.barred(g) ? ' barred' : ''}" style="left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px"></div>`
     }).join('')
     const direction = game().skills.directions.find((d) => d.id === this.direction)!
     const origin = `<button class="sk-node origin" data-origin="1" style="left:0;top:0" aria-label="${esc(tx(direction.name))}">${skillArt('origin')}<span class="sk-lv">${level}</span><span class="sk-node-name">${esc(tx(direction.name))}</span></button>`
@@ -306,25 +319,32 @@ export class SkillTree {
       return `<b>${t('level')} ${level}</b><span class="sk-doc">${t('skillOrigin')}</span><span class="sk-foot">${t('skillPoints')}: ${points}</span>`
     }
     if (b.dataset.branch) {
-      const branch = game().skills.branchesFor(this.profession, this.path).find((s) => s.id === b.dataset.branch)!
+      const g = this.tree.groups.find((x) => x.key === b.dataset.branch)!
+      const branch = this.groupLook(g)
       const direction = game().skills.directions.find((d) => d.id === branch.direction)!
-      const own = game().skills.forProfession(this.profession, this.path).filter((s) => s.branch === branch.id)
+      const own = game().skills.all.filter((s) => this.tree.groupOf.get(s.id) === g.key)
       // no profession yet: where to get one
       if (branch.id === 'profession' && !own.length) return `<span class="sk-path">${esc(tx(direction.name))} / ${t('skillBranch')}</span><b>${esc(tx(branch.name))}</b><span class="sk-doc">${t('skillNoProfession')}</span>`
-      return `<span class="sk-path">${esc(tx(direction.name))} / ${t('skillBranch')}</span><b>${esc(tx(branch.name))}</b><span class="sk-doc">${own.length ? own.map((s) => esc(tx(s.name))).join(' · ') : t(empty(branch.id))}</span>${own.length ? `<span class="sk-foot">${own.filter((s) => f.player.skills.includes(s.id)).length} / ${own.length} ${t('learnedSkill')}</span>` : ''}`
+      return `<span class="sk-path">${esc(tx(direction.name))} / ${t('skillBranch')}</span><b>${esc(tx(branch.name))}</b><span class="sk-doc">${own.length ? own.map((s) => esc(tx(s.name))).join(' · ') : t(empty(branch.id))}</span>${own.length ? `<span class="sk-foot">${own.filter((s) => f.player.skills.includes(s.id)).length} / ${own.length} ${t('learnedSkill')}</span>` : ''}${this.barred(g) ? `<span class="sk-foot">${t('skillOtherPath')}</span>` : ''}`
     }
     const s = skillById()[b.dataset.skill!]
     const have = new Set(f.player.skills)
     const missing = (s.requires ?? []).filter((r) => !have.has(r))
     const cost = s.cost ?? 1
+    const advancement = Math.max(1, Number(f.player.props.advancement ?? 1))
     const foot = have.has(s.id)
       ? `✓ ${t('learnedSkill')}`
-      : missing.length
+      : !onPath(s, this.path)
+        ? t('skillOtherPath')
+        : (s.tier ?? 0) > advancement
+          ? t('skillAfterThird')
+          : missing.length
         ? t('needsSkill').replace('{s}', missing.map((r) => tx(skillById()[r].name)).join(', '))
         : points >= cost
           ? `${t('learn')} · ${cost} ${t('skillPoints')}`
           : t('noPoints')
-    const branch = game().skills.branchesFor(this.profession, this.path).find((b) => b.id === s.branch)!
+    const group = this.tree.groups.find((g) => g.key === this.tree.groupOf.get(s.id))
+    const branch = group ? this.groupLook(group) : game().skills.branchesFor(this.profession, this.path).find((b) => b.id === s.branch)!
     const direction = game().skills.directions.find((d) => d.id === branch.direction)!
     return `<span class="sk-path">${esc(tx(direction.name))} / ${esc(tx(branch.name))}</span><b>${esc(tx(s.name))}</b>${s.active ? `<span class="sk-tag">${locale.value === 'zh' ? '主动技能' : 'Active'}</span>` : s.ability ? `<span class="sk-tag">${t('ability')}</span>` : ''}<span class="sk-doc">${esc(tx(s.doc))}</span><span class="sk-foot">${esc(foot)}</span>${s.active && have.has(s.id) ? `<span class="sk-foot">${skillbarHint(locale.value === 'zh')}</span>` : ''}`
   }

@@ -4,10 +4,10 @@
 // be spent again. Shared branches are kept. The first time an actor takes up a profession, it
 // is handed the profession's starter weapon (and off-hand piece).
 //
-// Profession weapons: an item type tagged `profession:<id>` (the dagger, the sword and shield, the
-// bow, the staff, and their legendary kin) fights only for an actor of that profession. Anyone may
-// carry, give or store one; another actor's blow with it is refused, and it cannot be worn (the
-// shield in the off hand: the `arm` slot). Every other weapon is common to all and takes no
+// Profession weapons: an item type tagged `profession:<id>` (the dagger, the bow, the staff, the katana,
+// and their legendary kin) fights only for an actor of that profession. Anyone may carry, give or store
+// one; another actor's blow with it is refused, and a profession's off-hand piece (the scabbard in the
+// `arm` slot) cannot be worn. Every other weapon (the sword among them) is common to all and takes no
 // profession's talents.
 
 import { OFFHAND, grantBase, offhandOf, onPath, skillTag, skillsOf, type Entity, type SkillDef, type Text, type World } from '@openworld/engine'
@@ -40,7 +40,7 @@ export interface ProfessionDef {
   icon?: string
   /** Handed over the first time the profession is taken up (an item: type, name, props…). */
   weapon?: Omit<Entity, 'id' | 'place'>
-  /** Handed over with it and worn in the off hand (the warrior's shield). */
+  /** Handed over with it and worn in the off hand (the swordsman's scabbard). */
   offhand?: Omit<Entity, 'id' | 'place'>
   /** Its three paths (the second advancement), and its mastery (the third: not a path, the profession's own). */
   paths?: PathDef[]
@@ -148,7 +148,7 @@ export function refundProfessionSkills(w: World, e: Entity, skills: SkillDef[], 
   }
   w.setProp(e, 'skillPoints', Number(e.props?.skillPoints ?? 0) + refunded)
   // timed state of the old profession's talents goes with them
-  if (e.combat) for (const k of ['comboTarget', 'comboHits', 'comboTick', 'markTarget', 'markHits', 'spellHits', 'rampageStacks', 'rampageUntil', 'retaliateUntil', 'fleetUntil'] as const) delete e.combat[k]
+  if (e.combat) for (const k of ['comboTarget', 'comboHits', 'comboTick', 'markTarget', 'markHits', 'spellHits', 'fleetUntil'] as const) delete e.combat[k]
   return refunded
 }
 

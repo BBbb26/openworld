@@ -124,7 +124,6 @@ describe('the inputs: one act each', () => {
 
   it('weapons strike (but on a person a blade is not a blow); a bare R is a blow on anything (Minecraft)', () => {
     const well = world('item/weapon/blade/sword', [{ key: 'well', type: 'fixture/water/well', x: 2, y: 1 }])
-    well.world.player.props!.profession = 'warrior' // the sword is the warrior's
     const port = new ModPort(well)
     const plan = well.controls.plan('use')!
     expect(plan.attack).toBe(true)
@@ -600,7 +599,6 @@ describe('the left click: the held thing as it is meant to be used', () => {
 
   it('a weapon strikes, a tool works: its exact use at the aim', () => {
     const sword = world('item/weapon/blade/sword', [slime()])
-    sword.world.player.props!.profession = 'warrior'
     expect(sword.controls.plan('primary', at)).toEqual(sword.controls.plan('use', at))
     expect(sword.controls.plan('primary', at)).toMatchObject({ attack: true, instrument: { e: 'held' } })
     const hoe = world('item/tool/hoe', [])
@@ -709,7 +707,6 @@ describe('the left click: the held thing as it is meant to be used', () => {
 
   it('a sword or a bow at the bare ground is a swing at the air, in a fight or not: nothing is asked, the ground unchanged', () => {
     const eng = world('item/weapon/blade/sword', [])
-    eng.world.player.props!.profession = 'warrior'
     const port = new ModPort(eng)
     const plan = eng.controls.plan('primary', at)!
     expect(plan).toMatchObject({ attack: true, whiff: true, instrument: { e: 'held' } })
@@ -736,10 +733,8 @@ describe('the left click: the held thing as it is meant to be used', () => {
     it('a foe a cell off the pointer is the one struck', () => {
       const off = { x: 1, y: 1 }
       const calm = world('item/weapon/blade/sword', [slime()])
-      calm.world.player.props!.profession = 'warrior'
       expect(calm.controls.plan('primary', off)).toMatchObject({ whiff: true })
       const eng = fighting(world('item/weapon/blade/sword', [slime()]))
-      eng.world.player.props!.profession = 'warrior'
       eng.author(() => (eng.world.get('s')!.ai = { behaviour: 'melee', temper: 'wary', sight: 6, home: { map: 'sandbox', x: 2, y: 1 }, foes: ['actor'] }))
       expect(eng.controls.plan('primary', off)).toMatchObject({ attack: true, target: { e: 's' } })
       expect(eng.controls.plan('primary', off)!.whiff).toBeUndefined()
@@ -843,7 +838,6 @@ describe('two forms of a built thing: set up, or lying loose (Minecraft\'s block
     pick.controls.swing(pick.controls.plan('primary', at)!)
     expect(pick.world.get('wall')!.place.on).toBe('inside')
     const sword = world('item/weapon/blade/sword', [{ key: 'wall', type: 'structure/wall', x: 2, y: 1 }])
-    sword.world.player.props!.profession = 'warrior'
     sword.controls.run(sword.controls.plan('use', at, 0)!)
     expect(sword.world.get('wall')!.place.on).toBe('tile')
   })
@@ -1387,7 +1381,6 @@ describe('hunger', () => {
 describe('the attack key', () => {
   it('strikes straight ahead with the held weapon; held down, the cooldown paces the blows', () => {
     const eng = world('item/weapon/blade/sword', [{ key: 'slime', type: 'actor/creature/slime/green_slime', x: 2, y: 1, props: { hp: 50, maxHp: 50 } }])
-    eng.world.player.props!.profession = 'warrior' // the sword is the warrior's
     const slime = eng.world.get('slime')!
     eng.controls.strike()
     eng.tick()

@@ -667,6 +667,8 @@ export interface CombatState {
   lastMoveTick?: number
   lastAttackTick?: number
   lastHurtTick?: number
+  /** Who struck one last (an Avenger's Vengeance answers them). */
+  hurtBy?: string
   /** Who struck it last, and what they were (kept when they are gone): who felled it, when it falls. */
   lastHurtBy?: Id
   lastHurtByType?: string
@@ -678,11 +680,6 @@ export interface CombatState {
   lastStandTick?: number
   moveCarry?: number
   attackCarry?: number
-  /** Warrior: a Retaliation is ready until this tick (after taking a hit). */
-  retaliateUntil?: number
-  /** Warrior: Rampage stacks, and when they lapse. */
-  rampageStacks?: number
-  rampageUntil?: number
   /** Ranger: Hunter's Mark — ranged hits in a row on one target. */
   markTarget?: Id
   markHits?: number
@@ -700,35 +697,48 @@ export interface CombatState {
   chainTick?: number
   /** Survival: Adrenaline — when it last came (once a minute; the rush itself is a status). */
   adrenalineTick?: number
-  /** Relics (a Stigmatic piece's power): Starfall's hits toward the fifth, the gale's speed until, the Unfallen Wall's last turned blow. */
+  /** Relics (a Stigmatic piece's power): Starfall's hits toward the fifth, the gale's speed until. */
   starHits?: number
   galeUntil?: number
   /** Blood Price (a set's power): blows taken this while, each a share more damage. */
   bloodStacks?: number
   bloodUntil?: number
+  /** Agony (a Sacrificer's): blows taken this while, each a share more damage. */
+  agonyStacks?: number
+  agonyUntil?: number
+  /** Undying Avatar's while: when it last held one up. */
+  avatarTick?: number
+  /** A Spellblade's: the blows after a cast that strike harder (until when, how many, the cast's element), and an
+   * enchantment of the three elements' count (which one the next blow carries). */
+  bladeUntil?: number
+  bladeHits?: number
+  bladeElement?: string
+  imbueHits?: number
   /** The advancements' skills (docs/advancement.md): the buffs up (a skill's id → until), a mark on a foe, a ward, a
-   * sure critical readied, Ascendance's stacks, Shadow Lord's count, the last felled, Living Legend's minute. */
+   * sure critical readied, Shadow Lord's count, the last felled (and what it was in: a Corpse Burst's poison, a Wildfire's
+   * fire). */
   buffs?: Record<string, number>
   mark?: { target: string; until: number; damage: number; skill: string }
   ward?: number
   wardUntil?: number
   sureNext?: boolean
-  ascStacks?: number
-  ascUntil?: number
   shadowHits?: number
-  felled?: { id: string; map: string; x: number; y: number; poisoned: boolean; marked: boolean; tick: number }
-  legendTick?: number
+  felled?: { id: string; map: string; x: number; y: number; poisoned: boolean; hexed?: boolean; hunted?: boolean; burning?: boolean; marked: boolean; tick: number }
   regenTick?: number
-  unfallenTick?: number
-  /** Active skills (actives.ts): Gale Step's speed, a War Cry's guard and strength, a Smoke Bomb's veil — until these ticks. */
+  /** Active skills (actives.ts): Gale Step's speed, a rally's guard and strength, a Smoke Bomb's veil — until these ticks. */
   hasteUntil?: number
   rallyUntil?: number
   veilUntil?: number
   /** Envenom: so many more blows open a bleed. */
   envenomHits?: number
   /** Arrow Rain: volleys still to fall on a 3×3 around (x, y), the next at tick `next`. */
-  rain?: { map: string; x: number; y: number; next: number; left: number; power: number; element?: string; look?: string; radius?: number; afflict?: string; ticks?: number }
-  /** Iron Guard: blows taken much lighter, steps slower, until this tick. Hawk Eye: reach and criticals, until this tick. */
+  rain?: { map: string; x: number; y: number; next: number; left: number; power: number; element?: string; look?: string; missile?: string; radius?: number; afflict?: string; ticks?: number }
+  /** A doom pronounced (an Inquisitor's): on whom, when its blow falls, how hard, in what colours. */
+  doom?: { target: string; at: number; power: number; look: string }
+  /** The Five Sufferings laid in turn (an Avenger's third): on whom, and how many so far. */
+  sufferTarget?: string
+  sufferN?: number
+  /** A `guard`: blows taken much lighter, steps slower, until this tick. Hawk Eye: reach and criticals, until this tick. */
   ironUntil?: number
   aimUntil?: number
   /** Creatures it has felled (the talents that answer a defeat: actives.ts onDefeat), and casts made (Elemental Master). */
@@ -1503,8 +1513,8 @@ export interface SkillPassive {
     /** A companion following near; or none. */
     companion?: boolean
     alone?: boolean
-    /** One's own profession's weapon held (a dagger for an assassin …), or a worn shield. */
-    weapon?: 'own' | 'shield'
+    /** One's own profession's weapon held (a dagger for an assassin …). */
+    weapon?: 'own'
     /** The one struck: in any of these statuses, of any of these tags, at or below this share of its health. */
     target?: { status?: string[]; tag?: string[]; wounded?: number }
     /** A buff of one's own up (an active skill's id). */
@@ -1522,13 +1532,18 @@ export interface SkillPassive {
   cdr?: number
   /** Active skills' blows only. */
   skillDamage?: number
-  /** No blow takes more than this (an Aegis); blows from the front turned aside by this chance (a Bastion). */
+  /** No blow takes more than this; blows from the front turned aside by this chance (a Swordsman's Parry). */
   cap?: number
   front?: number
-  /** Health mended each second (a Sanctuary). */
+  /** Health mended each second (a Sanctuary, a Paladin's Renew). */
   regen?: number
+  /** What one's mending gives, a share more (a Paladin's oath: the Mend skill, a Healing Light, a Psalm). */
+  mend?: number
   /** Shared with those who follow one (their `companion` names one), within 6 cells (a Demon Hunter's call and vigil). */
   party?: boolean
+  /** The element one's blows carry while it lasts (a Spellblade's enchantment: fire, ice, lightning; `all`, the three in
+   * turn). */
+  imbue?: string
 }
 
 /**
@@ -1544,18 +1559,21 @@ export interface ActiveDef {
     | 'fireball' | 'nova' | 'chain' | 'blink'
     | 'shot' | 'arc' | 'guard' | 'aim' | 'slam'
     // the advancements' (docs/advancement.md §4)
-    | 'buff' | 'field' | 'detonate' | 'leap' | 'summon' | 'command' | 'mark' | 'taunt' | 'ward' | 'rest'
+    | 'buff' | 'field' | 'detonate' | 'dash-strike' | 'leap' | 'summon' | 'command' | 'mark' | 'taunt' | 'ward' | 'rest'
+    // a doom pronounced on a foe, its blow falling `ticks` later (an Inquisitor's)
+    | 'doom'
   /** Ticks before it can be cast again (10 a second). */
   cooldown: number
   power?: number
-  /** Tiles it reaches (a dash's length, a search's radius; a shot's or a bolt's at least, the weapon's when farther). */
+  /** Tiles it reaches (a dash's length, a search's radius; a shot's or a bolt's at least, the weapon's when farther; a
+   * mending's, the companions it mends as well). */
   range?: number
   /** How long what it leaves lasts (a status, a buff), in ticks; how many (hits, volleys, targets) for counts. */
   ticks?: number
   count?: number
   /** A status a blow of it leaves (stunned, frozen). */
   afflict?: string
-  /** The element its blows carry (fire, ice, lightning). */
+  /** The element its blows carry (fire, ice, lightning; `all`, the three in turn: a Trinity Cut). */
   element?: string
   /** Ticks a blow of it makes the struck bleed (a Fan of Knives). */
   bleed?: number
@@ -1566,7 +1584,8 @@ export interface ActiveDef {
   through?: boolean
   /** What is drawn in flight (a shot's): arrow, knife, ice. */
   missile?: string
-  /** A buff's payments while it lasts (`buff`), and its price in a share of the caster's health. */
+  /** A buff's payments while it lasts (`buff`); the price of any skill in a share of the caster's health (a Blood
+   * Offering, a Sacrificer's cuts). */
   buff?: SkillPassive
   cost?: number
   /** What a `field` lays (a hazard's type), on what pattern; a `summon`'s creature. */
@@ -1580,7 +1599,8 @@ export interface ActiveDef {
   /** How far its blow drives the struck back (a Wind Arrow). */
   push?: number
   /** The colours its effects are drawn in (the renderer's skill effects: necro, poison, hell, shadow, hex, holy, fire,
-   * frost, storm, blood, steel, war, thorn, beast, wind, earth, arcane); by its element or profession when none. */
+   * frost, storm, blood, steel, war, thorn, beast, wind, earth, arcane, blade, pain, penance, doom); by its element or
+   * profession when none. */
   look?: string
 }
 

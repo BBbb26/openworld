@@ -10,18 +10,26 @@ paths become the **Necromancer** (poison, necromancy, the dead raised), the **Sh
 criticals, dodge) and the **Demon Hunter** (sigils on the ground, hexes, buffs shared with one's companions, control) —
 the Necromancer fighting through the dead it raises and its poison, never with its own blows —
 and its third takes a name after the path — **Hell Sovereign** 地狱支配者, **Phantom** 幻影, **Ghostwail** 鬼泣 — its
-skills the assassin's own for the Shadowdancer and the Demon Hunter, the Necromancer's its own (Hell Sovereign: summons
-and poison too; `SkillDef.path` may name several paths, `onPath`; `PathDef.third`, `thirdOf`). In the skill
-tree the path goes on after the profession's own tree, out of its last skill, and the mastery after the path
-(`SkillBranchDef.after`).
+skills the path's own too, seven each (Hell Sovereign: summons and poison; Phantom: the double and the fade; Ghostwail:
+the sanctum, the howl, the hex spread; `SkillDef.path` may name several paths, `onPath`; `PathDef.third`, `thirdOf`). In the skill
+tree every path is shown, side by side after the profession's own tree, each third over its path; only the one taken
+can be learned, the others barred (`SkillBranchDef.after`, `byPath`). Asked 2026-11-05: the **warrior** taken out (§2
+Warrior), and the mage's paths made the three elements' — the **Cryomancer** 霜术师 (ice), the **Pyromancer** 炎术师
+(fire) and the new **Stormcaller** 雷术师 (lightning), twelve skills each, each with a third of its own: **Everwinter**
+永冬, **Worldfire** 劫火, **Wrath of Heaven** 天罚 (the names designed for the user; the Dawnbringer and the shared
+Archmage went). Asked 2026-11-12: the ranger's paths made again — the **Hunter** 猎人, the **Sniper** 狙击手, the
+**Skirmisher** 漫游射手, each with a third of its own: **Greenwood Dawn** 森海飞霞, **Hawkeye** 鹰眼, **Skywing** 天空之翼
+(§2 Ranger); no profession's paths share a mastery now. Asked the same day: a new profession, the **Cleric** 圣职者
+(the cross), its paths the **Paladin** 圣骑士, the **Avenger** 复仇者 and the **Inquisitor** 异端审判者, their thirds the
+**Evangelist** 福音传道者, the **Sentence of Suffering** 苦痛断罪 and **Doomsday** 末日裁决 (§2 Cleric).
 
 ## 1. The three advancements
 
 | Tier | Level | Where | What it opens | Points |
 | --- | --- | --- | --- | --- |
 | **First**: a profession | 5 | a trainer | the profession's tree (22 nodes, +4 now) | — |
-| **Second**: a path, one of three | 10 | a trainer | the path's six skills (three active, three passive) | +3 |
-| **Third**: the profession's mastery | 16 | a trainer | the mastery's five skills (two active, three passive) | +3 |
+| **Second**: a path, one of three | 10 | a trainer | the path's skills (twelve on two arms) | +3 |
+| **Third**: the path's own third | 16 | a trainer | its skills (seven a third) | +3 |
 
 - **Trainers**: Bram in Firstlight, and now **Sergeant Kell** in the March's camp (Chapter 2; his role trainer, the drill sergeant of the Left Company) — the same panel, its advancement section below the professions.
 - **Changing**: a path can be changed at a trainer, as a profession can: the path's skills are unlearned and their
@@ -40,8 +48,8 @@ tree the path goes on after the profession's own tree, out of its last skill, an
 | Path | Root (passive) | Actives | Passives | Ultimate (2) |
 | --- | --- | --- | --- | --- |
 | **Necromancer** 死灵术士 — the dead and the poison, the body standing back; third: Hell Sovereign 地狱支配者 (its own) | Grave Pact: the raised +50% health, +30% harder | Raise Dead (two skeletons fight at your side 30 s); Miasma (a cloud on the 3×3 ahead, 5 s: poisons); Drive the Dead (up to four of the raised leap on the foe ahead, ×1.5 of their own, poisoning); Toxic Burst (the poison in every foe within 5 bursts, ×2) | Grave Toxin (every blow of the raised poisons 3 s); Corpse Burst (a poisoned foe felled by you or the raised bursts: those within 2 struck ×0.6 and poisoned); Bone Ward (a companion near, −15% taken); Rot (you and your companions +20% on the poisoned); two masteries: Raise Dead one more skeleton and −5 s, Toxic Burst +2 reach and +0.5× | Army of the Dead (those within 2 struck ×0.6 and poisoned; four skeletons rise) |
-| **Shadowdancer** 影舞者 — the veil and the back; third: Phantom 幻影 | Shadow Poise: with a dagger, dodge +8%, critical +5%; a Backstab +30% more | Umbral Step (vanish 2 s; the next blow is a sure critical); Blur (4 s: dodge +35%, movement +20%) | Unseen (the first blow out of a veil +50%); Riposte (a dodge readies +80% on the next blow) | Thousand Shadows (behind up to five foes within 4, ×1.4 each) |
-| **Demon Hunter** 猎魔人 — the sigil and the hex; third: Ghostwail 鬼泣 | Hunter's Lore: +15% on a foe under any affliction | Binding Sigil (a sigil on the 3×3 ahead, 8 s: who walks in is hexed 4 s — attack −2, defence −3, slower); Call of the Hunt (6 s: you and your companions within 6, +20% damage, +15% attack speed) | Hexing Edge (with a dagger, one blow in five hexes 4 s); Hunter's Vigil (you and your companions within 6, −10% taken) | Demon Prison (those within 2 struck ×1.0 and stunned 1.5 s; a ring of sigils round you) |
+| **Shadowdancer** 影舞者 — the veil and the back, the dodge and the critical; third: Phantom 幻影 (its own) | Shadow Poise: with a dagger, dodge +8%, critical +5%; a Backstab +30% more | Umbral Step (vanish 2 s; the next blow a sure critical); Blur (4 s: dodge +35%, movement +20%); Shade Stab (behind the nearest foe within 5, ×2.5, it bleeds); Shadow Dance (6 s: attack speed +30%, critical +15%) | Unseen (the first blow out of a veil +50%); Riposte (a dodge readies +80% on the next blow); Night Veil (at night, dodge and critical +10%); Deadly Grace (with a dagger, dodge +5%, critical damage +25%); two masteries: Umbral Step −4 s and 1 s longer, Blur −6 s and 1 s longer | Thousand Shadows (behind up to five foes within 4, ×1.4 each) |
+| **Demon Hunter** 猎魔人 — the sigil and the hold, the hex and the hunt's call; third: Ghostwail 鬼泣 (its own) | Hunter's Lore: +15% on a foe under any affliction | Binding Sigil (a sigil on the 3×3 ahead, 8 s: who walks in is hexed 4 s — attack −2, defence −3, slower); Call of the Hunt (6 s: you and your companions within 6, +20% damage, +15% attack speed); Chains of Binding (a chain at the first foe that leaps on to 2 more, ×0.8, each held 2 s); Hex Wave (those within 3 struck ×0.5 and hexed 4 s) | Hexing Edge (with a dagger, one blow in five hexes 4 s); Hunter's Vigil (you and your companions within 6, −10% taken); Judgement (critical +15% on the held, stunned, mired or hexed); Deep Hex (you and your companions +15% on the hexed); two masteries: Chains +2 foes and 1 s longer, the Call −5 s and 3 s longer | Demon Prison (those within 2 struck ×1.0 and stunned 1.5 s; a ring of sigils round you) |
 
 (First built the same day as the Nightblade, the Venomancer and the Bladedancer; replaced before release.)
 
@@ -52,53 +60,219 @@ brings every skill a second nearer); Plague Lord (you and your companions critic
 Styx** (ultimate: those within 3 struck ×1.0 and poisoned, two guards of hell); Dominion of Hell (capstone: you and your
 companions +25% damage, +15% attack speed).
 
-**Mastery — the assassin's third**, the Shadowdancer's (Phantom) and the Demon Hunter's (Ghostwail): Lethality (passive: critical damage +30% with a dagger); **Death Mark** (active:
-the nearest foe takes +30% from you for 8 s; if it falls marked, every skill is ready); Ghost (passive: dodge +8%);
-**Assassinate** (ultimate: behind the marked, or the nearest, foe within 6: ×5, a sure critical); Shadow Lord (capstone:
-every fifth blow is a critical).
+**Phantom** 幻影 — the Shadowdancer's own third: Lethality (critical damage +30% with a dagger); **Shadow Double** (a
+shadow of yourself fights at your side 15 s); Ghost (dodge +8%); Fade (each blow dodged fades you into the dark 1 s, the
+next blow a sure critical); a mastery (two doubles, −10 s); **Assassinate** (ultimate: behind the nearest foe within 6,
+×5, a sure critical); Shadow Lord (capstone: every fifth blow a critical).
 
-### Warrior
+**Ghostwail** 鬼泣 — the Demon Hunter's own third: Exorcist (+25% on the undead, the night's creatures and the bosses);
+**Death Mark** (the nearest foe takes +30% from you 8 s; felled marked, every skill ready); **Hunter's Sanctum** (sigils
+on the 3×3 round you; 8 s of +20% damage and −15% taken for you and your companions); a mastery (the mark 4 s longer, 2
+cells farther); Undying Hunt (you and your companions at half health or less, −20% taken); **Ghost Howl** (ultimate:
+those within 4 struck ×1.5 and stunned 2 s); Hex Plague (capstone: a hexed foe felled by you or a companion passes its
+hex to those within 3, struck ×0.2, and your skills come 2 s nearer).
 
-| Path | Root (passive) | Actives | Passives | Ultimate (2) |
-| --- | --- | --- | --- | --- |
-| **Sentinel** 哨卫 — the shield | Shieldbearer: with a shield, combat damage taken −10% | Bastion (4 s: every blow from the front is blocked); Challenge (foes within 3 turn on you and are dazed; −20% taken 4 s) | Retort (a blocked blow strikes back for half); Unyielding (at a third of health or less, −25% taken) | Aegis (6 s: no blow takes more than 1) |
-| **Berserker** 狂战士 — fury and blood | Blood Fury: the more hurt, the harder (to +30%) | Blood Rage (pay 15% health: 6 s of +40% damage, +20% attack speed, 2 drawn a blow); Reaving Spin (×1.4 round you) | Carnage (a felling mends 4%); Pain Eater (below half health, 1 more drawn a blow) | Leap of Ruin (leap up to 5, the 3×3 there ×2.2, stunned) |
-| **Thornknight** 荆棘骑士 — the Order's way: thorns and kneeling | Thorned Mail: who strikes you hand to hand is pricked for 2 | Kneel (those within 2 kneel 1.5 s, ×0.6); Briar Line (briars down the 4 cells ahead, 6 s: they make one kneel) | Crown's Due (+30% on the kneeling and the stunned); Hold the Line (standing your ground, −20% taken) | Crown of Thorns (briars in a ring round you; 6 s of −30% taken) |
+(The assassin's mastery shared by all three paths at first — Lethality, Death Mark, Ghost, Assassinate, Shadow Lord —
+went to Phantom and Ghostwail when each path took a third of its own.)
 
-**Mastery — Paragon** 典范: Iron Body (passive: max health +20); **Unbreakable Will** (active: 5 s, nothing holds you
-still and −40% taken); Weapon Master (passive: attack +3); **Godslayer** (ultimate: the three cells ahead ×5); Living
-Legend (capstone: once a minute a blow that would fell you leaves 30% health).
+### Warrior (taken out 2026-11-05)
 
-### Ranger
+The warrior — sword and shield; the paths Sentinel 哨卫, Berserker 狂战士 and Thornknight 荆棘骑士, the mastery
+Paragon 典范 — was taken out at the user's asking. What went with it: its first tree and its four more, its paths and
+mastery, its forged set (Oathguard 誓卫), its two legendary arms (the Oathbrand 誓约之刃, the Unfallen Wall 不陷之壁,
+and their powers), its loadout in the boss challenge, its art, its wiki page, its coded talents (combat.ts: Arms
+Training, Bulwark, Retaliation, Rampage, the Warlord, Shield Wall, Blood Fury, Retort, Living Legend; index.ts: Thorned
+Mail, Fortitude, Unbreakable Will; actives.ts: Undying Spirit, Bloodthirst, Carnage). The sword and the scimitar are
+anyone's now: common weapons a profession's talents never answer; the shield went the same day (each profession has an
+off-hand piece of its own instead, gear.md §3b). The main-line sets that leaned warrior lean swordsman (the plate is the same). The active
+kinds only it used (`charge`, `rally`, `quake`, `guard`, `slam`, `taunt`, `rest`) stay the engine's: `quake` and `slam`
+serve the mage again (Ice Spikes; a Glacier, a Scorched Earth). An older save (content `migrateProfessions.ts`): every
+skill that went comes back as points, its grants undone (as a change of profession undoes them); a warrior has no
+profession, to choose one again at a trainer (its advancement kept, as on a change); a Dawnbringer no path; the skill
+bar lets go of what went; an Oathbrand is a sword like any other, its power gone (an Unfallen Wall is taken apart, as every shield is); a
+piece of the Oathguard keeps its own numbers, its set's bonus gone.
 
-| Path | Root (passive) | Actives | Passives | Ultimate (2) |
-| --- | --- | --- | --- | --- |
-| **Sharpshooter** 神射手 — the single shot | Eagle Eye: with a bow, critical +5%, damage +10% | Deadeye (one arrow ×3.5); Ricochet (an arrow leaping to 3 foes, ×1.1) | Weak Point (with a bow on a foe below half health, critical +15%); Patience (each second still, +10%, to +40%) | Heartseeker (through every foe in line, ×3, a sure critical) |
-| **Trapper** 陷阱师 — the snare and the spike | Lay of the Land: movement +8%, dodge +4% | Snare Trap (the first foe on it is held 3 s); Spike Trap (spikes down 3 cells: those crossing bleed and are mired) | Ambusher (+40% on the held, mired or stunned); Tripwire (critical +25% on the held) | Killing Field (blast traps all round you, ×2 fire) |
-| **Beastmaster** 驯兽师 — the hound | Pack Bond: a beast you call has half again its health, and strikes 30% harder (and grows with your level) | Call the Hound (a hound fights at your side 40 s); Sic (your beast leaps on the foe ahead, ×2 of its own, and it bleeds) | Feral Instinct (a companion near: dodge and attack speed +8%); Pack Hunter (a companion near: damage +15%) | The Pack (three wolves, 20 s) |
+### Ranger (three paths of its own, 2026-11-12)
 
-**Mastery — Master Archer** 箭圣: Hawk's Patience (passive: critical +10% with a bow); **Wind Arrow** (active: through
-every foe in line ×1.5, staggering them); Fletcher (passive: Multishot +1 arrow); **Thousand Arrows** (ultimate: the
-7×7 round the first foe, five volleys ×0.8); Eagle's Grace (capstone: dodge and attack speed +10%).
+Asked for: the ranger's three paths made again — the **Hunter** 猎人 (control, traps, marks, a hound at one's side),
+the **Sniper** 狙击手 (the whole map in reach, slow to draw, very heavy) and the **Skirmisher** 漫游射手 (quick feet, a
+little control, many light arrows, played as an assassin is), each with a third of its own: **Greenwood Dawn** 森海飞霞,
+**Hawkeye** 鹰眼, **Skywing** 天空之翼 (the Chinese names the user's; the skills and the English designed for them). The
+Trapper and the Beastmaster became the Hunter, the Sharpshooter the Sniper (its id `sharpshooter` kept), the Skirmisher
+is new, and the Master Archer went.
 
-### Mage
+| Path | Root (passive) | One arm | The other | Ultimate (2) | Third |
+| --- | --- | --- | --- | --- | --- |
+| **Hunter** 猎人 — traps, the mark, the hound | Ambusher: +30% on the held, mired or stunned | **Snare Trap** (the first foe on it held 3 s) → **Spike Trap** (spikes down 3 cells: bleed and mire), Tripwire (critical +25% on the held) → Spike Trap's mastery (+2 cells, −4 s), Hunting Ground (critical damage +30% on the held, mired or stunned) | **Call the Hound** (40 s) → **Sic** (the beast on the foe ahead ×2 of its own, bleeding), **Mark Prey** (the nearest foe within 7 made one's prey 10 s, ×0.3: slower, and one and one's companions within 6 deal it +20%) → Pack Bond (a beast called +50% health, +30% damage), Pack Hunter (a companion near: +15%) | Killing Field (blast traps all round, fire) | **Greenwood Dawn** 森海飞霞 |
+| **Sniper** 狙击手 — the one shot from afar | Sure Eye: with a bow, critical +5%, damage +10% | **Deadeye** (one arrow ×3.5 within 7) → Weak Point (critical +15% below half), Patience (each second still +10%, to +40%) → Killshot (+50% below a quarter), Deadeye's mastery (+1.0×, −4 s) | **Pinning Shot** (×1.5 within 7, held 2 s) → **Hold Breath** (5 s: critical +25%, critical damage +30%), Long Shot (reach +2; +5% each cell beyond the second, to +40%) → Hold Breath's mastery (+2 s, −5 s), Pinning Shot's mastery (+1 s, +0.5×) | Heartseeker (through the line ×3, each a sure critical) | **Hawkeye** 鹰眼 |
+| **Skirmisher** 漫游射手 — never still | Wind Step: with a bow, movement and attack speed +10% | **Flit** (up to 4 cells ahead, through foes) → **Crosswind** (those within 2 ×0.6, mired 2 s), Lay of the Land (movement +8%, dodge +8%) → Flit's mastery (+2 cells, −2 s), Crosswind's mastery (+1 cell, mired +1 s) | **Arrow Flurry** (four arrows ×0.45 at the first foe within 6) → **Ricochet** (an arrow leaping to 3 foes ×1.1), Rapid Fire (attack speed +15%) → Arrow Flurry's mastery (+2 arrows), Running Fight (on the move: +15%, critical +8%) | Gale Dance (flit to up to five foes within 5, an arrow into each at arm's length ×1.2) | **Skywing** 天空之翼 |
 
-| Path | Root (passive) | Actives | Passives | Ultimate (2) |
-| --- | --- | --- | --- | --- |
-| **Pyromancer** 炎术师 — fire | Kindling: fire sets the struck burning one time in three | Flame Wall (embers across the 5 cells ahead, 5 s); Combustion (every burning foe within 5 bursts, ×2.5) | Conflagration (+25% on the burning); Ember Heart (fire spells rest 20% less) | Inferno (fire on the 5×5 round the first foe, four times) |
-| **Cryomancer** 霜术师 — ice | Rime: +30% on the frozen | Ice Lance (through the line ×1.6, frozen 1 s); Glacial Prison (the nearest foe frozen 4 s) | Shatter (a blow on the frozen ends it and doubles); Frost Armour (who strikes you hand to hand is frozen a moment, one time in five) | Blizzard (ice on the 5×5 round you, five times, freezing) |
-| **Dawnbringer** 晨光术士 — the light against the Night | Dawnlight: +30% on the undead and the night's walkers (`nightborn`) | Sunburst (light round you ×1.4, those within 2 dazzled 1 s); Sanctuary (holy ground on the 3×3 round you, 6 s: you mend 2 a second and take 20% less) | Lantern Soul (at night, +10% damage and skills rest 15% less); Mercy of Dawn (Mend heals 15% more of your health) | Daybreak (a pillar of light on the first foe, ×4) |
+**Greenwood Dawn** 森海飞霞 — the forest sea at dawn, the Hunter's own third: Heart of the Greenwood (one and one's
+companions within 6 against one's prey: +20%, critical +10%); **The Pack** (three wolves, 20 s); **Hunting Net** (the 3×3
+round the first foe within 6, ×0.5, held 3 s); Feral Instinct (one and one's companions: attack speed +15%, dodge +8%);
+Hunting Net's mastery (the 5×5, −4 s); **Dawn Flight** 万鸟飞霞 (ultimate: the birds rise like clouds at dawn: those
+within 4 ×1.5, made prey 10 s); Lord of the Hunt (capstone: one's prey felled by one or a companion passes the mark to the
+nearest foe within 4, and every skill comes two seconds nearer).
 
-**Mastery — Archmage** 大魔导: Arcane Mastery (passive: what carries an element +20%); **Time Warp** (active: every
-other skill's rest halved); Mana Flow (passive: cooldowns −10%); **Convergence** (ultimate: fire, ice and lightning on
-the first foe ahead, ×2 each); Ascendance (capstone: each cast +10% damage for 4 s, three times).
+**Hawkeye** 鹰眼 — the Sniper's own third: Hawk's Sight (with a bow, an arrow flies until it strikes something, as far as
+the map goes; shooting 40% slower, every arrow twice as hard); **Sunpiercer** 贯日 (through every foe in the line to the
+map's edge ×5); **Sighted** 锁定 (the nearest foe within 20 takes +40% from one, 10 s); Still as Stone (standing, with a
+bow: +20%, critical damage +30%); Sighted's mastery (+5 s, −5 s); **One Shot, One Kill** 一箭封喉 (ultimate: the first
+foe ahead, as far as the map goes, ×10, a sure critical); Unblinking (capstone: from 6 cells or farther, every arrow of
+one's bow a sure critical).
+
+**Skywing** 天空之翼 — the Skirmisher's own third: Heart of the Sky (with a bow: attack speed +20%, movement +10%, dodge
++8%, arrows 15% lighter); **Wingbeat** (5 s: attack speed +30%, movement +25%); **Flying Feathers** (five arrows side by
+side ×0.5, each miring 1.5 s); Ride the Wind (every arrow of one's bow that lands brings every skill 0.3 s nearer); Flying
+Feathers' mastery (+2 arrows, −2 s); **Ten Thousand Feathers** 万羽天坠 (ultimate: the 5×5 round one, five times ×0.6;
+for those 5 s dodge +30%, movement +20%); Sky Walker (capstone: every blow dodged brings every skill a second nearer, and
+the next blow is a sure critical).
+
+The mechanisms: in data, the roots and most passives (Ambusher, Hunting Ground, Sure Eye, Killshot, Still as Stone, Wind
+Step, Rapid Fire, Running Fight, the hearts; a passive's `attackHaste` and `damage` may be less than nothing — Hawk's
+Sight, Heart of the Sky —, and `combatDelay` slows by it, at most by half); an active may carry a passive too (Mark
+Prey's: the prey struck harder, shared with one's companions, so the hound's bites count). A new status, **hunted** 猎物
+(content afflictions.ts: 10 s, steps ×1.25), is what makes a foe prey; Mark Prey and the Dawn Flight leave it, Greenwood
+Dawn's heart and Mark Prey pay against it. Coded by id: Hawk's Sight and Long Shot in `rangeBonus` (a bow's reach to the
+map's edge, `MAP_WIDE`; +2), Long Shot's and Unblinking's distance in `combatStrike` (cells between the striker and the
+struck), Ride the Wind in `afterBlow`, Lord of the Hunt in `onDefeat` (the felled's `hunted`), Sky Walker in the combat
+slot's `damage` (a dodge this tick). The steps a passive reads (`standing`, `moving`) are kept for whoever has one (and
+Patience). `mark` pays its caster only what its `buff` says (a Death Mark's, Sighted's); `rain` takes a `buff` as `field`
+does (Ten Thousand Feathers). The first tree's Hawk Eye is **Far Sight** 远眺 now, the third having the name. Gone:
+Hawk's Patience, Wind Arrow, Fletcher, Thousand Arrows, Eagle's Grace (the Master Archer's). An older save
+(`migrateProfessions`, `RANGER_LAYOUT`): a ranger's every point in the old paths and the mastery comes back, to spend
+again; a Trapper or a Beastmaster is a Hunter, a Sharpshooter the Sniper; the skill bar lets go of them. Proof:
+`tools/test/advancement.test.ts` (the paths and thirds; the Hunter's, the Sniper's and the Skirmisher's mechanisms on a
+field of slimes), `migrations.test.ts`.
+
+### Mage (the three elements', 2026-11-05)
+
+| Path | Root (passive) | One arm | The other | Ultimate (2) | Third |
+| --- | --- | --- | --- | --- | --- |
+| **Cryomancer** 霜术师 — ice: frozen, then shattered | Rime: +30% on the frozen | **Ice Lance** (through the line ×1.6, frozen 1 s) → **Ice Spikes** (the 3×3 two ahead out of the ground ×1.3, frozen 1 s), Shatter (a blow on the frozen ends it and doubles) → Permafrost (what one freezes, half again as long), Ice Lance's mastery (+2 cells, +0.4×) | **Glacial Prison** (the first foe frozen 4 s) → **Frozen Ground** (the 3×3 two ahead frozen over 6 s: who walks onto it is frozen 1 s), Frost Armour (who strikes you hand to hand frozen a moment, one time in five) → Deep Chill (critical +15% on the frozen), Frozen Ground's mastery (−6 s) | Blizzard (the 5×5 round you, five times ×0.6, freezing) | **Everwinter** 永冬 |
+| **Pyromancer** 炎术师 — fire: set burning, then burst | Kindling: fire sets the struck burning one time in three | **Flame Wall** (the 5 cells ahead, 5 s) → **Dragon's Breath** (fire down the 4 ahead ×1.4, burning), Conflagration (+25% on the burning) → Wildfire (a burning foe felled: those within 2 struck ×0.3 and set burning), Flame Wall's mastery (+2 cells, −4 s) | **Combustion** (every burning foe within 5 bursts ×2.5) → **Pyroblast** (one bolt ×3 within 6), Ember Heart (fire skills rest 20% less) → Searing (critical +10% on the burning), Combustion's mastery (+2 cells, +0.5×) | Inferno (the 5×5 round the first foe, four times ×0.9) | **Worldfire** 劫火 |
+| **Stormcaller** 雷术师 — lightning: quick, sure, holding a moment | Static: lightning electrifies the struck one time in four | **Lightning Bolt** (the first foe within 6 ×2) → **Thunder Spear** (through the line, 6 cells ×1.5), Overload (+25% on the electrified) → High Voltage (critical +15% on the electrified), Thunder Spear's mastery (+2 cells, +0.4×) | **Thunderclap** (those within 2 ×0.9, electrified 1 s) → **Lightning Step** (through up to 4 cells, a blow on each passed ×1.2), Quickening (attack speed +10%, movement +8%) → Storm Spirit (lightning skills rest 20% less), Lightning Step's mastery (+2 cells, −3 s) | Thunder Prison (the 5×5 round the first foe, five times ×0.9, electrifying) | **Wrath of Heaven** 天罚 |
+
+**Everwinter** 永冬 — a winter without end, the Cryomancer's own third: Heart of Winter (ice skills +20%); **Glacier**
+(a glacier down the 5×3 ahead ×2, frozen 1.5 s); **Cold Wave** (those within 3 ×1.0, frozen 2 s); Frostbite (2 drawn
+back by each blow on the frozen); Cold Wave's mastery (+1 cell, −5 s); **Endless Winter** (ultimate: the 7×7 round you,
+six times ×0.8, freezing); Still Time (capstone: a Shatter triples instead of doubling, and each brings every skill a
+second nearer).
+
+**Worldfire** 劫火 — the fire said to burn at the end of a world's age (lore.md §2: the Night is the world's own collapse,
+come round again), the Pyromancer's own third: Heart of the Worldfire (fire skills +20%); **Immolate** (8 s: +20% damage,
+and who strikes you hand to hand catches fire); **Scorched Earth** (fire down the 5×3 ahead ×2, burning); Burnout
+(Combustion leaves the fire burning); Scorched Earth's mastery (+2 cells, +0.4×); **Worldfire** (ultimate: the 7×7 round
+the first foe within 6, ×3.5, burning); All Is Kindling (capstone: each foe felled burning brings every skill two seconds
+nearer).
+
+**Wrath of Heaven** 天罚 — heaven's punishment, the Stormcaller's own third: Heaven's Might (lightning skills +20%);
+**Bolt of Judgement** (the first foe within 7 ×4, a sure critical); **Thunder Shroud** (8 s: attack speed +20%, dodge
++10%, and who strikes you hand to hand is electrified); Thunderstrike (every critical electrifies); the Shroud's mastery
+(3 s longer, −5 s); **Wrath of Heaven** (ultimate: the 7×7 round you, four times ×1.2, electrifying); Storm Unending
+(capstone: each lightning skill cast brings every other skill a second nearer).
+
+The mechanisms: what the paths and thirds pay in data (Rime, Overload, High Voltage, Deep Chill, Searing, Frostbite,
+Quickening; the buffs Immolate and the Thunder Shroud), and coded by id — Static beside Kindling in a skill's blow; the
+thirds' hearts (`HEARTS`: an element's skills ×1.2) and the element's quicker rest (`QUICKER`: Ember Heart, Storm Spirit)
+in actives.ts; Permafrost (a freeze ×1.5 as it is laid); Burnout (a detonation of the burning ends nothing); Still Time
+(Shatter's bonus 2 for 1, combat.ts; a shatter landed hastens, actives.ts `blow` and `afterBlow`); Wildfire and All Is
+Kindling on a defeat (the felled's `burning`, `CombatState.felled`); Immolate and the Thunder Shroud in the struck one's
+answer (index.ts, beside Frost Armour); Thunderstrike after the critical (combat.ts); Storm Unending in `castSkill`.
+`quake` and `slam` draw their element's effect on their cells. A new hazard, the **frozen ground** (`fixture/hazard/
+frozen_ground` 冻土, 6 s; its rule freezes who walks onto it 1 s, a point of ice). The Dawnbringer (Dawnlight, Sunburst,
+Sanctuary, Lantern Soul, Mercy of Dawn, Daybreak) and the Archmage (Arcane Mastery, Time Warp, Mana Flow, Convergence,
+Ascendance) went; holy ground stays a type no skill lays now, and `shot`'s and `arc`'s `element: 'all'` stays (a Trinity
+Cut). Proof: `tools/test/advancement.test.ts` (the paths and thirds; the mechanisms on a field of slimes), the cases in
+`actives.test.ts`, the older save in `migrations.test.ts`.
+
+### Swordsman (2026-11-03)
+
+A fifth profession, asked for with two paths, each with its own third (a third path, the Spellblade, asked for on
+2026-11-04): the **katana** (`item/weapon/blade/katana`, the
+profession's own) and the **scabbard** in the off hand (`item/armor/scabbard`, attack speed +4%); a first tree of
+twenty-six in the shape of the others' (Kenjutsu at its root, an arm of the edge and an arm of the feet, the Way of the
+Blade; Cross Cut, Rising Slash, Step Cut, Whirl Cut; Focused Stance, Piercing Thrust, Heaven Rending; five masteries,
+Blood on Steel, Unwavering, Flowing Blade, Sword Soul; Noto, Wind Cutter, Steady Breath, Edge Discipline); the set
+Watercutter (sets.ts). The paths, twelve skills each on two arms, and their thirds, seven each:
+
+| Path | Root | One arm | The other | Ultimate (2) | Third |
+| --- | --- | --- | --- | --- | --- |
+| **Sword Saint** 剑圣 — the cut and the way of the sword, some mobility | Iaido Stance: standing, with a katana, +30% | **Iaido** (through the foes in 4 cells, ×2.2) → **Swallow Return** (there and back, ×1.6 each) and a mastery; Zanshin (critical +20% on the half-dead) → Iaido's mastery | **Phantom Sword Dance** (five cuts across the three ahead, ×0.7) → Flowing Water (on the move, attack speed +15%) and the dance's mastery; **Shukuchi** (a step of 4) → Wind Blade | **Issen** (the 6×3 ahead, ×3, sure critical) | **Sword Heart** 剑心: Sword Heart (critical +10%, critical damage +20%); **Still Water** (4 s: six blows in ten from the front turned aside, critical +20%); **Void Slash** (a cut flown through a line of 6, ×2); No Mind; Iaido: Perfection (farther, and back); **Ten Thousand Swords** (blades rain on the 5×5 round you, four times); Sword God (capstone) |
+| **Sacrificer** 献祭者 — "suffering brings one near to god" taken at its word, a penance past the Five: health for strength, stronger the more hurt | Pain Pact: the more hurt, the harder (to +40%) | **Blood Offering** (pay 20%: 8 s of +50% damage, +10% critical) → **Rending Sacrifice** (pay 10%: the three ahead ×3) → Numbness; Agony (each blow taken a stack, ten, +3% each) → the offering's mastery | **Crimson Whirl** (two turns, bleeding) → Blood Drinker (below half, 2 drawn a blow) → Undying Rage (below a fifth, mend 2 a second); **Frenzy** (6 s: attack speed +30%, movement +15%, 15% more taken) → the whirl's mastery | **The Sixth Suffering** (pay 30%: 8 s of +60% damage, +25% attack speed, 3 drawn a blow) | **Mad Martyr** 狂殉者 (the user's choice of the names offered, 2026-11-04): Vessel of Pain; **Flesh for the Blade** (pay 10%: skills +50% 6 s); **Pain Spread** (pay 10%: those within 3 ×1.5, bleeding); Feed on Pain; the Sixth Suffering's mastery; **Final Offering** (pay 25%: the 5×3 ahead ×4); Undying Body (capstone: every 40 s a fatal blow does not fell, and one mends to half) |
+| **Spellblade** 魔剑 (the user's name for it, 2026-11-04) — blade and spell together (物法双修): each cast makes the next blow harder, each blow brings the next cast nearer | Blade and Spell: after a cast, the katana's next blow within 3 s +50%, carrying the cast's element | **Flame Enchantment** (10 s: blows carry fire, +10%, one in four burns) → **Frost Enchantment** (ice, critical +10%, one in five freezes 1 s) → Arcane Edge (what carries an element +20%); **Thunder Enchantment** (lightning, attack speed +15%, one in five stuns 0.5 s) → Mana-Tempered Steel (+10%, skills +15%) | **Flame Slash** (the three ahead ×1.6, burning) → **Thunder Thrust** (through a line of 4, ×1.8, lightning) → its mastery; **Frost Ring** (round you ×1.0, frozen 1.5 s) → Channeling Blade (each blow that lands: every skill 0.3 s nearer) | **Trinity Cut** (three cuts across the three ahead, fire, ice, lightning, ×1.6 each) | **Nightbreaker** 破夜之刃 (the user's choice of the names offered, 2026-11-04: where the Church keeps the Night away with the Five, it means to break it): Blade and Spell as One (+15%, cooldowns −10%); **Prism Enchantment** (12 s: the three elements in turn, +20%); **Raikiri** (lightning through the foes in 5 cells, ×2.6, stunned 0.8 s); Ringing Blade (what a cast readies lasts 5 s, two blows); **Falling Star** (a leap, fire on the 3×3, ×2.4, burning); **Ten Thousand Thunders** (lightning on the 5×5 round you, four times, ×1.1); Seamless (capstone: the blow after a cast +100%, each that lands every skill 1 s nearer) |
+
+New in the engine and the module for it: the `dash-strike` kind again (an Iaido, a Swallow Return: `count` back and
+forth), `arc` with a `count`, a `pierce` whose `missile` is a blade's thrust (`blade`) or a cut flown (`wave`), a rain
+of blades (`missile: 'knife'`), a price in health for any skill (`ActiveDef.cost`, paid by castSkill), and three talents
+coded (Pain Pact, Agony's stacks, Undying Body). The Spellblade's: an enchantment (`SkillPassive.imbue`, on a buff: the
+element the katana's blows carry while it lasts, `all` the three in turn; one at a time, a new one ending the one
+before), the element lent a blow (`Strike.element`: carried by the act as its `element`, answered by the element rules
+as any element is, and now and then leaving its status — a burn, a freeze, a stun), an `arc` of `element: 'all'`
+(a Trinity Cut), and five talents coded (Blade and Spell's charge, Arcane Edge, Channeling Blade, Ringing Blade,
+Seamless). The Sacrificer's ultimate was renamed The Sixth Suffering (the world has no god of pain: lore.md's Church
+teaches that suffering brings one near to god). The trainer's panel, the skill tree, the boss challenge (a loadout of
+its own) and the wiki know five professions (four since the warrior went, 2026-11-05); a profession may have two paths or three.
+
+### Cleric (2026-11-12)
+
+Asked for: a new profession, the **Cleric** 圣职者, a cross for its weapon, fought with hand to hand, and three paths —
+the **Paladin** 圣骑士 (the healer's: 奶妈路线) to the **Evangelist** 福音传道者, the **Avenger** 复仇者 (the fighter's, dark)
+to the **Sentence of Suffering** 苦痛断罪, the **Inquisitor** 异端审判者 (control, damage, strong against one) to
+**Doomsday** 末日裁决 (the Chinese names the user's; the skills and the English designed for them). The **cross**
+(`item/weapon/blunt/cross` 十字架, power 4, `profession:cleric`, holy; forged at the anvil from two ingots and a plank,
+no roll in the world so the maps' rolls stay as they were) and the **rosary** in the off hand (`item/armor/rosary` 念珠,
+def 1, the Workshop's from two sticks; its power the Litany 祷文: with a cross, one's mending +20%, and a blow that lands
+mends 2 one time in four). A first tree of twenty-six in the shape of the others': Faith at its root (with a cross +10%,
+each blow drawing back 1), an arm of the blow (Blessed Arms against the undead and the night's things, Zeal) and an arm
+of the body (Devotion, Steadfast), the Holy Vessel; Smite, Prayer (a mending of oneself and those who follow within 6),
+Consecrate (holy ground round one: those of one's side mend 2 a second, the undead that walk onto it burn), Rebuke; Holy Light, Blessing, Divine Wrath; five masteries; Hymn, Penitence, Vigil, Sainthood; Hammer of
+Heaven, Ward of Light, Pious, Anointed. The set **Matins** 晨祷 (sets.ts, plate); four of the warrior's old sets made by
+the Church lean the cleric now (docs/sets.md).
+
+| Path | Root | One arm | The other | Ultimate (2) | Third |
+| --- | --- | --- | --- | --- | --- |
+| **Paladin** 圣骑士 — the light that mends: oneself and those who follow healed, guarded, the foe drawn on | Oath of Light: mending +25%, damage taken −5% | **Healing Light** (oneself and every companion within 6, 30% of each's health) → **Renew** (10 s: those within 6 mend 2 a second), Blessed Hands (mending +20%) → Healing Light's mastery, Merciful (those within 6 at half health: −20% taken) | **Guardian Light** (those within 3 struck lightly and turned on one; 5 s −30% taken) → **Radiant Blow** (×2.2, stunned 1 s), Iron Faith (−12% taken) → Radiant Blow's mastery, Shining Armour (while Guardian Light is up: 3 a second) | Divine Intervention (6 s: one and those within 6 take half and mend 3 a second) | **Evangelist** 福音传道者 |
+| **Avenger** 复仇者 — the Church's dark hand: pain answered with pain | Vengeance: +30% on the one who struck one last, within 3 s | **Scourge** (two lashes over the three cells ahead ×1.1, bleeding) → **Wrath** (8 s: +30%, 2 drawn back a blow, +10% taken), Blood for Blood (at half health: +10%, 2 drawn back) → Wrath's mastery, An Eye for an Eye (struck hand to hand: struck back one time in three, ×0.6 of one's attack) | **Black Flame** (×1.4 within 5, burning) → **Torment** (every bleeding foe within 4 ×2.2, the bleed spent), Shared Suffering (+25% on the bleeding and burning) → Torment's mastery, Dark Zeal (critical +12% on them) | Night of Wrath (those within 3 ×2.2, bleeding and burning) | **Sentence of Suffering** 苦痛断罪 |
+| **Inquisitor** 异端审判者 — the heretic found, branded and judged | Zealotry: +20% on the branded, the kneeling, the held | **Brand the Heretic** (the nearest within 6 branded 8 s: defence −3, +30% from one) → **Shackles** (held 3 s), Mark of Heresy (critical +15% on the branded) → Shackles' mastery, Interrogation (critical damage +40% on the held, stunned, kneeling) | **Burn the Heretic** (×1.6 within 5, burning 5 s) → **Purging Flame** (the 3×3 round the first foe ×1.8, burning), The Stake (+25% on the burning) → Purging Flame's mastery, No Mercy (+25% below half) | Sentence (×5, a sure critical, stunned 2 s) | **Doomsday** 末日裁决 |
+
+**Evangelist** 福音传道者 — the Paladin's own third: Gospel (mending +30%; one and those within 6 +10%); **Call the Faithful**
+(two of the faithful, 30 s: `actor/summon/disciple` 信徒); **Psalm** (oneself and every companion within 8: half of each's
+health); Apostles (the faithful and the angel: +50% health, +30%); Psalm's mastery; **Gate of Heaven** (ultimate: those
+within 3 ×1.5, and an angel, `actor/summon/seraph` 天使, 30 s); Crown of Glory (capstone: each foe felled by one or a
+companion mends one and those within 6 three, and every skill comes a second nearer).
+
+**Sentence of Suffering** 苦痛断罪 — the Avenger's own third, the Five (lore.md §4) laid on the foe: The Five Sufferings
+(with a cross, one's blows on one foe lay them in turn: the crown, a kneel a moment; the scourge, a bleed; hunger, a
+mire; the nails, a hold; the lance, a sure critical +50%; then the crown again); **Crown of Thorns** (briars on the ring
+two cells out, 6 s: who walks in kneels); **Spear of Sorrow** (a lance of dark light through the 5 cells ahead ×3, each a
+sure critical); Nail and Wood (+30% on the held and kneeling); Spear of Sorrow's mastery; **All Five at Once** (ultimate:
+those within 4 ×3, a sure critical, bleeding, held 2 s); Atonement (capstone: each lance laid mends a tenth of one's
+health and brings every skill two seconds nearer).
+
+**Doomsday** 末日裁决 — the Inquisitor's own third: The Last Days (critical +15%, critical damage +30% on the branded);
+**Doom** (the nearest within 6: five seconds later a blow ×4, twice as hard if it is still branded); **Confess** 伏罪
+(those within 3 ×0.8, on their knees 2 s); Inevitable (Doom 2 s sooner, ×2 harder); Confess's mastery; **The Last
+Judgement** (ultimate: the nearest within 8 ×8, a sure critical, branded); Day of Wrath (capstone: a branded foe below a
+fifth of its health is slain by one's next blow; a boss is struck half again).
+
+The mechanisms: in data, most passives and the party's buffs; new in data a passive's `mend` (one's mending a share
+more) and a `mend` with a `range` (those who follow one within it mended too, each by its own health; content
+`adv/summon-mends` lets a called creature mend as a person does); a party's `regen` reaches those who follow (rainTick);
+a new status, **branded** 异端烙印 (content afflictions.ts: 8 s, defence −3); a new kind, `doom` (`CombatState.doom`, its
+blow in rainTick); holy ground's rule `adv/holy` (it burns the undead); the briars laid by a
+skill again (Crown of Thorns). Coded by id: Vengeance (`CombatState.hurtBy`), the Five Sufferings (`Strike.suffering`,
+`sufferTarget`/`sufferN`) and the Day of Wrath in combat.ts; Crown of Glory (`onDefeat`), Atonement and the Litany
+(`afterBlow`), Apostles (a summon's bond) in actives.ts; An Eye for an Eye in the struck one's answer (index.ts). New
+looks `penance` (the Avenger's third, its black flame) and `doom` (Doomsday's). The boss challenge has a cleric's
+loadout (the Gold Knight's look). Proof: `tools/test/advancement.test.ts` (the paths and thirds; the Paladin's, the
+Evangelist's, the Avenger's and the Inquisitor's mechanisms on a field of slimes), `actives.test.ts` (every active).
 
 ## 3. The first trees, deeper
 
 Each profession gains two actives and two passives at its first tier: the assassin **Garrote** (from behind ×2, stunned
 1 s), **Caltrops** (the 3×3 ahead mires for 5 s), Light Step (+8% movement with a dagger), Cut Deep (bleeds 1 more);
-the warrior **Hamstring** (×1.2, mired 3 s), **Sunder** (×1.5, the struck takes +20% from you 5 s), Battle Hardened
-(−8% taken), Sword Mastery (critical +5% with a sword); the ranger **Volley** (the 3×3 round the first foe, ×1.0),
+the ranger **Volley** (the 3×3 round the first foe, ×1.0),
 **Disengage** (leap 3 back; those beside you mired), Keen Arrows (critical damage +15% with a bow), Fleet Foot (+5%
 movement and dodge); the mage **Arcane Missiles** (three bolts ×0.6 at the nearest), **Mana Ward** (a ward that takes
 the next 30% of your health in harm, 6 s), Focus (cooldowns −5%), Spell Power (skills +10%).
@@ -111,10 +285,9 @@ the next 30% of your health in harm, 6 s), Focus (cooldowns −5%), Spell Power 
   `skillDamage`); `party` shares it (a passive, or a buff while it lasts) with those who follow one within 6 cells. The classes module reads them where it reads the talents (combat.ts), so most passives need no code
   of their own; the few that answer an event (a felling, a block, a dodge) are talents in combat.ts as before.
 - **A buff in data** (the active kind `buff`, `ActiveDef.buff`): the same payments for so many ticks after the cast,
-  at a cost in health if it asks one (Blood Rage) — Gale Step, War Cry, Iron Guard and Hawk Eye are this already, by
-  their own kinds.
+  at a cost in health if it asks one (a Blood Offering) — Gale Step and Far Sight are this already, by their own kinds.
 - **New active kinds** (engine `ActiveDef.kind`, the classes module's actives.ts): `buff`; `field` (lays a hazard of
-  the game's — embers, briars, a cloud, holy ground — on a pattern: a line ahead, a square, a ring, a cell), and a trap
+  the game's — embers, frozen ground, a cloud, a sigil — on a pattern: a line ahead, a square, a ring, a cell), and a trap
   is a field on one cell; `detonate` (each foe within reach in a status: a blow ×power, the status ended); `leap` (to
   a cell, a blow on the 3×3 there); `summon` (a creature of the game's that fights for the caster a while: its
   `companion` the caster, a faction its own); `command` (the caster's hound strikes the foe ahead); `mark` (the nearest

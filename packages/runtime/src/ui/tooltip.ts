@@ -117,21 +117,24 @@ export function tooltipHtml(it: ItemInfo, ctx: TipContext): string {
   if (!wornElsewhere && pct(p.critChance)) out.push(line(` +${pct(p.critChance)}% ${L('Critical Chance', '暴击率')}`, '#00aa00'))
   if (pct(p.attackHaste)) out.push(line(` +${pct(p.attackHaste)}% ${L('Attack Speed', '攻击速度')}`, '#00aa00'))
   if (typeof p.lifesteal === 'number' && p.lifesteal > 0 && !wornElsewhere) out.push(line(` +${p.lifesteal} ${L('Health per hit', '生命/每次命中')}`, '#00aa00'))
-  // worn in the off hand (the arm slot): the shield's defence and block (at most half the blows)
+  // worn in the off hand (the arm slot): its defence and block (at most half the blows)
   if (p.slot === 'arm') {
     out.push('<div class="gap"></div>', line(L('In the off hand:', '装备在副手时：'), '#aaaaaa'))
     if (typeof p.def === 'number' && p.def > 0) out.push(line(` +${p.def} ${L('Defence', '防御')}`, '#00aa00'))
     if (pct(p.block)) out.push(line(` ${Math.min(50, pct(p.block))}% ${L('Block Chance', '格挡率')}`, '#00aa00'))
   }
-  // worn anywhere else on the body: what it gives (a cost in red: the Stigmatic ask something back)
+  // worn anywhere else on the body: what it gives (a cost in red: the Stigmatic ask something back); in the off hand,
+  // said under the off hand's line above
   if (typeof p.slot === 'string' && SLOT[p.slot]) {
     const stat = (v: unknown, en: string, zh: string, pctOf = false) => {
       if (typeof v !== 'number' || !v) return
       const n = pctOf ? Math.round(v * 100) : v
       out.push(line(` ${n > 0 ? '+' : ''}${n}${pctOf ? '%' : ''} ${L(en, zh)}`, n > 0 ? '#00aa00' : '#ff5555'))
     }
-    out.push('<div class="gap"></div>', line(L(`When worn (${SLOT[p.slot][0]}):`, `穿戴在${SLOT[p.slot][1]}时：`), '#aaaaaa'))
-    stat(p.def, 'Defence', '防御')
+    if (p.slot !== 'arm') {
+      out.push('<div class="gap"></div>', line(L(`When worn (${SLOT[p.slot][0]}):`, `穿戴在${SLOT[p.slot][1]}时：`), '#aaaaaa'))
+      stat(p.def, 'Defence', '防御')
+    }
     stat(p.atk, 'Attack', '攻击')
     stat(p.xpRate, 'Experience', '经验', true)
   }
@@ -179,6 +182,12 @@ export function tooltipHtml(it: ItemInfo, ctx: TipContext): string {
   if (relic) {
     out.push('<div class="gap"></div>', line(`✦ ${esc(L(relic.en, relic.zh))} · ${L('Unique', '唯一')}`, QUALITY_COLOR.legendary))
     out.push(line(esc(L(relic.text.en, relic.text.zh)), '#ffb199', 'lore'))
+  }
+  // an off-hand piece's power (a profession's own: the parrying dagger's, the quiver's …)
+  const hand = typeof p.offhand === 'string' ? game().items.offhands?.[p.offhand] : undefined
+  if (hand) {
+    out.push('<div class="gap"></div>', line(`◈ ${esc(L(hand.en, hand.zh))} · ${L('Off hand', '副手')}`, '#9fd3ff'))
+    out.push(line(esc(L(hand.text.en, hand.text.zh)), '#cfe6ff', 'lore'))
   }
   // what a piece one wears says of itself (a set's piece, a relic: its `text`), in the margin's colour
   if (typeof p.slot === 'string' && typeof p.text === 'string') {
