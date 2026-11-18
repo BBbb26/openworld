@@ -139,4 +139,3 @@ export const COURTYARD_STAMPS = dressing.map(([name, x, y]) => {
   const [, , tw, th] = frames[name]
   return { key: `cloudtop_yard_${name}`, x: x - Math.floor(tw / 2), y: y - th + 1 }
 })
-
