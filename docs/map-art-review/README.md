@@ -7,6 +7,7 @@ This draft freezes the current visual direction for maintainer feedback before f
 - Cloudtop: native round/triangular tree silhouettes, courtyard supplies, rope fences, shelter furniture and cloak hooks; imported snowy waymarks, arch and bridge; night lantern lighting.
 - Woundstone Foot: connected worn courtyard paving, broad five-wound stone with a black first wound, preserved readable chalk clue, broken walls/columns and east tower.
 - Hunter's yard and interior: timber storage, hunting rack, chopping area, readable glove pickup on its stone, locally drawn worn table and smaller chair.
+- The current Cloudtop snapshot also enables the map-scoped snow surface (snowSurfaceMaps includes summit), with snow/straw edge treatment. This renderer remains in the current playable version despite an earlier request to roll it back; maintainer review should decide whether to retain, disable or split it.
 - Supporting runtime/editor changes provide per-entity looks, pixel density for imported prefabs, furniture pose alignment and mounted-light layering. Cloak handling includes old-save compatibility.
 
 ## Screenshots
