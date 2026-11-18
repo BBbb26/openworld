@@ -43,9 +43,9 @@ describe('variant planning uses the authoritative economic floor', () => {
 describe('NPC research knows the current actor and native profession tags', () => {
   it('reads the real level/profession and keeps legacy catalogues valid', () => {
     const { eng } = researchWorld()
-    eng.author(() => { eng.world.setProp(eng.world.player, 'profession', 'warrior'); eng.world.setProp(eng.world.player, 'level', 8) })
+    eng.author(() => { eng.world.setProp(eng.world.player, 'profession', 'swordsman'); eng.world.setProp(eng.world.player, 'level', 8) })
     const catalogue = researchCatalogue(eng, RECIPES)
-    expect(catalogue.actor).toEqual({ profession: 'warrior', level: 8 })
+    expect(catalogue.actor).toEqual({ profession: 'swordsman', level: 8 })
     expect(readResearchRequest(body(catalogue, 'A weapon.')).catalogue.actor).toEqual(catalogue.actor)
     const { actor: _actor, ...legacy } = catalogue
     expect(readResearchRequest(body(legacy, 'A weapon.')).catalogue.actor).toBeUndefined()
@@ -73,7 +73,7 @@ describe('NPC research knows the current actor and native profession tags', () =
     expect(guide('staff').examples.some(e => e.type.includes('/staff') && e.requiredProfession === 'mage' && e.usable === false)).toBe(true)
   })
 
-  it('uses the same conversation repair to disclose a cross-profession requirement without replacing the sword', async () => {
+  it('uses the same conversation repair to disclose a cross-profession requirement without replacing the bow', async () => {
     const { eng } = researchWorld()
     eng.author(() => eng.world.setProp(eng.world.player, 'profession', 'assassin'))
     const catalogue = researchCatalogue(eng, RECIPES)
@@ -82,21 +82,21 @@ describe('NPC research knows the current actor and native profession tags', () =
       calls++
       expect(messages[0].content).toContain('profession assassin')
       expect(messages[0].content).toContain('item/weapon/magic/staff requires mage')
-      if (calls === 2) expect(messages.at(-1)!.content).toContain('requires profession warrior')
-      return { reply: L(calls === 1 ? 'A wooden sword for you.' : 'This sword requires a warrior to fight with; your friend can use it.'), design: { name: L('Gift Sword', '赠礼剑'), prototype: 'item/weapon/blade/sword', ingredients: [{ type: 'item/material/log', count: 20 }] } }
+      if (calls === 2) expect(messages.at(-1)!.content).toContain('requires profession ranger')
+      return { reply: L(calls === 1 ? 'A wooden bow for you.' : 'This bow requires a ranger to shoot with; your friend can use it.'), design: { name: L('Gift Bow', '赠礼弓'), prototype: 'item/weapon/ranged/bow', ingredients: [{ type: 'item/material/log', count: 20 }] } }
     })
-    const reply = await modder(model).research(body(catalogue, 'I am an assassin, but make a wooden sword for my warrior friend.'))
+    const reply = await modder(model).research(body(catalogue, 'I am an assassin, but make a wooden bow for my ranger friend.'))
     expect(calls).toBe(2)
-    expect(reply.design).toMatchObject({ prototype: 'item/weapon/blade/sword', ingredients: [{ type: 'item/material/log', count: 20 }] })
+    expect(reply.design).toMatchObject({ prototype: 'item/weapon/ranged/bow', ingredients: [{ type: 'item/material/log', count: 20 }] })
   })
 
   it('accepts an explicit cross-profession request immediately when the NPC states the requirement', async () => {
     const { eng } = researchWorld()
     eng.author(() => eng.world.setProp(eng.world.player, 'profession', 'assassin'))
     let calls = 0
-    const reply: ResearchReply = { reply: L('A warrior can fight with this sword; you may give it to your friend.'), design: { name: L('Warrior Friend’s Sword', '战士友人的剑'), prototype: 'item/weapon/blade/sword', ingredients: [{ type: 'item/material/log', count: 20 }] } }
+    const reply: ResearchReply = { reply: L('A ranger can shoot with this bow; you may give it to your friend.'), design: { name: L('Ranger Friend’s Bow', '游侠友人的弓'), prototype: 'item/weapon/ranged/bow', ingredients: [{ type: 'item/material/log', count: 20 }] } }
     const model = new ScriptedModel(() => { calls++; return reply })
-    expect((await modder(model).research(body(researchCatalogue(eng, RECIPES), 'A sword for my warrior friend.'))).design).toEqual(reply.design)
+    expect((await modder(model).research(body(researchCatalogue(eng, RECIPES), 'A bow for my ranger friend.'))).design).toEqual(reply.design)
     expect(calls).toBe(1)
   })
 })

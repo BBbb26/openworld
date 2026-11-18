@@ -331,7 +331,7 @@ describe("the fairy's guides", () => {
     eng.interact('interact', 'player', { e: bram.id }, { instrument: null })
     ticks(eng, 3)
     expect(eng.quests.stage('guide_profession')).toBe(20)
-    expect(takeProfession(eng, PROFESSION_BY_ID.warrior, SKILLS)).toBeUndefined()
+    expect(takeProfession(eng, PROFESSION_BY_ID.swordsman, SKILLS)).toBeUndefined()
     ticks(eng, 6)
     expect(state(eng, 'guide_profession')).toBe('done')
 

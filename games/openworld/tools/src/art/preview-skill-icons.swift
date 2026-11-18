@@ -53,7 +53,7 @@ func icon(_ file: String, _ x: Int, _ y: Int, _ size: Int) {
 NSColor(calibratedRed: 0.11, green: 0.13, blue: 0.12, alpha: 1).setFill()
 NSBezierPath(rect: rect(0, 0, width, height)).fill()
 label("SYMBOLIC WORLD / Skill illustrations", margin, 22, 850, 28)
-label("41 missing talents + 3 profession entrances · Built-in imagegen · 64 × 64 RGBA", margin, 66, 900, 16)
+label("35 missing talents + 2 profession entrances · Built-in imagegen · 64 × 64 RGBA", margin, 66, 900, 16)
 label("Warm outlines / copper fittings / full-colour handcrafted pixel art", margin, 98, 900, 15)
 label("Existing artwork preserved. Reference icons →", margin, 130, 880, 14)
 for (index, reference) in manifest.references.enumerated() {

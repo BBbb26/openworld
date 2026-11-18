@@ -93,10 +93,10 @@ describe('native creation capability adapters', () => {
   })
 
   it('preserves profession restrictions and rejects unsupported source families', () => {
-    const eng = world('item/weapon/blade/sword'), w = eng.world
-    expect(trialWorkshopPackage(eng, draft('item/weapon/blade/sword', use('attack'))).ok).toBe(false)
-    eng.author(() => w.setProp(w.player, 'profession', 'warrior'))
-    adopt(eng, draft('item/weapon/blade/sword', use('attack')))
+    const eng = world('item/weapon/blade/katana'), w = eng.world
+    expect(trialWorkshopPackage(eng, draft('item/weapon/blade/katana', use('attack'))).ok).toBe(false)
+    eng.author(() => w.setProp(w.player, 'profession', 'swordsman'))
+    adopt(eng, draft('item/weapon/blade/katana', use('attack')))
     eng.author(() => w.setProp(w.player, 'profession', 'mage'))
     const before = JSON.stringify(w.state)
     expect(runWorkshopUse(eng, 'native-attack', 'attack', { e: 'slime' }, 'source')).toBe(false)

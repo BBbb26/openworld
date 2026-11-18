@@ -10,12 +10,10 @@ export const RELICS: Record<string, { en: string; zh: string; text: { en: string
   crown: { en: 'None Cross That Do Not Kneel', zh: '不跪者不得过', text: { en: 'Your blows have a 20% chance to force the struck to their knees (1 second, unable to move).', zh: '你的攻击有 20% 几率令目标跪地（1 秒内无法移动）。' } },
   nightfang: { en: 'Tooth of the Night', zh: '夜之牙', text: { en: '+25% critical chance at night.', zh: '入夜后暴击率 +25%。' } },
   mirrorshard: { en: 'Stolen Face', zh: '窃面', text: { en: 'A critical hit draws back 3 more health.', zh: '暴击时额外吸取 3 点生命。' } },
-  oathbrand: { en: 'Oath Kept', zh: '守誓', text: { en: 'Below 30% health, the health it draws back is tripled.', zh: '生命低于 30% 时，吸取的生命变为三倍。' } },
   galestring: { en: 'Running Wind', zh: '逐风', text: { en: 'Each hit: +30% movement speed for 2 seconds.', zh: '每次命中：2 秒内移动速度 +30%。' } },
   starfall: { en: 'Falling Star', zh: '坠星', text: { en: 'Every fifth hit is a critical.', zh: '每第五次命中必定暴击。' } },
   emberheart: { en: 'Heart of Embers', zh: '余烬之心', text: { en: 'Hits have a 25% chance to set the struck burning.', zh: '命中有 25% 几率点燃目标。' } },
   rimecrown: { en: 'Crown of Rime', zh: '霜冕', text: { en: 'Hits have a 20% chance to freeze the struck for a moment.', zh: '命中有 20% 几率令目标短暂冰冻。' } },
-  unfallen: { en: 'Unfallen', zh: '不陷', text: { en: 'Once a minute, a blow that would fell you is turned aside.', zh: '每分钟一次：将致命一击完全挡下。' } },
   dragonsbane: { en: 'Dragonslayer', zh: '屠龙', text: { en: 'Double damage against dragons and their whelps.', zh: '对巨龙与幼龙造成双倍伤害。' } },
   scourge: { en: 'Unbowed', zh: '血尽不倒', text: { en: 'The more you are hurt, the harder you strike: up to +50% damage at the last of your health.', zh: '受伤越重，攻击越狠：生命将尽时伤害最多 +50%。' } },
   scales: { en: 'Lighter Than Sin', zh: '轻于罪', text: { en: 'The hungrier you are, the quicker you move and strike: up to +30% on an empty belly.', zh: '越饿，移动和出手越快：空腹时最多 +30%。' } },
@@ -29,6 +27,18 @@ export const RELICS: Record<string, { en: string; zh: string; text: { en: string
  * (`vow`: QualityDef.vows, the craft primitive; makeItem), the story's own name theirs (hollow.ts, quests/side.ts;
  * the Order's seal and the scallop below). What the tooltip names and tells. Two pieces of one vow are one vow.
  */
+/**
+ * Each profession's off-hand piece's power (items.ts: its `offhand`; the classes module's combat.ts `offhandsOf`): what
+ * the tooltip names and tells.
+ */
+export const OFFHANDS: Record<string, { en: string; zh: string; text: { en: string; zh: string } }> = {
+  twin: { en: 'Two Blades', zh: '双刃', text: { en: 'With a dagger: a blow has a one-in-four chance to be followed by a cut from the off hand, half as hard.', zh: '持匕首时，攻击有四分之一的几率由副手再补一刀（一半伤害）。' } },
+  fletch: { en: 'Fletching', zh: '箭羽', text: { en: 'With a bow: reach +1, and the arrows carry the quiver\'s element, if it has one.', zh: '持弓时射程 +1；箭袋带元素时，射出的箭也带上这种元素。' } },
+  codex: { en: 'The Written Word', zh: '秘典', text: { en: 'Skills strike 10% harder; those of the tome\'s element, if it has one, 15% harder again.', zh: '技能伤害 +10%；法典带元素时，同种元素的技能伤害再 +15%。' } },
+  draw: { en: 'The Draw', zh: '拔刀', text: { en: 'With a katana: the first cut after three seconds without one is drawn from the scabbard, 50% harder.', zh: '持太刀时，三秒没有出刀之后的第一刀从鞘中拔出，伤害 +50%。' } },
+  litany: { en: 'The Litany', zh: '祷文', text: { en: 'With a cross: your mending is 20% stronger, and one blow in four that lands mends you 2.', zh: '持十字架时，你的治疗效果 +20%；攻击命中时有四分之一的几率为你恢复 2 点生命。' } },
+}
+
 export const VOWS: Record<string, { en: string; zh: string; text: { en: string; zh: string } }> = {
   vigil: { en: 'Vow of Vigil', zh: '守夜之誓', text: { en: 'At night: +20% critical chance and +15% movement speed.', zh: '入夜后：暴击率 +20%，移动速度 +15%。' } },
   dawn: { en: 'Vow of Dawn', zh: '黎明之誓', text: { en: 'By day: every blow that lands draws back 1 health, and you take 10% less harm.', zh: '白天：每次命中吸取 1 点生命，受到的伤害 −10%。' } },

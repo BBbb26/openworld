@@ -27,7 +27,7 @@ export const CH3_SETS: SetDef[] = [
     ],
   },
   {
-    id: 'almoner', en: "Almoner's", zh: '施赈', chapter: 'ch3', level: 11, lean: 'warrior', look: 'russet',
+    id: 'almoner', en: "Almoner's", zh: '施赈', chapter: 'ch3', level: 11, lean: 'cleric', look: 'russet',
     palette: ['#94492c', '#4a2418', '#d9cfb6', '#d98a5a'],
     pieces: [
       P('shoulders', F.cloak, "Almoner's Shawl", '施赈人的披肩',

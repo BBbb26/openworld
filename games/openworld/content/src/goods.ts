@@ -22,7 +22,7 @@ const BASE: Record<string, string> = {
   sword: 'item/weapon/blade/sword', dagger: 'item/weapon/blade/dagger', axe: 'item/weapon/blade/axe', scimitar: 'item/weapon/blade/scimitar',
   club: 'item/weapon/blunt/club', mace: 'item/weapon/blunt/mace', warhammer: 'item/weapon/blunt/warhammer', spear: 'item/weapon/polearm/spear',
   halberd: 'item/weapon/polearm/halberd', bow: 'item/weapon/ranged/bow', wand: 'item/weapon/magic/wand', staff: 'item/weapon/magic/staff',
-  helmet: 'item/armor/helmet', shield: 'item/armor/shield', breastplate: 'item/armor/breastplate', pauldrons: 'item/armor/pauldrons',
+  helmet: 'item/armor/helmet', breastplate: 'item/armor/breastplate', pauldrons: 'item/armor/pauldrons',
   jerkin: 'item/armor/jerkin', quiver: 'item/armor/quiver', tome: 'item/armor/tome', parry: 'item/armor/parrying_dagger',
   cloak: 'item/clothing/cloak', belt: 'item/clothing/belt', hat: 'item/clothing/hat', hood: 'item/clothing/hood', boots: 'item/clothing/boots',
   robe: 'item/clothing/robe', gloves: 'item/clothing/gloves',
@@ -44,7 +44,7 @@ const BASE: Record<string, string> = {
 }
 
 /** What a region's line is made of every piece of gear and tool. */
-const LINE = ['sword', 'dagger', 'axe', 'scimitar', 'club', 'mace', 'warhammer', 'spear', 'halberd', 'bow', 'wand', 'staff', 'helmet', 'shield', 'breastplate', 'pauldrons', 'jerkin', 'cloak', 'belt', 'hat', 'hood', 'boots', 'robe', 'gloves', 'pickaxe', 'shovel', 'hoe', 'sickle', 'hammer', 'knife', 'ring', 'amulet', 'earring']
+const LINE = ['sword', 'dagger', 'axe', 'scimitar', 'club', 'mace', 'warhammer', 'spear', 'halberd', 'bow', 'wand', 'staff', 'helmet', 'breastplate', 'pauldrons', 'jerkin', 'cloak', 'belt', 'hat', 'hood', 'boots', 'robe', 'gloves', 'pickaxe', 'shovel', 'hoe', 'sickle', 'hammer', 'knife', 'ring', 'amulet', 'earring']
 
 export interface RegionGoods {
   /** The word its line goes by. */
@@ -76,7 +76,6 @@ export const REGION_GOODS: Record<string, RegionGoods> = {
       wand: Rimewood Wand|凇木魔杖 =wood
       staff: Shepherd's Thornstaff|牧人棘杖 =wood; Driftwood Staff|浮木法杖 =wood
       helmet: Fur-Lined Helm|毛衬头盔; Thorn Knight's Helm|荆棘骑士盔 * [iron,steel]
-      shield: Pine Roundshield|松木圆盾 =wood; Ford Kite Shield|渡口鸢盾
       breastplate: Coastwatch Cuirass|海哨胸甲; Thorn Knight's Cuirass|荆棘骑士胸甲 * [steel]
       pauldrons: Wolfskin Spaulders|狼皮护肩 =leather
       jerkin: Sealskin Jerkin|海豹皮甲 =leather; Elkhide Jerkin|麋皮甲 =leather
@@ -171,7 +170,6 @@ export const REGION_GOODS: Record<string, RegionGoods> = {
       wand: Brand Wand|烙印魔杖
       staff: War-Chaplain's Staff|随军牧师杖
       helmet: Banded Helm|箍铁头盔; Horsehair-Crested Helm|马鬃盔 * [steel]
-      shield: Tower Shield|塔盾; Hide Buckler|皮小圆盾 =wood
       breastplate: Scale Hauberk|鳞甲; Lamellar Cuirass|札甲胸甲
       pauldrons: Riveted Spaulders|铆钉护肩
       jerkin: Saddle-Leather Jerkin|鞍皮甲 =leather
@@ -239,7 +237,6 @@ export const REGION_GOODS: Record<string, RegionGoods> = {
       honey: Thistle Honey|蓟蜜
       book: Drill-Book|操典
       gem: Fire Agate|火玛瑙
-      shield: Banner Shield|旗纹盾
     `,
   },
   tithe: {
@@ -259,7 +256,6 @@ export const REGION_GOODS: Record<string, RegionGoods> = {
       wand: Assayer's Rod|验金杖
       staff: Tithe-Reeve's Staff|收税官手杖 =wood; Balance Staff|天平杖 * [crystal]
       helmet: Kettle Hat|铁边帽盔
-      shield: Market Buckler|市集小盾
       breastplate: Brigandine|镶钉甲
       pauldrons: Copper Spaulders|铜护肩 =bronze
       jerkin: Dust-Rider's Jerkin|尘骑皮甲 =leather
@@ -345,7 +341,6 @@ export const REGION_GOODS: Record<string, RegionGoods> = {
       wand: Wisp-Light Wand|鬼火魔杖
       staff: Ossuary Staff|骨堂法杖 =bone; Fen-Witch's Staff|沼巫杖 * [bone,crystal]
       helmet: Rusted Barbute|锈蚀面盔 =iron
-      shield: Coffin-Lid Shield|棺盖盾 =wood
       breastplate: Bog-Iron Cuirass|沼铁胸甲 =iron
       pauldrons: Crow-Feather Mantle|鸦羽护肩 =leather
       jerkin: Eelskin Jerkin|鳗皮甲 =leather
@@ -429,7 +424,6 @@ export const REGION_GOODS: Record<string, RegionGoods> = {
       wand: Alabaster Wand|雪花石魔杖 =crystal
       staff: Abbot's Crozier|院长权杖 * [silver,mithril]; Goatherd's Crook|牧羊曲杖 =wood
       helmet: White Helm|白盔
-      shield: Altar Heater Shield|白坛三角盾
       breastplate: White Plate|白甲 =steel; Reliquary Cuirass|圣髑胸甲 * [steel,mithril]
       pauldrons: Snow-Goat Spaulders|雪羊护肩 =leather
       jerkin: Goatskin Jerkin|山羊皮甲 =leather
@@ -490,7 +484,6 @@ export const REGION_GOODS: Record<string, RegionGoods> = {
       torch: Catacomb Torch|墓窟火把
       mirror: Reliquary Glass|圣髑镜
       staff: Hermit's Staff|隐修者手杖 =wood
-      shield: Martyr's Pavise|殉道者大盾 * [steel]
       salt: Chalk Salt|垩盐
     `,
   },
@@ -507,7 +500,6 @@ export const REGION_GOODS: Record<string, RegionGoods> = {
       wand: Dawn Wand|曙光魔杖
       staff: Pilgrim's Staff|朝圣手杖 =wood; Archdeacon's Staff|副主教杖 * [silver,crystal]
       helmet: Gilded Sallet|镀金轻盔
-      shield: Sunburst Shield|日纹盾; Five-Wound Shield|五伤盾 * [steel]
       breastplate: Gilt Cuirass|镀金胸甲
       pauldrons: Halo Spaulders|光环护肩
       jerkin: Pilgrim's Jerkin|朝圣皮甲

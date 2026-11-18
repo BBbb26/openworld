@@ -293,6 +293,7 @@ function itemInfobox(ctx: Ctx, e: ItemEnt): string {
   }
   if (e.relic) rows.push([L('圣痕之力', 'Stigma power'), `<b>${esc(e.relic.name)}</b>${L('：', ': ')}${esc(e.relic.text)}`])
   if (e.vow) rows.push([L('誓言', 'Vow'), `<b>${esc(e.vow.name)}</b>${L('：', ': ')}${esc(e.vow.text)}`])
+  if (e.offhand) rows.push([L('副手之力', 'Off-hand power'), `<b>${esc(e.offhand.name)}</b>${L('：', ': ')}${esc(e.offhand.text)}`])
   const s = e.recipe?.station
   const make = e.recipe ? `${s === 'hands' || !s ? L('手工', 'By hand') : L(`${STATION_PAGE[s] ?? s}旁`, `At the ${s}`)}${par(ctx.link('制作'))}` : e.placement ? ctx.link('建造', L('建造模式', 'Build mode')) : ''
   if (make) rows.push([L('制作', 'Made'), make])

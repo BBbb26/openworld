@@ -23,7 +23,7 @@ describe('the main line\'s sets (docs/sets.md)', () => {
     const order = ['ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'fin']
     for (let i = 1; i < order.length; i++) expect(Math.min(...levels(order[i])), order[i]).toBeGreaterThanOrEqual(Math.max(...levels(order[i - 1])) - 3)
     // and every profession is served in every chapter (a set leaning its way, or one for anyone)
-    for (const ch of order) for (const lean of ['assassin', 'warrior', 'ranger', 'mage']) expect(MAIN_SETS.some((s) => s.chapter === ch && (s.lean === lean || s.lean === 'any')), `${ch} ${lean}`).toBe(true)
+    for (const ch of order) for (const lean of ['assassin', 'ranger', 'mage', 'swordsman', 'cleric']) expect(MAIN_SETS.some((s) => s.chapter === ch && (s.lean === lean || s.lean === 'any')), `${ch} ${lean}`).toBe(true)
   })
 
   it('every piece is a type of its own: its slot its form\'s, one to a slot in its set, its words in both languages, its picture drawn', () => {

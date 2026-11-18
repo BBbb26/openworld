@@ -15,7 +15,7 @@ type Words = { en: string; zh: string }
 
 /** The tables a bundle's `client` holds for the player's panels (the project's client/*.json). All optional. */
 export interface ClientTables {
-  items?: { forms?: Record<string, FormInfo>; materials?: Record<string, Words>; relics?: Record<string, Words & { text: Words }>; vows?: Record<string, Words & { text: Words }>; coin?: string }
+  items?: { forms?: Record<string, FormInfo>; materials?: Record<string, Words>; relics?: Record<string, Words & { text: Words }>; vows?: Record<string, Words & { text: Words }>; offhands?: Record<string, Words & { text: Words }>; coin?: string }
   crafting?: { recipes?: Recipe[]; stations?: Record<string, Words>; shops?: ShopDef[]; placements?: PlacementRecipe[]; buildings?: PlacementRecipe[] }
   skills?: { all?: SkillDef[]; directions?: SkillDirectionDef[]; branches?: SkillBranchDef[]; professions?: ProfessionCard[] }
   boons?: Record<string, BoonInfo>
@@ -66,7 +66,7 @@ export function clientGameOf(b: Bundle, url: string): ClientGame {
     cover: { title: b.game.name, ...c.cover },
     ...(c.dev && { dev: c.dev }),
     ...(c.texts && { texts: c.texts }),
-    items: { forms: c.items?.forms ?? {}, materials: c.items?.materials ?? {}, relics: c.items?.relics ?? {}, ...(c.items?.vows && { vows: c.items.vows }), coin: c.items?.coin ?? b.ontology.social?.coin ?? 'item/coin' },
+    items: { forms: c.items?.forms ?? {}, materials: c.items?.materials ?? {}, relics: c.items?.relics ?? {}, ...(c.items?.vows && { vows: c.items.vows }), ...(c.items?.offhands && { offhands: c.items.offhands }), coin: c.items?.coin ?? b.ontology.social?.coin ?? 'item/coin' },
     crafting: {
       recipes: c.crafting?.recipes ?? [],
       stationName: (s) => stations[s] ?? words(b.ontology.types[`fixture/${s}`]?.name, s),

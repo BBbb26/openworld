@@ -51,7 +51,7 @@ describe('isolated profession boss challenges', () => {
     const game = createBossChallenge(index, raw, 'mage', 'envy'), eng = game.engine, w = eng.world
     eng.damage(w.get(BOSS_ARENA.id)!, 9999, undefined, true, { e: w.player.id })
     expect(challengeOutcome(game)).toBe('victory')
-    const retry = createBossChallenge(index, raw, 'warrior', 'envy')
+    const retry = createBossChallenge(index, raw, 'swordsman', 'envy')
     expect(challengeOutcome(retry)).toBeUndefined()
     expect(retry.engine.world.fact('sins.defeated.envy')).toBeUndefined()
     expect(retry.engine.world.num(retry.engine.world.player, 'xp')).toBe(0)

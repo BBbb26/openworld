@@ -81,7 +81,7 @@ const profession: QuestDef = {
   id: 'guide_profession',
   kind: 'guide',
   title: L('A Road of Your Own', '选一条路'),
-  summary: L('At level five, Bram the trainer in the drill yard of Firstlight Village will set you on a profession: assassin, warrior, ranger or mage. Each has its own weapon, skill-tree branch and gear sets; you can change later, but its branch starts over.', '到了五级，初原村操练场的导师布拉姆会让你选一个职业：刺客、战士、游侠或法师。每个职业有自己的武器、技能分支和套装；以后也能换，但那条分支要从头来过。'),
+  summary: L('At level five, Bram the trainer in the drill yard of Firstlight Village will set you on a profession: assassin, ranger, mage, swordsman or cleric. Each has its own weapon, skill-tree branch and gear sets; you can change later, but its branch starts over.', '到了五级，初原村操练场的导师布拉姆会让你选一个职业：刺客、游侠、法师、剑客或圣职者。每个职业有自己的武器、技能分支和套装；以后也能换，但那条分支要从头来过。'),
   aliases: { pip: { id: LUMI_ID }, trainer: { id: TRAINER_ID, essential: true } },
   objectives: [
     { id: 'trainer', text: L('Speak to Bram, the trainer, in the drill yard of Firstlight Village', '去初原村操练场找导师布拉姆说话'), target: 'trainer', talk: true, on: { talk: 'trainer' } },
@@ -93,7 +93,7 @@ const profession: QuestDef = {
       show: ['trainer', 'choose'],
       say: L('Level five! Bram said he takes people on at level five. His drill yard is in Firstlight, by the north-east cottage; look for the crossed blades over his head. Let\'s go and pick a profession!', '五级了！布拉姆说过，到了五级他就收人。他的操练场在初原村东北角那间小屋旁边，认准他头顶的交叉双剑。我们去选个职业吧！'),
       by: 'pip',
-      hint: L('Bram is in the drill yard of Firstlight Village day and night, with crossed blades over his head. {key:hands} on him opens his panel: four professions, each with its weapon. The dagger strikes from behind, the sword and shield from the front, the bow from afar, and the staff from wherever you stand.', '布拉姆日夜都在初原村的操练场，头顶有交叉双剑。对他按 {key:hands} 打开面板：四个职业，各用各的武器。匕首从背后下手，剑盾正面迎敌，弓从远处射，法杖站在哪儿都能用。'),
+      hint: L('Bram is in the drill yard of Firstlight Village day and night, with crossed blades over his head. {key:hands} on him opens his panel: five professions, each with its weapon. The dagger strikes from behind, the bow from afar, the staff from wherever you stand, the katana from the scabbard, and the cross mends the one who swings it.', '布拉姆日夜都在初原村的操练场，头顶有交叉双剑。对他按 {key:hands} 打开面板：五个职业，各用各的武器。匕首从背后下手，弓从远处射，法杖站在哪儿都能用，太刀出鞘就是一刀，十字架打中了还能给自己回血。'),
       log: L('Level five. Lumi says Bram will take me on now.', '五级了。露米说，布拉姆现在肯收我了。'),
     },
     {
@@ -101,7 +101,7 @@ const profession: QuestDef = {
       on: { talk: 'trainer' },
       done: ['trainer'],
       hint: L('Choose in his panel. You will fight with the profession\'s weapon, and its branch of the skill tree opens with it. You can change later, but the branch starts over.', '在他的面板里选。选了哪个职业，就用它的武器打，技能树里对应的分支也一起开。以后能换，但分支要从头来过。'),
-      log: L('Bram offers four: dagger, sword and shield, bow, or staff.', '布拉姆给了四条路：匕首、剑盾、弓、法杖。'),
+      log: L('Bram offers four: dagger, bow, staff, or katana.', '布拉姆给了四条路：匕首、弓、法杖、太刀。'),
     },
     {
       n: 100,

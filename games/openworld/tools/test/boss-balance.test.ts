@@ -48,8 +48,10 @@ describe('boss challenge balance', () => {
     expect(game.engine.world.num(game.engine.world.get(BOSS_ARENA.id)!, 'hp')).toBeGreaterThan(0)
   })
 
-  it.each(BOSSES.map((b) => b.id))('lets a warrior defeat %s through actual dodging and counterattacks', (boss) => {
-    const game = createBossChallenge(index, raw, 'warrior', boss)
+  // (the warrior did this until it went, 2026-11-05; of those left the swordsman, its scabbard's draw in hand, beats every
+  // one — the assassin all but the dragon)
+  it.each(BOSSES.map((b) => b.id))('lets a swordsman defeat %s through actual dodging and counterattacks', (boss) => {
+    const game = createBossChallenge(index, raw, 'swordsman', boss)
     const start = game.engine.world.state.tick
     for (let tick = 0; tick < 2400 && !challengeOutcome(game); tick++) pilot(game, true)
     expect(challengeOutcome(game)).toBe('victory')

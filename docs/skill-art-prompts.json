@@ -203,54 +203,6 @@
       "subject": "a small ivory-and-copper phoenix with lifted asymmetric wings emerging from a split copper eggshell. Warm coral-orange breast, cream feather tips and a tiny moss-green cord around the shell tie it to the survival palette. Bold hopeful rebirth silhouette, no fire background, halo or glow."
     },
     {
-      "id": "warrior-arms",
-      "name": "武器训练",
-      "branch": "warrior",
-      "file": "games/openworld/public/assets/lsw/skills/warrior-arms.png",
-      "source": "var/skill-art/sources/warrior-arms.png",
-      "subject": "a stout iron training mace crossed behind a short worn oak practice sword. Oxblood-red grip wraps, copper end caps, ivory metal scuffs and a rough stitched hanging strap. A compact tactile melee weapon training emblem, no character."
-    },
-    {
-      "id": "bulwark",
-      "name": "铁壁",
-      "branch": "warrior",
-      "file": "games/openworld/public/assets/lsw/skills/bulwark.png",
-      "source": "var/skill-art/sources/bulwark.png",
-      "subject": "a tall broad iron slab shield made from three overlapping vertical plates, with copper bolts and a short oxblood-red leather grip showing at one side. Thick ivory edge bevels, visibly heavy and steadfast, no circular badge, no crest or letters."
-    },
-    {
-      "id": "unbreakable",
-      "name": "不破之身",
-      "branch": "warrior",
-      "file": "games/openworld/public/assets/lsw/skills/unbreakable.png",
-      "source": "var/skill-art/sources/unbreakable.png",
-      "subject": "a folded patch of dense ivory-steel chain mail holding a small deep-red heart stone at its center, secured by four stout copper rivets and a brown leather backing. A durable compact armor charm, not a generic heart or shield glyph, no glow."
-    },
-    {
-      "id": "retaliation",
-      "name": "以牙还牙",
-      "branch": "warrior",
-      "file": "games/openworld/public/assets/lsw/skills/retaliation.png",
-      "source": "var/skill-art/sources/retaliation.png",
-      "subject": "a hooked ivory-steel counterstrike hammer catching a chipped incoming dagger against its curved rear hook. Short oxblood-red wrapped handle, large copper joint and one sharp ochre impact spark. A distinct reversal of a blow, no hand, body or arrows."
-    },
-    {
-      "id": "rampage",
-      "name": "狂暴",
-      "branch": "warrior",
-      "file": "games/openworld/public/assets/lsw/skills/rampage.png",
-      "source": "var/skill-art/sources/rampage.png",
-      "subject": "a boar-shaped forged iron shoulder plate with two ivory tusks and a jagged oxblood-red cloth crest. A copper snout ring, worn dark brown straps and three short red motion chips suggest escalating ferocity. No full animal, body or skull."
-    },
-    {
-      "id": "warlord",
-      "name": "战争领主",
-      "branch": "warrior",
-      "file": "games/openworld/public/assets/lsw/skills/warlord.png",
-      "source": "var/skill-art/sources/warlord.png",
-      "subject": "a battered oxblood-red swallowtail battle standard on a short ivory-steel spear, with a small iron shield pinned in front by a copper laurel clasp. Cream stitches, visibly torn fabric and sturdy metal. A commanding final-talent silhouette, no letters, emblem logo, person or scenery."
-    },
-    {
       "id": "ranger-archery",
       "name": "箭术",
       "branch": "ranger",
@@ -345,14 +297,6 @@
       "file": "games/openworld/public/assets/lsw/skills/archmage.png",
       "source": "var/skill-art/sources/archmage.png",
       "subject": "a small open grimoire with thick ivory pages and deep-plum leather covers, topped by an upright violet crystal held in a copper crown-shaped book clasp. One indigo page ribbon curls below and a few square cream page marks imply magic without actual letters. An elaborate but readable final-talent artifact, no text, stars, halo or background."
-    },
-    {
-      "id": "warrior",
-      "name": "战士",
-      "branch": "profession",
-      "file": "games/openworld/public/assets/lsw/skills/warrior.png",
-      "source": "var/skill-art/sources/warrior.png",
-      "subject": "one weathered iron warrior's helmet in three-quarter view, a short oxblood-red horsehair crest, stout copper brow rivets and a dark face opening. Asymmetrical ivory steel highlights, no face, body, weapons or heraldic logo. Match the existing assassin hood's head-only scale."
     },
     {
       "id": "ranger",

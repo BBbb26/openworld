@@ -6,9 +6,9 @@
 // to the caster, who answers it (content body/stage). Content says the numbers (SkillDef.active); this
 // says what each kind does.
 
-import { DIRS, OPPOSITE, weaponOf, type ActiveDef, type Dir, type Engine, type Entity, type KnownActive, type Pos, type SkillDef } from '@openworld/engine'
-import { alone, combatStrike, finishCombatStrike, paid, setPowersOf, summonerOf } from './combat.ts'
-import { professionOf } from './profession.ts'
+import { DIRS, OPPOSITE, offhandOf, weaponOf, type ActiveDef, type Dir, type Engine, type Entity, type KnownActive, type Pos, type SkillDef } from '@openworld/engine'
+import { alone, combatStrike, finishCombatStrike, offhandsOf, paid, setPowersOf, summonerOf, type Strike } from './combat.ts'
+import { ownWeapon, professionOf } from './profession.ts'
 
 /** How many slots the skill bar has. */
 export const SKILLBAR_SLOTS = 6
@@ -68,9 +68,9 @@ export function effectiveActive(eng: Engine, e: Entity, def: SkillDef): ActiveDe
   // (the sets' own: the Shroud's keeper rests less near the end, one with a companion at their side always — content SET_POWERS)
   const powers = setPowersOf(eng.world, e)
   const kept = (powers.has('shroudward') && eng.world.num(e, 'hp') <= eng.world.num(e, 'maxHp', 1) * 0.5 ? 0.25 : 0) + (powers.has('second') && !alone(eng.world, e) ? 0.15 : 0)
-  // (the advancements' passives and buffs; Ember Heart's fire)
-  const ember = has(e, 'ember-heart') && a.element === 'fire' ? 0.2 : 0
-  a.cooldown = Math.max(5, Math.round(a.cooldown * (1 - Math.min(0.5, Math.max(0, eng.world.stat(e, 'cdr') + kept + paid(eng.world, e, 'cdr') + ember)))))
+  // (the advancements' passives and buffs; Ember Heart's fire, a Storm Spirit's lightning)
+  const quick = Object.entries(QUICKER).some(([id, element]) => a.element === element && has(e, id)) ? 0.2 : 0
+  a.cooldown = Math.max(5, Math.round(a.cooldown * (1 - Math.min(0.5, Math.max(0, eng.world.stat(e, 'cdr') + kept + paid(eng.world, e, 'cdr') + quick)))))
   return a
 }
 
@@ -82,7 +82,16 @@ let casting = ''
 let look = 'arcane'
 
 const ELEMENT_LOOK: Record<string, string> = { fire: 'fire', ice: 'frost', lightning: 'storm' }
-const PROFESSION_LOOK: Record<string, string> = { assassin: 'shadow', warrior: 'steel', ranger: 'wind', mage: 'arcane' }
+/** What an element is seen as where it lands (a fire's burst, ice's frost, lightning's sparks). */
+const ELEMENT_FX: Record<string, string> = { fire: 'explosion', ice: 'frost', lightning: 'sparks' }
+/** The three elements, in the turn a Convergence or a Trinity Cut takes them, and what each of a Trinity Cut's leaves. */
+const TRINITY = ['fire', 'ice', 'lightning']
+const TRINITY_AFFLICT: Record<string, Pick<ActiveDef, 'afflict' | 'ticks'>> = { fire: { afflict: 'burning', ticks: 30 }, ice: { afflict: 'frozen', ticks: 10 }, lightning: { afflict: 'electrified', ticks: 5 } }
+const PROFESSION_LOOK: Record<string, string> = { assassin: 'shadow', ranger: 'wind', mage: 'arcane', swordsman: 'blade', cleric: 'holy' }
+/** The talents that make an element's skills rest less (a fifth): Ember Heart, a Storm Spirit. */
+const QUICKER: Record<string, string> = { 'ember-heart': 'fire', 'storm-spirit': 'lightning' }
+/** The thirds' hearts: an element's skills strike a fifth harder (Heart of Winter, of the Worldfire, Heaven's Might). */
+const HEARTS: Record<string, string> = { 'heart-of-winter': 'ice', 'kalpa-heart': 'fire', 'heavens-might': 'lightning' }
 /** A skill's look: its own, else its element's, its kind's (a mend's light, a gale's wind), its profession's. */
 export function lookOf(def: SkillDef, a: ActiveDef = def.active!): string {
   return a.look ?? (a.element && ELEMENT_LOOK[a.element]) ?? (a.kind === 'mend' ? 'holy' : a.kind === 'haste' ? 'wind' : undefined) ?? PROFESSION_LOOK[def.profession ?? ''] ?? 'steel'
@@ -97,22 +106,67 @@ export function castSkill(eng: Engine, e: Entity, id: string): boolean {
   casting = id
   look = lookOf(def!, a)
   const from = at(e)
+  // a price in health (a Sacrificer's cuts): not paid by one who has not got it to spare
+  const price = a.cost ? Math.ceil(eng.world.num(e, 'maxHp', 1) * a.cost) : 0
+  if (price && eng.world.num(e, 'hp') <= price) return false
   if (!CAST[a.kind](eng, e, a)) return false
+  if (price) eng.script([{ op: 'emit', impulse: 'notify', to: 'target', params: { what: 'price', amount: price } }], { target: { e: e.id } }, 'skill')
   // the cast itself: a ring at the caster's feet in the skill's colours, where it was cast from
   if (from) fx(eng, `cast:${look}`, from.map, from.x, from.y, e.id)
   const state = (e.combat ??= {})
   state.casts = (state.casts ?? 0) + 1
-  // Ascendance: each cast +10% damage for 4 s, three times
-  if (has(e, 'ascendance')) (state.ascStacks = (state.ascUntil ?? 0) > eng.world.state.tick ? Math.min(3, (state.ascStacks ?? 0) + 1) : 1), (state.ascUntil = eng.world.state.tick + 40)
   // Elemental Master: every third cast does not rest
   if (!(has(e, 'elemental-master') && state.casts % 3 === 0)) eng.setCooldown(castKey(id, e.id), a.cooldown)
-  // Marksman: a cast that hit brings the others half a second nearer
+  // Blade and Spell: the blow after a cast strikes harder, carrying its element (Ringing Blade: two blows, a while longer)
+  if (has(e, 'blade-and-spell')) {
+    const two = has(e, 'ringing-blade')
+    state.bladeUntil = eng.world.state.tick + (two ? 50 : 30)
+    state.bladeHits = two ? 2 : 1
+    if (a.element && a.element !== 'all') state.bladeElement = a.element
+    else delete state.bladeElement
+  }
+  // Marksman: a cast that hit brings the others half a second nearer; Storm Unending: a lightning cast, a second
   if (landed && has(e, 'marksman')) hasten(eng, e, 5, id)
+  if (a.element === 'lightning' && has(e, 'storm-unending')) hasten(eng, e, 10, id)
   return true
 }
 
+/**
+ * What a blow of one's weapon brings once it lands (combat.ts strikes it): the element it was lent, seen on the struck;
+ * a Channeling Blade brings every skill nearer, a Seamless charged blow a second more.
+ */
+export function afterBlow(eng: Engine, a: Entity, v: Entity | undefined, strike: Strike, before: number): void {
+  const w = eng.world
+  if (!v || !w.isAgent(v) || before <= 0 || w.num(v, 'hp') >= before) return
+  const q = at(v) ?? strike.at
+  if (strike.element && q) fx(eng, ELEMENT_FX[strike.element] ?? 'hit', q.map, q.x, q.y)
+  if (has(a, 'blade-channel') && ownWeapon(w, a, weaponOf(w, a))) hasten(eng, a, 3)
+  if (strike.spellblade && has(a, 'seamless')) hasten(eng, a, 10)
+  // Still Time: a freeze shattered brings every skill a second nearer
+  if (strike.ends === 'frozen' && has(a, 'still-time')) hasten(eng, a, 10)
+  // Ride the Wind (Skywing's): every arrow of one's bow that lands, a third of a second
+  if (has(a, 'ride-the-wind') && ownWeapon(w, a, weaponOf(w, a)) && w.num(weaponOf(w, a)!, 'range', 1) > 1) hasten(eng, a, 3)
+  // Atonement (the Sentence of Suffering's): the lance laid, the fifth Suffering, mends a tenth and brings every skill two
+  // seconds nearer; a rosary's litany mends 2 one blow of the cross in four
+  if (strike.suffering === 5 && has(a, 'atonement')) (mendOf(eng, a, Math.ceil(w.num(a, 'maxHp', 1) * 0.1)), hasten(eng, a, 20))
+  if (offhandsOf(w, a).has('litany') && ownWeapon(w, a, weaponOf(w, a)) && w.rand() < 0.25) mendOf(eng, a, 2)
+}
+
+/** Tell one to mend by so much (its own outcome: a person's body/stage, a called creature's adv/summon-mends), if hurt. */
+function mendOf(eng: Engine, e: Entity, amount: number): void {
+  const w = eng.world
+  if (amount > 0 && w.get(e.id) && w.num(e, 'hp') > 0 && w.num(e, 'hp') < w.num(e, 'maxHp')) eng.script([{ op: 'emit', impulse: 'notify', to: 'target', params: { what: 'mend', amount } }], { target: { e: e.id } }, 'skill')
+}
+/** Those who follow one (their `companion` names one) within so many cells, standing. */
+function companionsOf(eng: Engine, e: Entity, range: number): Entity[] {
+  const w = eng.world
+  const p = at(e)
+  if (!p) return []
+  return w.entitiesOnMap(p.map).filter((c) => { const q = at(c); return c.id !== e.id && c.props?.companion === e.id && !!q && dist(p, q) <= range && w.num(c, 'hp') > 0 && !w.hasStatus({ e: c.id }, 'down') })
+}
+
 /** Bring every other active skill one has nearer by so many ticks. */
-function hasten(eng: Engine, e: Entity, ticks: number, except?: string): void {
+export function hasten(eng: Engine, e: Entity, ticks: number, except?: string): void {
   for (const k of knownActives(eng, e)) {
     if (k.id === except) continue
     const key = castKey(k.id, e.id)
@@ -122,20 +176,23 @@ function hasten(eng: Engine, e: Entity, ticks: number, except?: string): void {
 }
 
 /**
- * What a defeat brings the one who dealt it (its talents): Master Assassin readies Shadow Strike again, Undying
- * Spirit brings every skill a second nearer, Bloodthirst mends a twentieth (told to the striker, who mends itself).
+ * What a defeat brings the one who dealt it (its talents): Master Assassin readies Shadow Strike again; the
+ * advancements' below.
  */
 export function onDefeat(eng: Engine, a: Entity): void {
   const w = eng.world
   if (has(a, 'master-assassin')) eng.setCooldown(castKey('shadow-strike', a.id), 0)
-  if (has(a, 'undying-spirit')) hasten(eng, a, 10)
-  if (has(a, 'bloodthirst') && w.num(a, 'hp') < w.num(a, 'maxHp'))
-    eng.script([{ op: 'emit', impulse: 'notify', to: 'target', params: { what: 'mend', amount: Math.max(1, Math.ceil(w.num(a, 'maxHp') * 0.05)) } }], { target: { e: a.id } }, 'skill')
-  // the advancements (docs/advancement.md): Carnage mends, a poisoned foe felled bursts (a Corpse Burst: felled by the
-  // Necromancer or the dead it raised, the burst its), a Death Mark's foe readies every skill
+  // the advancements (docs/advancement.md): a poisoned foe felled bursts (a Corpse Burst: felled by the Necromancer or
+  // the dead it raised, the burst its), a Death Mark's foe readies every skill, a burning one spreads its fire (Wildfire)
+  // and brings every skill nearer (All Is Kindling)
   const felled = a.combat?.felled
-  if (has(a, 'carnage') && w.num(a, 'hp') < w.num(a, 'maxHp'))
-    eng.script([{ op: 'emit', impulse: 'notify', to: 'target', params: { what: 'mend', amount: Math.max(1, Math.ceil(w.num(a, 'maxHp') * 0.04)) } }], { target: { e: a.id } }, 'skill')
+  if (felled && felled.tick === w.state.tick && felled.burning) {
+    if (has(a, 'wildfire')) {
+      fx(eng, 'burst:fire:2', felled.map, felled.x, felled.y)
+      for (const v of w.entitiesOnMap(felled.map).filter((v) => v.id !== felled.id && foe(eng, a, v) && dist(felled, at(v) ?? felled) <= 2)) blow(eng, a, v, { kind: 'nova', cooldown: 0, element: 'fire', afflict: 'burning', ticks: 30, look: 'fire' }, 0.3)
+    }
+    if (has(a, 'all-is-kindling')) hasten(eng, a, 20)
+  }
   // (Soul Harvest: a felling by the dead mends their raiser and brings its skills a second nearer)
   const raiser = summonerOf(w, a)
   if (raiser && has(raiser, 'soul-harvest')) {
@@ -151,6 +208,35 @@ export function onDefeat(eng: Engine, a: Entity): void {
     for (const v of w.entitiesOnMap(felled.map).filter((v) => v.id !== felled.id && foe(eng, burster, v) && dist(felled, at(v) ?? felled) <= 2)) blow(eng, burster, v, { kind: 'detonate', cooldown: 0, afflict: 'poisoned', ticks: 30, look: 'poison' }, 0.6)
   }
   if (felled && felled.tick === w.state.tick && felled.marked && has(a, 'death-mark')) for (const k of knownActives(eng, a)) eng.setCooldown(castKey(k.id, a.id), 0)
+  // Hex Plague (Ghostwail's): a hexed foe felled by the Demon Hunter or one who follows it passes the hex to every foe
+  // within 3 (a light blow of the hunter's that hexes: each takes it as its own), and the hunter's skills come two
+  // seconds nearer
+  const lead = typeof a.props?.companion === 'string' ? w.get(a.props.companion) : undefined
+  const hunter = has(a, 'hex-plague') ? a : lead && has(lead, 'hex-plague') ? lead : undefined
+  if (felled && felled.tick === w.state.tick && felled.hexed && hunter) {
+    fx(eng, 'burst:hex:3', felled.map, felled.x, felled.y)
+    for (const v of w.entitiesOnMap(felled.map).filter((v) => v.id !== felled.id && foe(eng, hunter, v) && dist(felled, at(v) ?? felled) <= 3)) blow(eng, hunter, v, { kind: 'nova', cooldown: 0, afflict: 'hexed', ticks: 40, look: 'hex' }, 0.2)
+    hasten(eng, hunter, 20)
+  }
+  // Lord of the Hunt (Greenwood Dawn's): a Hunter's prey felled by the Hunter or one who follows them passes the mark to
+  // the nearest foe within 4 (a light blow of the Hunter's that marks it), and the Hunter's skills come two seconds nearer
+  const master = has(a, 'lord-of-the-hunt') ? a : lead && has(lead, 'lord-of-the-hunt') ? lead : raiser && has(raiser, 'lord-of-the-hunt') ? raiser : undefined
+  if (felled && felled.tick === w.state.tick && felled.hunted && master) {
+    const next = w.entitiesOnMap(felled.map).filter((v) => v.id !== felled.id && foe(eng, master, v) && dist(felled, at(v) ?? felled) <= 4).sort((u, v) => dist(felled, at(u)!) - dist(felled, at(v)!))[0]
+    if (next) {
+      const q = at(next)!
+      fx(eng, `mark:thorn`, q.map, q.x, q.y)
+      blow(eng, master, next, { kind: 'mark', cooldown: 0, afflict: 'hunted', ticks: 100, look: 'thorn' }, 0.1)
+    }
+    hasten(eng, master, 20)
+  }
+  // Crown of Glory (the Evangelist's): a foe felled by the cleric or one who follows them mends the cleric and those within 6
+  // three, and brings the cleric's skills a second nearer
+  const glory = has(a, 'crown-of-glory') ? a : lead && has(lead, 'crown-of-glory') ? lead : raiser && has(raiser, 'crown-of-glory') ? raiser : undefined
+  if (felled && felled.tick === w.state.tick && glory) {
+    for (const e of [glory, ...companionsOf(eng, glory, 6)]) mendOf(eng, e, 3)
+    hasten(eng, glory, 10)
+  }
 }
 
 /** Ticks a skill rests after a cast, as this caster casts it. */
@@ -249,18 +335,29 @@ function blow(eng: Engine, a: Entity, v: Entity, def: ActiveDef, mult = def.powe
   if (def.look && q) fx(eng, `impact:${def.look}`, q.map, q.x, q.y)
   // Elementalist: what carries an element strikes harder
   if (def.element && has(a, 'elementalist')) mult *= 1.15
-  // Doctrine (a set's power): a skill's blows strike a quarter harder; the advancements' skill damage; Arcane Mastery's element
+  // Doctrine (a set's power): a skill's blows strike a quarter harder; the advancements' skill damage; a third's heart its element's
   if (setPowersOf(w, a).has('curia')) mult *= 1.25
   mult *= 1 + paid(w, a, 'skillDamage', v)
-  if (def.element && has(a, 'arcane-mastery')) mult *= 1.2
+  if (def.element && Object.entries(HEARTS).some(([id, element]) => def.element === element && has(a, id))) mult *= 1.2
+  // a tome in the off hand: every skill a tenth harder, its element's half as much again
+  const tome = offhandOf(w, a)
+  if (tome && w.prop(tome, 'offhand') === 'codex') mult *= 1.1 * (def.element && w.prop(tome, 'element') === def.element ? 1.15 : 1)
   // a sure critical (a Heartseeker, an Assassinate)
   if (def.sure) (a.combat ??= {}).sureNext = true
-  const strike = combatStrike(w, a, v, Math.max(1, Math.round(base * mult)), far, weapon, false)
+  const strike = combatStrike(w, a, v, Math.max(1, Math.round(base * mult)), far, weapon, false, def.element)
+  // (a freeze it shatters: Still Time brings every skill nearer)
+  const shattered = strike.ends === 'frozen'
+  // (an element lent the blow, a Spellblade's enchantment, lands in its colours)
+  if (strike.element && q) fx(eng, ELEMENT_FX[strike.element] ?? 'hit', q.map, q.x, q.y)
   if (def.afflict && def.ticks) strike.afflict = { status: def.afflict, ticks: def.ticks }
-  // Kindling: fire sets the struck burning one time in three
+  // Kindling: fire sets the struck burning one time in three; Static: lightning electrifies it one time in four
   else if (def.element === 'fire' && has(a, 'kindling') && w.rand() < 0.33) strike.afflict = { status: 'burning', ticks: 30 }
+  else if (def.element === 'lightning' && has(a, 'static') && w.rand() < 0.25) strike.afflict = { status: 'electrified', ticks: 5 }
+  // Permafrost: what one freezes stays frozen half again as long
+  if (strike.afflict?.status === 'frozen' && has(a, 'permafrost')) strike.afflict = { status: 'frozen', ticks: Math.ceil(strike.afflict.ticks * 1.5) }
   if (def.bleed) strike.bleed = Math.max(strike.bleed, def.bleed)
-  if (def.kind === 'detonate' && def.status) strike.ends = def.status
+  // (a detonation ends what it burst — Burnout's fire goes on burning)
+  if (def.kind === 'detonate' && def.status && !(def.status === 'burning' && has(a, 'burnout'))) strike.ends = def.status
   const defeats = a.combat?.defeats ?? 0
   eng.act('use', a.id, { e: v.id }, {
     instrument: weapon ? { e: weapon.id } : null,
@@ -269,7 +366,7 @@ function blow(eng: Engine, a: Entity, v: Entity, def: ActiveDef, mult = def.powe
     params: {
       attack: true,
       power: strike.power,
-      ...(def.element && { element: def.element }),
+      ...((def.element ?? strike.element) && { element: def.element ?? strike.element }),
       ...(strike.critical && { critical: true }),
       ...(strike.bleed && { bleed: strike.bleed }),
       ...(strike.drain && { drain: strike.drain }),
@@ -280,6 +377,7 @@ function blow(eng: Engine, a: Entity, v: Entity, def: ActiveDef, mult = def.powe
   finishCombatStrike(w, a, v, strike, before, far, false)
   if (def.sure && a.combat) delete a.combat.sureNext
   if (w.num(v, 'hp') < before || !w.get(v.id)) landed = true
+  if (shattered && landed && has(a, 'still-time')) hasten(eng, a, 10)
   if ((a.combat?.defeats ?? 0) > defeats) onDefeat(eng, a)
 }
 
@@ -330,12 +428,25 @@ function burst(eng: Engine, a: Entity, def: ActiveDef): void {
 export function rainTick(eng: Engine, active: string): void {
   const w = eng.world
   for (const e of w.entitiesOnMap(active)) {
-    // a buff that mends (a Sanctuary): once a second, told to the one it mends
-    if (e.combat?.buffs && w.state.tick - (e.combat.regenTick ?? -Infinity) >= 10) {
+    // a buff that mends (a Consecrate, a Renew): once a second, told to the one it mends — and to those who follow one, a
+    // buff shared (`party`)
+    const lead = typeof e.props?.companion === 'string' ? w.get(e.props.companion) : undefined
+    if ((e.combat?.buffs || lead?.combat?.buffs) && w.state.tick - (e.combat?.regenTick ?? -Infinity) >= 10) {
       const mend = paid(w, e, 'regen')
       if (mend > 0 && w.num(e, 'hp') < w.num(e, 'maxHp')) {
-        e.combat.regenTick = w.state.tick
+        ;(e.combat ??= {}).regenTick = w.state.tick
         eng.script([{ op: 'emit', impulse: 'notify', to: 'target', params: { what: 'mend', amount: mend } }], { target: { e: e.id } }, 'skill')
+      }
+    }
+    // a doom pronounced (an Inquisitor's) falls when its while is out: twice as hard on one still branded
+    const doom = e.combat?.doom
+    if (doom && w.state.tick >= doom.at) {
+      delete e.combat!.doom
+      const v = w.get(doom.target)
+      const q = v && at(v)
+      if (v && q && q.map === active && at(e)?.map === active && foe(eng, e, v)) {
+        fx(eng, `burst:${doom.look}:1`, q.map, q.x, q.y)
+        blow(eng, e, v, { kind: 'doom', cooldown: 0, look: doom.look }, doom.power * (w.hasStatus({ e: v.id }, 'branded') ? 2 : 1))
       }
     }
     const r = e.combat?.rain
@@ -345,7 +456,7 @@ export function rainTick(eng: Engine, active: string): void {
       continue
     }
     const area = square(r, r.radius ?? 1)
-    for (const c of area) r.element === 'lightning' ? fx(eng, 'sparks', r.map, c.x, c.y) : r.element === 'fire' ? fx(eng, 'explosion', r.map, c.x, c.y) : r.element === 'ice' ? fx(eng, 'frost', r.map, c.x, c.y) : r.look ? fx(eng, `fall:${r.look}`, r.map, c.x, c.y) : fx(eng, 'bolt:none:down:1:arrow', r.map, c.x, c.y - 1)
+    for (const c of area) r.element === 'lightning' ? fx(eng, 'sparks', r.map, c.x, c.y) : r.element === 'fire' ? fx(eng, 'explosion', r.map, c.x, c.y) : r.element === 'ice' ? fx(eng, 'frost', r.map, c.x, c.y) : r.missile ? fx(eng, `bolt:none:down:1:${r.missile}`, r.map, c.x, c.y - 1) : r.look ? fx(eng, `fall:${r.look}`, r.map, c.x, c.y) : fx(eng, 'bolt:none:down:1:arrow', r.map, c.x, c.y - 1)
     for (const v of foesOn(eng, e, area)) blow(eng, e, v, { kind: 'rain', cooldown: 0, ...(r.element && { element: r.element }), ...(r.look && { look: r.look }), ...(r.afflict && { afflict: r.afflict, ticks: r.ticks }) }, r.power)
     r.left -= 1
     r.next = w.state.tick + 10
@@ -362,6 +473,8 @@ const CAST: Record<ActiveDef['kind'], (eng: Engine, a: Entity, def: ActiveDef) =
     // (spun more than once: a Whirling Edge)
     for (let i = 0; i < (def.count ?? 1); i++) for (const v of foesOn(eng, a, around(p, 1))) blow(eng, a, v, def)
     fx(eng, 'gust', p.map, p.x, p.y)
+    // (an element's spin is seen on the cells round one: a Frost Ring)
+    if (def.element && ELEMENT_FX[def.element]) for (const c of around(p, 1)) fx(eng, ELEMENT_FX[def.element], p.map, c.x, c.y)
     return true
   },
   cleave: (eng, a, def) => {
@@ -380,9 +493,17 @@ const CAST: Record<ActiveDef['kind'], (eng: Engine, a: Entity, def: ActiveDef) =
   },
   mend: (eng, a, def) => {
     const w = eng.world
-    if (w.num(a, 'hp') >= w.num(a, 'maxHp')) return false
-    // told to mend, the caster mends itself (its own outcome: content body/stage)
-    eng.script([{ op: 'emit', impulse: 'notify', to: 'target', params: { what: 'mend', amount: Math.ceil(w.num(a, 'maxHp') * (def.power ?? 0.3)) } }], { target: { e: a.id } }, 'skill')
+    // the caster, and with a `range` those who follow it within it (a Prayer, a Healing Light, a Psalm); one's mending a
+    // share more (a Paladin's oath, an Evangelist's gospel), a rosary's litany a fifth more with the cross
+    const hurt = [a, ...(def.range ? companionsOf(eng, a, def.range) : [])].filter((e) => w.num(e, 'hp') < w.num(e, 'maxHp'))
+    if (!hurt.length) return false
+    const more = (1 + Math.max(0, paid(w, a, 'mend'))) * (offhandsOf(w, a).has('litany') && ownWeapon(w, a, weaponOf(w, a)) ? 1.2 : 1)
+    // told to mend, each mends itself (its own outcome: content body/stage, adv/summon-mends)
+    for (const e of hurt) {
+      mendOf(eng, e, Math.ceil(w.num(e, 'maxHp') * (def.power ?? 0.3) * more))
+      const q = at(e)
+      if (q && e !== a) fx(eng, `impact:${look}`, q.map, q.x, q.y)
+    }
     return true
   },
 
@@ -432,7 +553,7 @@ const CAST: Record<ActiveDef['kind'], (eng: Engine, a: Entity, def: ActiveDef) =
     return true
   },
 
-  // the warrior
+  // the close blows
   bash: (eng, a, def) => {
     const p = at(a)!
     const [dx, dy] = DIRS[a.facing ?? 'down']
@@ -467,11 +588,12 @@ const CAST: Record<ActiveDef['kind'], (eng: Engine, a: Entity, def: ActiveDef) =
     fx(eng, 'gust', p.map, p.x, p.y)
     return true
   },
+  /** A blow on the 3×3 two cells ahead, out of the ground (Ice Spikes: in its element's colours). */
   quake: (eng, a, def) => {
     const p = at(a)!
     const [dx, dy] = DIRS[a.facing ?? 'down']
     const centre = { x: p.x + dx * 2, y: p.y + dy * 2 }
-    for (const c of square(centre)) fx(eng, 'dust', p.map, c.x, c.y)
+    for (const c of square(centre)) fx(eng, (def.element && ELEMENT_FX[def.element]) || 'dust', p.map, c.x, c.y)
     for (const v of foesOn(eng, a, square(centre))) blow(eng, a, v, def)
     return true
   },
@@ -514,9 +636,15 @@ const CAST: Record<ActiveDef['kind'], (eng: Engine, a: Entity, def: ActiveDef) =
   pierce: (eng, a, def) => {
     const p = at(a)!
     const dir = a.facing ?? 'down'
-    // through every body in the row, to the first wall
+    // through every body in the row, to the first wall (a blade's thrust: no arrow flies, the cells it reaches flash; a cut
+    // thrown off a blade, `wave`, flies as the wind)
     const hit = line(eng, a, p, dir, reach(eng, a, def))
-    fx(eng, `bolt:none:${dir}:${Math.max(1, hit.len)}:arrow`, p.map, p.x, p.y, a.id)
+    if (def.missile === 'blade') {
+      const [dx, dy] = DIRS[dir]
+      fx(eng, `swing:${dir}`, p.map, p.x, p.y, a.id)
+      for (let i = 1; i <= Math.max(1, hit.len); i++) fx(eng, 'hit', p.map, p.x + dx * i, p.y + dy * i)
+    } else if (def.element) fx(eng, `bolt:${def.element}:${dir}:${Math.max(1, hit.len)}`, p.map, p.x, p.y, a.id)
+    else fx(eng, def.missile === 'wave' ? `bolt:wind:${dir}:${Math.max(1, hit.len)}` : `bolt:none:${dir}:${Math.max(1, hit.len)}:arrow`, p.map, p.x, p.y, a.id)
     for (const v of hit.foes) blow(eng, a, v, def)
     return true
   },
@@ -528,7 +656,12 @@ const CAST: Record<ActiveDef['kind'], (eng: Engine, a: Entity, def: ActiveDef) =
     const c = !line ? p : line.first ? at(line.first)! : line.end
     if (!c) return false
     // (what falls: its element's, else arrows when it looses them, else its own look's — a Pestilence's poison —, else arrows)
-    ;(a.combat ??= {}).rain = { map: p.map, x: c.x, y: c.y, next: eng.world.state.tick, left: def.count ?? 3, power: def.power ?? 0.6, ...(def.element && { element: def.element }), ...(def.look && def.missile !== 'arrow' && { look: def.look }), ...(def.radius && { radius: def.radius }), ...(def.afflict && { afflict: def.afflict, ticks: def.ticks }) }
+    ;(a.combat ??= {}).rain = { map: p.map, x: c.x, y: c.y, next: eng.world.state.tick, left: def.count ?? 3, power: def.power ?? 0.6, ...(def.element && { element: def.element }), ...(def.look && def.missile !== 'arrow' && { look: def.look }), ...(def.missile && def.missile !== 'arrow' && { missile: def.missile }), ...(def.radius && { radius: def.radius }), ...(def.afflict && { afflict: def.afflict, ticks: def.ticks }) }
+    // what the caster takes as it falls (Ten Thousand Feathers': quicker on one's feet, hard to strike)
+    if (def.buff) {
+      ;((a.combat ??= {}).buffs ??= {})[casting] = eng.world.state.tick + (def.ticks ?? 50)
+      fx(eng, `aura:${look}`, p.map, p.x, p.y, a.id)
+    }
     return true
   },
 
@@ -590,7 +723,7 @@ const CAST: Record<ActiveDef['kind'], (eng: Engine, a: Entity, def: ActiveDef) =
     const dir = a.facing ?? 'down'
     // (more than one: Arcane Missiles; a Convergence's three elements in turn)
     for (let i = 0; i < (def.count ?? 1); i++) {
-      const element = def.element === 'all' ? ['fire', 'ice', 'lightning'][i % 3] : def.element
+      const element = def.element === 'all' ? TRINITY[i % 3] : def.element
       const r = ray(eng, a, p, dir, reach(eng, a, def))
       const end = r.end ?? p
       const len = Math.max(1, Math.abs(end.x - p.x) + Math.abs(end.y - p.y))
@@ -599,14 +732,19 @@ const CAST: Record<ActiveDef['kind'], (eng: Engine, a: Entity, def: ActiveDef) =
     }
     return true
   },
-  /** A wide blow: the cell ahead and the two beside it. */
+  /** A wide blow: the cell ahead and the two beside it; `count` cuts of it (a Phantom Sword Dance), of an element each
+   * in turn when it carries `all` (a Trinity Cut: fire, ice, lightning, each leaving its own). */
   arc: (eng, a, def) => {
     const p = at(a)!
     const [dx, dy] = DIRS[a.facing ?? 'down']
     const cells = [-1, 0, 1].map((o) => ({ x: p.x + dx + dy * o, y: p.y + dy + dx * o }))
-    fx(eng, `swing:${a.facing ?? 'down'}`, p.map, p.x, p.y, a.id)
-    for (const c of cells) fx(eng, 'hit', p.map, c.x, c.y)
-    for (const v of foesOn(eng, a, cells)) blow(eng, a, v, def)
+    for (let i = 0; i < (def.count ?? 1); i++) {
+      const element = def.element === 'all' ? TRINITY[i % 3] : def.element
+      const cut = def.element === 'all' ? { ...def, element, ...(!def.afflict && TRINITY_AFFLICT[element!]) } : def
+      fx(eng, `swing:${a.facing ?? 'down'}`, p.map, p.x, p.y, a.id)
+      for (const c of cells) fx(eng, (element && ELEMENT_FX[element]) || 'hit', p.map, c.x, c.y)
+      for (const v of foesOn(eng, a, cells)) blow(eng, a, v, cut)
+    }
     return true
   },
   /** Braced behind the shield a while: blows taken much lighter, steps slower (combat.ts). */
@@ -623,27 +761,26 @@ const CAST: Record<ActiveDef['kind'], (eng: Engine, a: Entity, def: ActiveDef) =
     fx(eng, 'sparkle', p.map, p.x, p.y)
     return true
   },
-  /** A blow down the facing: every foe on the cells ahead, `range` deep and three wide (a Heaven Splitter). */
+  /** A blow down the facing: every foe on the cells ahead, `range` deep and three wide (a Glacier, a Scorched Earth: in
+   * their element's colours). */
   slam: (eng, a, def) => {
     const p = at(a)!
     const [dx, dy] = DIRS[a.facing ?? 'down']
     const cells: { x: number; y: number }[] = []
     for (let i = 1; i <= (def.range ?? 5); i++) for (const o of [-1, 0, 1]) cells.push({ x: p.x + dx * i + dy * o, y: p.y + dy * i + dx * o })
-    for (const c of cells) fx(eng, 'dust', p.map, c.x, c.y)
+    for (const c of cells) fx(eng, (def.element && ELEMENT_FX[def.element]) || 'dust', p.map, c.x, c.y)
     for (const v of foesOn(eng, a, cells)) blow(eng, a, v, def)
     return true
   },
 
   // the advancements (docs/advancement.md §4)
-  /** What it pays a while (SkillPassive, combat.ts paid), at a price in health if it asks one (told to the caster). */
+  /** What it pays a while (SkillPassive, combat.ts paid); its price in health, if it asks one, is castSkill's. */
   buff: (eng, a, def) => {
     const w = eng.world
-    if (def.cost) {
-      const price = Math.ceil(w.num(a, 'maxHp', 1) * def.cost)
-      if (w.num(a, 'hp') <= price) return false
-      eng.script([{ op: 'emit', impulse: 'notify', to: 'target', params: { what: 'price', amount: price } }], { target: { e: a.id } }, 'skill')
-    }
-    ;((a.combat ??= {}).buffs ??= {})[casting] = w.state.tick + (def.ticks ?? 50)
+    const buffs = ((a.combat ??= {}).buffs ??= {})
+    // (one enchantment on the blade at a time: a new one ends the one before)
+    if (def.buff?.imbue) for (const id of Object.keys(buffs)) if (id !== casting && eng.skills.get(id)?.active?.buff?.imbue) delete buffs[id]
+    buffs[casting] = w.state.tick + (def.ticks ?? 50)
     const p = at(a)!
     fx(eng, `aura:${look}`, p.map, p.x, p.y, a.id)
     return true
@@ -669,7 +806,7 @@ const CAST: Record<ActiveDef['kind'], (eng: Engine, a: Entity, def: ActiveDef) =
       fx(eng, `zone:${look}`, p.map, c.x, c.y)
       laid++
     }
-    // what the caster takes as it lays it (a Crown of Thorns' guard)
+    // what the caster takes as it lays it (a Hunter's Sanctum's)
     if (def.buff) ((a.combat ??= {}).buffs ??= {})[casting] = w.state.tick + (def.ticks ?? 50)
     return laid > 0
   },
@@ -689,7 +826,27 @@ const CAST: Record<ActiveDef['kind'], (eng: Engine, a: Entity, def: ActiveDef) =
     }
     return struck.length > 0
   },
-  /** Up to a cell before the first foe ahead (or as far as the ground goes), and a blow on the 3×3 there (a Leap of Ruin). */
+  /** Through the foes in a line to the farthest open cell, a blow on each passed (an Iaido); `count` times, back and forth (a Swallow Return). */
+  'dash-strike': (eng, a, def) => {
+    let any = false
+    let dir = a.facing ?? 'down'
+    for (let n = 0; n < (def.count ?? 1); n++) {
+      const p = at(a)!
+      const land = landing(eng, a, dir, def.range ?? 4, true)
+      if (!land) break
+      const [dx, dy] = DIRS[dir]
+      const len = Math.abs(land.x - p.x) + Math.abs(land.y - p.y)
+      const passed = foesOn(eng, a, Array.from({ length: len }, (_, i) => ({ x: p.x + dx * (i + 1), y: p.y + dy * (i + 1) })))
+      fx(eng, `swing:${dir}`, p.map, p.x, p.y, a.id)
+      if (!leap(eng, a, land)) break
+      for (const v of passed) blow(eng, a, v, def)
+      any = true
+      dir = OPPOSITE[dir]
+      a.facing = dir
+    }
+    return any
+  },
+  /** Up to a cell before the first foe ahead (or as far as the ground goes), and a blow on the 3×3 there (a Falling Star). */
   leap: (eng, a, def) => {
     const p = at(a)!
     const dir = a.facing ?? 'down'
@@ -713,7 +870,7 @@ const CAST: Record<ActiveDef['kind'], (eng: Engine, a: Entity, def: ActiveDef) =
     burst(eng, a, def)
     // it grows with the one who calls it (its kind's numbers at level 1, a sixth more each level), bound stronger (Pack
     // Bond, a Grave Pact), a Hell Pact stronger again
-    const bond = has(a, 'pack-bond') || has(a, 'grave-pact')
+    const bond = has(a, 'pack-bond') || has(a, 'grave-pact') || has(a, 'apostles')
     const hell = has(a, 'hell-pact') ? 1.3 : 1
     const kind = w.onto.resolve(def.creature).props
     const grow = 1 + (w.num(a, 'level', 1) - 1) / 6
@@ -743,7 +900,7 @@ const CAST: Record<ActiveDef['kind'], (eng: Engine, a: Entity, def: ActiveDef) =
     }
     return true
   },
-  /** The nearest foe (or the one ahead, struck) takes more from the caster a while (a Death Mark, a Sunder). */
+  /** The nearest foe (or the one ahead, struck) takes more from the caster a while (a Death Mark). */
   mark: (eng, a, def) => {
     const w = eng.world
     const p = at(a)!
@@ -754,13 +911,14 @@ const CAST: Record<ActiveDef['kind'], (eng: Engine, a: Entity, def: ActiveDef) =
       v = foesOn(eng, a, [{ x: p.x + dx, y: p.y + dy }])[0]
     }
     if (!v) return false
-    ;(a.combat ??= {}).mark = { target: v.id, until: w.state.tick + (def.ticks ?? 80), damage: def.buff?.damage ?? 0.3, skill: casting }
+    // (what it pays its caster against the marked: a Death Mark's, Sighted's; a Hunter's prey is a status, paid in data)
+    ;(a.combat ??= {}).mark = { target: v.id, until: w.state.tick + (def.ticks ?? 80), damage: def.buff?.damage ?? 0, skill: casting }
     const q = at(v)!
     fx(eng, `mark:${look}`, q.map, q.x, q.y)
     if (def.power) blow(eng, a, v, def)
     return true
   },
-  /** Those within reach struck lightly and turned on the caster (struck, they come for it), the caster braced a while (a Challenge). */
+  /** Those within reach struck lightly and turned on the caster (struck, they come for it), the caster braced a while. */
   taunt: (eng, a, def) => {
     const p = at(a)!
     const near = foesOn(eng, a, around(p, def.range ?? 3))
@@ -781,7 +939,18 @@ const CAST: Record<ActiveDef['kind'], (eng: Engine, a: Entity, def: ActiveDef) =
     fx(eng, `aura:${look}`, p.map, p.x, p.y, a.id)
     return true
   },
-  /** Every other skill's rest cut by a share (a Time Warp). */
+  /** A doom on the nearest foe within reach: its blow falls `ticks` later (rainTick), twice as hard on one still branded. */
+  doom: (eng, a, def) => {
+    const w = eng.world
+    const p = at(a)!
+    const v = w.entitiesOnMap(p.map).filter((u) => foe(eng, a, u) && dist(p, at(u) ?? p) <= (def.range ?? 6)).sort((u, k) => dist(p, at(u)!) - dist(p, at(k)!))[0]
+    if (!v) return false
+    ;(a.combat ??= {}).doom = { target: v.id, at: w.state.tick + Math.max(0, def.ticks ?? 50), power: def.power ?? 4, look }
+    const q = at(v)!
+    fx(eng, `mark:${look}`, q.map, q.x, q.y)
+    return true
+  },
+  /** Every other skill's rest cut by a share. */
   rest: (eng, a, def) => {
     const w = eng.world
     for (const k of knownActives(eng, a)) {

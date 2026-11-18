@@ -1,4 +1,4 @@
-// The four sets of gear (2026-10-11), one for each profession, each covering the whole body: head, shoulders, body,
+// The sets of gear (2026-10-11; the swordsman's 2026-11-03, the cleric's 2026-11-12), one for each profession, each covering the whole body: head, shoulders, body,
 // hands, waist and feet; neck, ear and ring; the main hand and the off hand. Every piece is forged at an anvil with a
 // smith's hammer carried (life.ts: the smith's craft); its main ingredient gives its material, the smith's level and
 // craft its quality, the set its name and what it adds. As in Dungeon Fighter, a profession's gear is two sets, not
@@ -78,31 +78,6 @@ export const SET_DEFS: SetDef[] = [
     ],
   },
   {
-    id: 'oathguard', profession: 'warrior', en: 'Oathguard', zh: '誓卫', level: 4,
-    pieces: [
-      P('head', 'item/armor/helmet', 'Oathguard Helm', '誓卫战盔', [[STEEL, 2]]),
-      P('ear', 'item/valuable/earring', 'Oathguard Earring', '誓卫耳坠', [[GOLD, 1]], { def: 1 }, 'jeweler'),
-      P('neck', 'item/valuable/amulet', 'Oathguard Gorget', '誓卫护喉', [[GOLD, 1], [STEEL, 1]], { def: 1 }, 'jeweler'),
-      P('shoulders', 'item/armor/pauldrons', 'Oathguard Pauldrons', '誓卫肩甲', [[STEEL, 2]]),
-      P('body', 'item/armor/breastplate', 'Oathguard Plate', '誓卫板甲', [[STEEL, 4], [LEATHER, 1]]),
-      P('hands', 'item/clothing/gloves', 'Oathguard Gauntlets', '誓卫护手', [[LEATHER, 1], [STEEL, 1]], { def: 1 }),
-      ring('Oathguard Signet', '誓卫印戒', { atk: 1 }),
-      P('waist', 'item/clothing/belt', 'Oathguard Girdle', '誓卫束带', [[LEATHER, 2], [STEEL, 1]], { def: 1 }),
-      P('feet', 'item/clothing/boots', 'Oathguard Greaves', '誓卫战靴', [[LEATHER, 2], [STEEL, 1]], { def: 1 }),
-      P('weapon', 'item/weapon/blade/sword', 'Oathguard Blade', '誓卫长剑', [[STEEL, 2], [LEATHER, 1]]),
-      P('arm', 'item/armor/shield', 'Oathguard Bulwark', '誓卫塔盾', [[STEEL, 3], [PLANK, 1]], { block: 0.1 }),
-    ],
-    armour: [
-      { pieces: 2, props: { def: 2 }, text: L('Defence +2', '防御 +2') },
-      { pieces: 4, props: { atk: 1, def: 2 }, text: L('Attack +1, defence +2', '攻击 +1，防御 +2') },
-      { pieces: 6, props: { def: 3, lifesteal: 1 }, text: L('Defence +3; each hit draws 1 health', '防御 +3，每次命中吸取 1 点生命') },
-    ],
-    trinkets: [
-      { pieces: 2, props: { atk: 1 }, text: L('Attack +1', '攻击 +1') },
-      { pieces: 3, props: { atk: 1, def: 3 }, text: L('Attack +1, defence +3', '攻击 +1，防御 +3') },
-    ],
-  },
-  {
     id: 'windrunner', profession: 'ranger', en: 'Windrunner', zh: '风行', level: 3,
     pieces: [
       P('head', 'item/clothing/hood', 'Windrunner Hood', '风行兜帽', [[LEATHER, 2]], { critChance: 0.01 }),
@@ -150,6 +125,57 @@ export const SET_DEFS: SetDef[] = [
     trinkets: [
       { pieces: 2, props: { atk: 1 }, text: L('Attack +1', '攻击 +1') },
       { pieces: 3, props: { cdr: 0.08, critChance: 0.03 }, text: L(`Skills rest ${pct(0.08)} less; critical chance +${pct(0.03)}`, `技能冷却 -${pct(0.08)}，暴击率 +${pct(0.03)}`) },
+    ],
+  },
+  {
+    id: 'watercutter', profession: 'swordsman', en: 'Watercutter', zh: '断水', level: 3,
+    pieces: [
+      P('head', 'item/clothing/hood', 'Watercutter Headband', '断水头巾', [[CLOTH, 2]], { critChance: 0.01 }),
+      P('ear', 'item/valuable/earring', 'Watercutter Earring', '断水耳坠', [[GOLD, 1]], { attackHaste: 0.01 }, 'jeweler'),
+      P('neck', 'item/valuable/amulet', 'Watercutter Bead', '断水勾玉', [[GOLD, 1], [STEEL, 1]], { critChance: 0.01 }, 'jeweler'),
+      P('shoulders', 'item/clothing/cloak', 'Watercutter Haori', '断水羽织', [[CLOTH, 3], [LEATHER, 1]], { dodge: 0.02 }),
+      P('body', 'item/armor/jerkin', 'Watercutter Gi', '断水道衣', [[CLOTH, 3], [LEATHER, 2]], { dodge: 0.02 }),
+      P('hands', 'item/clothing/gloves', 'Watercutter Bracers', '断水护手', [[LEATHER, 2]], { attackHaste: 0.02 }),
+      ring('Watercutter Ring', '断水指环', { critDamage: 0.1 }),
+      P('waist', 'item/clothing/belt', 'Watercutter Sash', '断水腰带', [[CLOTH, 2], [IRON, 1]], { critChance: 0.01 }),
+      P('feet', 'item/clothing/boots', 'Watercutter Sandals', '断水草履', [[CLOTH, 2], [LEATHER, 1]], { dodge: 0.02 }),
+      P('weapon', 'item/weapon/blade/katana', 'Watercutter', '断水', [[STEEL, 2], [LEATHER, 1]], { critChance: 0.03 }),
+      P('arm', 'item/armor/scabbard', 'Watercutter Scabbard', '断水刀鞘', [[PLANK, 1], [LEATHER, 1]]),
+    ],
+    armour: [
+      { pieces: 2, props: { critChance: 0.03 }, text: L(`Critical chance +${pct(0.03)}`, `暴击率 +${pct(0.03)}`) },
+      { pieces: 4, props: { attackHaste: 0.08, dodge: 0.03 }, text: L(`Attack speed +${pct(0.08)}, dodge +${pct(0.03)}`, `攻击速度 +${pct(0.08)}，闪避 +${pct(0.03)}`) },
+      { pieces: 6, props: { critDamage: 0.3, attackHaste: 0.05 }, text: L(`Critical damage +${pct(0.3)}, attack speed +${pct(0.05)}`, `暴击伤害 +${pct(0.3)}，攻击速度 +${pct(0.05)}`) },
+    ],
+    trinkets: [
+      { pieces: 2, props: { critChance: 0.03 }, text: L(`Critical chance +${pct(0.03)}`, `暴击率 +${pct(0.03)}`) },
+      { pieces: 3, props: { critDamage: 0.15, attackHaste: 0.05 }, text: L(`Critical damage +${pct(0.15)}, attack speed +${pct(0.05)}`, `暴击伤害 +${pct(0.15)}，攻击速度 +${pct(0.05)}`) },
+    ],
+  },
+  {
+    // the cleric's (2026-11-12): the morning office, kept in plate
+    id: 'matins', profession: 'cleric', en: 'Matins', zh: '晨祷', level: 3,
+    pieces: [
+      P('head', 'item/armor/helmet', 'Matins Helm', '晨祷头盔', [[IRON, 2]], { def: 1 }),
+      P('ear', 'item/valuable/earring', 'Matins Earring', '晨祷耳坠', [[GOLD, 1]], { xpRate: 0.05 }, 'jeweler'),
+      P('neck', 'item/valuable/amulet', 'Matins Medal', '晨祷圣牌', [[GOLD, 1], [IRON, 1]], { lifesteal: 1 }, 'jeweler'),
+      P('shoulders', 'item/armor/pauldrons', 'Matins Pauldrons', '晨祷护肩', [[IRON, 3]], { def: 1 }),
+      P('body', 'item/armor/breastplate', 'Matins Plate', '晨祷胸甲', [[IRON, 4], [CLOTH, 1]]),
+      P('hands', 'item/clothing/gloves', 'Matins Gauntlets', '晨祷手甲', [[LEATHER, 2], [IRON, 1]], { atk: 1 }),
+      ring('Matins Ring', '晨祷指环', { lifesteal: 1 }),
+      P('waist', 'item/clothing/belt', 'Matins Girdle', '晨祷束带', [[CLOTH, 2]], { def: 1 }),
+      P('feet', 'item/clothing/boots', 'Matins Sabatons', '晨祷战靴', [[LEATHER, 2], [IRON, 1]], { def: 1 }),
+      P('weapon', 'item/weapon/blunt/cross', 'Matins Cross', '晨祷十字架', [[STEEL, 2], [PLANK, 1]], { critChance: 0.03 }),
+      P('arm', 'item/armor/rosary', 'Matins Rosary', '晨祷念珠', [[PLANK, 1], [GOLD, 1]]),
+    ],
+    armour: [
+      { pieces: 2, props: { def: 2 }, text: L('Defence +2', '防御 +2') },
+      { pieces: 4, props: { atk: 1, lifesteal: 1 }, text: L('Attack +1; each blow that lands draws back 1', '攻击 +1，每次命中吸取 1 点生命') },
+      { pieces: 6, props: { def: 2, atk: 2, cdr: 0.08 }, text: L(`Defence +2, attack +2, skills rest ${pct(0.08)} less`, `防御 +2，攻击 +2，技能冷却 -${pct(0.08)}`) },
+    ],
+    trinkets: [
+      { pieces: 2, props: { xpRate: 0.1 }, text: L(`Experience +${pct(0.1)}`, `经验 +${pct(0.1)}`) },
+      { pieces: 3, props: { cdr: 0.08, lifesteal: 1 }, text: L(`Skills rest ${pct(0.08)} less; each blow that lands draws back 1`, `技能冷却 -${pct(0.08)}，每次命中吸取 1 点生命`) },
     ],
   },
 ]

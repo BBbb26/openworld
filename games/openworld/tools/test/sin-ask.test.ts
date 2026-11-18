@@ -125,7 +125,6 @@ describe('what would weigh on one\'s conscience is asked first', () => {
     eng.author(() => {
       eng.teleport(lumi, { map: MAP, x: at.x + dx, y: at.y + dy })
       lumi.props = { ...lumi.props, companion: p.id }
-      p.props!.profession = 'warrior'
       w.create('item/weapon/blade/sword', { on: 'hand', holder: p.id })
     })
     eng.controls.sync()

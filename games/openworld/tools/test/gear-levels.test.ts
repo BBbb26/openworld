@@ -112,9 +112,9 @@ describe('where a piece gets its level', () => {
   })
 
   it('a Seal-bearer\'s arms: the Stigmatic level, their family\'s base at the Stigmatic quality', () => {
-    const sword = onto.types['item/weapon/blade/sword/oathbrand'].props!
-    expect(sword.level).toBe(10)
-    expect(sword.power).toBe(gearProps({ power: 4 }, undefined, q('legendary'), 10, GEAR_LEVELS).power)
+    const dagger = onto.types['item/weapon/blade/dagger/nightfang'].props!
+    expect(dagger.level).toBe(10)
+    expect(dagger.power).toBe(gearProps({ power: 2 }, undefined, q('legendary'), 10, GEAR_LEVELS).power)
     expect(onto.types['item/relic/crown_of_thorns'].props).toMatchObject({ level: 10, xpRate: -0.5 })
   })
 

@@ -8,7 +8,7 @@ import { F, P, type SetDef } from './kit.ts'
 
 export const FIN_SETS: SetDef[] = [
   {
-    id: 'wardens', en: 'Porch Wardens', zh: '门廊守卫', chapter: 'fin', level: 20, lean: 'warrior', look: 'ivory',
+    id: 'wardens', en: 'Porch Wardens', zh: '门廊守卫', chapter: 'fin', level: 20, lean: 'any', look: 'ivory',
     palette: ['#cfc9b8', '#57524a', '#c9a248', '#fbf8ef'],
     pieces: [
       P('head', F.helmet, "Warden's Helm", '门廊守卫战盔',

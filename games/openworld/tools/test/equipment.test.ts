@@ -125,7 +125,7 @@ describe('Vowbound traits and Stigmatic powers', () => {
     expect([crits[4], crits[9]]).toEqual([true, true])
   })
 
-  it('worn traits: standing one\'s ground takes less; a vigil\'s belt guards only at night; the Unfallen Wall turns a felling blow once a minute', () => {
+  it('worn traits: standing one\'s ground takes less; a vigil\'s belt guards only at night', () => {
     const { eng, w, p, foe, give, wear } = setup()
     give('item/armor/pauldrons', 'odo')
     eng.author(() => ((w.get('odo')!.props ??= {}).holdFast = 0.25))
@@ -138,12 +138,6 @@ describe('Vowbound traits and Stigmatic powers', () => {
     const day = w.stat(p, 'def')
     w.state.tick = tickAt(w.calendar().day, 23)
     expect(w.stat(p, 'def')).toBe(day + 2)
-    give('item/armor/shield/unfallen', 'wall')
-    eng.author(() => (p.props!.profession = 'warrior'))
-    wear('wall')
-    eng.author(() => (p.props!.hp = 5))
-    expect(combatDamage(eng, p, 50, foe, false)).toBe(0)
-    expect(combatDamage(eng, p, 50, foe, false)).toBeGreaterThan(0)
   })
 })
 

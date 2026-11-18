@@ -796,7 +796,7 @@ export function buildOntology(): Ontology {
     terrains: Object.fromEntries(TERRAINS.map((t) => [t.id, t])),
     // the looks bodies are drawn from: bodies, parts, colours (docs/looks.md)
     looks: LOOK_TABLE,
-    // the professions' names, for "only a warrior can fight with the sword" (engine/src/profession.ts)
+    // the professions' names, for "only an assassin can fight with the dagger" (modules/src/classes/profession.ts)
     professions: Object.fromEntries(SKILL_PROFESSIONS.map((p) => [p.id, { name: p.name }])),
     // the lines whose crossing is an event, and the clocks (design.md §5.7)
     // every thing with durability breaks at none (world-model.md §6.3): a person goes down, a tree falls, rock breaks

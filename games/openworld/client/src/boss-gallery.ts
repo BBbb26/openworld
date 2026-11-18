@@ -212,7 +212,7 @@ function showLobby(): void {
     <fieldset class="challenge-professions"><legend>01 / 选择职业</legend>${SKILL_PROFESSIONS.map((p) => {
       const kit = CHALLENGE_LOADOUTS[p.id]
       return `<label class="challenge-profession"><input type="radio" name="challengeProfession" value="${p.id}" ${p.id === profession ? 'checked' : ''}>
-        <div><img src="${skillPng(kit.icon)}" alt=""><b>${esc(tx(p.name))}</b><p>${esc(tx(kit.tip))}</p><small>Lv.20 · ${p.id === 'warrior' ? kit.hp + 14 : kit.hp + 4} 生命 · ${kit.def} 防御</small></div></label>`
+        <div><img src="${skillPng(kit.icon)}" alt=""><b>${esc(tx(p.name))}</b><p>${esc(tx(kit.tip))}</p><small>Lv.20 · ${kit.hp + 4} 生命 · ${kit.def} 防御</small></div></label>`
     }).join('')}</fieldset>
     <label class="challenge-target">02 / 选择对手<select id="challengeBoss">${BOSSES.map((b) => `<option value="${b.id}" ${b.id === select.value ? 'selected' : ''}>${victories.has(b.id) ? '✓ ' : ''}${esc(tx(b.name))} · ${b.footprint.join('×')} 格</option>`).join('')}</select></label>
     <div class="challenge-footer"><a href="./">← 返回主页面</a><span>已击败 ${victories.size} / ${BOSSES.length}</span><button id="startChallenge" class="challenge-primary" disabled>加载战场…</button></div>

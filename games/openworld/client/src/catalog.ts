@@ -928,6 +928,16 @@ export const CATALOG: Catalog = {
     'item:acorn': icon('Items/Food/Nut.png', 15, 15),
     // a weapon's swing (scene.ts swingWeapon): the sword sweeps, the bow shoots, the staff points
     'item:sword': { ...icon('Items/Weapons/Sword2/Sprite.png', 6, 15), swing: 'sweep' },
+    // the swordsman's katana and its scabbard (tools/src/art/swordsman.ts): the blade points up, as a sword's
+    'item:katana': { ...icon('lsw/Items/Katana.png', 16, 16), swing: 'sweep' },
+    'item:scabbard': icon('lsw/Items/Scabbard.png', 16, 16),
+    // the cleric's cross and rosary (tools/src/art/cleric.ts): the cross swung as a mace is
+    'item:cross': { ...icon('lsw/Items/Cross.png', 16, 16), swing: 'sweep' },
+    'item:rosary': icon('lsw/Items/Rosary.png', 16, 16),
+    // the professions' other off-hand pieces, each its own (tools/src/art/offhands.ts)
+    'item:parrying_dagger': icon('lsw/Items/ParryingDagger.png', 16, 16),
+    'item:quiver': icon('lsw/Items/Quiver.png', 16, 16),
+    'item:tome': icon('lsw/Items/Tome.png', 16, 16),
     'item:dagger': icon('Items/Projectile/Kunai.png', 16, 16),
     'item:axe': icon('Items/Tool/Axe.png', 16, 16),
     'item:club': icon('Items/Weapons/Club/Sprite.png', 8, 14),
@@ -940,7 +950,6 @@ export const CATALOG: Catalog = {
     'item:staff': { ...icon('Items/Weapons/MagicWand/Sprite.png', 5, 18), swing: 'point' },
     // Armour pieces only exist as 24x24 skill icons (with their coloured badge background).
     'item:helmet': icon('lsw/Items/Gear/Helmet.png', 24, 24),
-    'item:shield': icon('lsw/Items/Gear/Shield.png', 16, 16),
     'item:armor': icon('lsw/Items/Gear/Armor.png', 24, 24),
     'item:boots': icon('lsw/Items/Gear/Boot.png', 24, 24),
     // Red cloth hanging on the clothes line (TilesetElement (15,3)).
@@ -1158,6 +1167,11 @@ export const CATALOG: Catalog = {
     'creature:skeleton': charCreature('Skeleton'),
     // a Necromancer's guard of hell (content advancement.ts SUMMONS)
     'creature:skeleton_demon': charCreature('SkeletonDemon', 0xff8070),
+    // a Phantom's shadow double: the spirit, gone violet
+    'creature:phantom': mon('Spirit', 'SpriteSheet.png', 0x9a88ff),
+    // an Evangelist's: one of the faithful (a monk of the Church), and an angel out of the gate of heaven, the spirit gilded
+    'creature:disciple': charCreature('Monk'),
+    'creature:seraph': mon('Spirit', 'SpriteSheet.png', 0xffe27a),
     // a zombie: the caveman, tinted the green of the grave
     'creature:zombie': own('Zombie'),
     'creature:ghost': mon('Spirit'),

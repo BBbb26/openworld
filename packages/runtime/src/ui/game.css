@@ -379,6 +379,10 @@
 .sk-node.ready { background: radial-gradient(circle at 35% 30%, #fffdf2, #fbe7b0 75%); color: var(--ink-warm); border-color: #d08a2c; animation: skReady 1.6s ease-in-out infinite; }
 .sk-node.locked, .sk-node.waiting { border-color: #9c8662; background: #e8dcc0; }
 .sk-node.locked { border-style: dashed; }
+/* a path not taken (or a third not reached): shown, not to be learned */
+.sk-node.barred { border-style: dashed; border-color: #9c8662; background: #e8dcc0; opacity: 0.55; filter: grayscale(0.55); }
+.sk-panel.barred, .sk-line.trunk.barred { opacity: 0.35; }
+.sk-tab.barred { opacity: 0.6; }
 .sk-node:hover, .sk-node:focus-visible { transform: scale(1.1); z-index: 5; filter: none; opacity: 1; }
 .sk-node.origin { width: 104px; height: 104px; margin: -52px 0 0 -52px; background: radial-gradient(circle at 35% 30%, #fff8dc, #f2c14e 80%); color: #7a4a12; border-color: #7a4a12; }
 .sk-node.hub { border-color: var(--c); background: var(--c-soft); }
@@ -674,7 +678,7 @@
 /* a hub's name (and the start's) beside it, not under it where the trunk runs down */
 .sk-node.hub .sk-node-name, .sk-node.origin .sk-node-name { top: 50%; left: calc(100% + 12px); transform: translateY(-50%); min-width: 0; text-align: left; }
 /* the branch tabs under the directions (skilltree.ts): the whole tree, or one branch closed in on */
-.sk-branches { position: absolute; top: 140px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 2; }
+.sk-branches { position: absolute; top: 140px; left: 50%; transform: translateX(-50%); display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; width: max-content; max-width: calc(100% - 24px); z-index: 2; }
 .sk-tab { display: flex; align-items: center; gap: 6px; padding: 4px 12px 4px 6px; border-radius: 8px; border: 2px solid var(--c, var(--wood-dark)); background: #f6ecd4; font: 700 13px var(--pixel); color: var(--c, var(--ink-warm)); cursor: pointer; }
 .sk-tab[data-focus=""] { padding-left: 12px; }
 .sk-tab.selected { background: var(--c-soft, #ffe6a8); box-shadow: inset 0 -3px 0 var(--c, var(--wood-dark)); }
