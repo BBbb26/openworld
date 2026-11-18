@@ -22,6 +22,7 @@ export const UNDER_BARROW = ['ossuary', 'sanctum'] as const
 /** Where things are (the quest test reads these). */
 export const HAT = {
   ring: [31, 13],
+  king: [10, 20],
   warden: [12, 11],
   lina: [6, 19],
   oskar: [27, 19],
@@ -73,6 +74,7 @@ export function buildHollow(): MapBuilder {
   for (const [x, y] of [[30, 7], [7, 9]] as const) m.creature('beast/wolf', x, y, HUNT(5))
   // where the thorns grow thickest, mushrooms the First Night has woken: sporecaps (docs/creatures.md §12)
   for (const [x, y] of [[15, 21], [30, 15]] as const) m.creature('fungus/sporecap', x, y, HUNT(3))
+  m.creature('slime/king_slime', ...HAT.king, HUNT(4))
   lay(m, 'item/material/stick', 2, [15, 3, 8, 5])
   hollowDressing(m)
   m.appear = [
