@@ -261,7 +261,7 @@ cells against a wolf's five, and seven kinds of eight stood under the arrows. No
 seconds (`combat.lastHurtBy`, `PROVOKED` in engine `creatures.ts`) is its foe wherever it stands, for the threat goal
 a minor monster's kit goal and its tactics alike (`provokedBy`; a boss's director already sees the whole map): it
 comes on, or into its own reach if it shoots, as far as its leash lets it. Once ten seconds pass without a blow, one out
-of its sight is forgotten and it goes home; one within its sight it fights on, as before. A passive animal struck from
+of its sight is forgotten and it goes back toward home (to within four cells of it); if they come into its sight again it fights them again, and one within its sight it fights on, as before. A passive animal struck from
 afar runs from the one who struck it for those ten seconds. A short leash still stops it: a skeleton on a leash of 3
 cannot reach an archer six cells off. Minecraft's mobs turn on whoever hurt them the same way.
 

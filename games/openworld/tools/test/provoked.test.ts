@@ -33,10 +33,6 @@ function duel(kind: string, behaviour: 'melee' | 'ranged', shots: number, away =
     eng.controls.sync()
     eng.controls.select(p.slots!.indexOf(eng.controls.key(bow)))
   })
-  if (away) eng.author(() => {
-    w.setProp(p, 'maxHp', 100000)
-    w.setProp(p, 'hp', 100000)
-  })
   const hp = w.num(p, 'hp')
   let closest = Infinity
   let chased = 0
@@ -45,9 +41,8 @@ function duel(kind: string, behaviour: 'melee' | 'ranged', shots: number, away =
     if (t < shots) eng.playerAttack({ e: foe.id })
     if (away && t === shots) eng.author(() => w.place(p, { on: 'tile', ...eng.nearestFree({ map, x: row.x - 8, y: row.y })! }))
     eng.tick()
-    const from = w.posOf(foe)!
-    if (t < 100) chased = Math.max(chased, Math.abs(from.x - home.x) + Math.abs(from.y - home.y))
     const at = w.posOf(foe)!
+    if (t < 100) chased = Math.max(chased, Math.abs(at.x - home.x) + Math.abs(at.y - home.y))
     closest = Math.min(closest, Math.abs(at.x - row.x) + Math.abs(at.y - row.y))
   }
   const at = w.posOf(foe)!
@@ -72,7 +67,7 @@ describe('a monster struck from beyond its sight', () => {
     expect(imp.lost).toBeGreaterThan(0)
   })
 
-  it('forgets one who struck it and went out of its sight, and goes home', () => {
+  it('forgets one who struck it and went beyond its sight and its leash, and goes home', () => {
     const wolf = duel('beast/wolf', 'melee', 1, true)
     expect(wolf).toMatchObject({ struck: true, down: false })
     expect(wolf.chased).toBeGreaterThanOrEqual(4)
