@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from 'vitest'
 import { Game, RuleLibrary, appear, type AppearDef } from '@openworld/engine'
-import { BASE_RULES, CREATURE_ROLES, NIGHT_WALKERS, STORY_RULES, buildOntology, decodeChunk } from '@openworld-game/content'
+import { BASE_RULES, CREATURE_ROLES, NIGHT_WALKERS, ROLES, STORY_RULES, buildOntology, creatureStats, decodeChunk } from '@openworld-game/content'
 import { buildFord } from '../src/demo/world.ts'
 
 const LATE = ['redmarch', 'tithe', 'palefen', 'altar', 'holy']
@@ -35,7 +35,7 @@ describe('a map\'s monsters are of its level', () => {
   it('what comes by itself is at that level too', () => {
     for (const { map } of levelled) {
       const comes = [...(map.appear ?? []).flatMap((a: AppearDef) => Object.keys(a.types)), ...Object.keys(NIGHT_WALKERS)].filter((t) => CREATURE_ROLES[t])
-      for (const type of comes) expect(map.levelled![type], `${map.id}: ${type}`).toBeDefined()
+      for (const type of comes) expect(map.levelled![type], `${map.id}: ${type}`).toEqual(creatureStats(Number(map.levelled![type]?.level), ROLES[CREATURE_ROLES[type]]))
     }
   })
 

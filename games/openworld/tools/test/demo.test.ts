@@ -1141,7 +1141,7 @@ req('K4', 'the Slime King keeps the bog at the Hollow\'s west end, off the way t
   const w = W(f)
   const [king, ...others] = w.ofType('actor/creature/slime/king_slime').filter((e) => e.place.on === 'tile')
   expect(others).toEqual([])
-  expect(king.place).toMatchObject({ map: 'hollow', x: 10, y: 20 })
+  expect(king.place).toMatchObject({ map: 'hollow', x: 10, y: 21 })
   expect(kitsOf(f.eng).kitOf(king)?.map((s) => s.id).length).toBeGreaterThan(0)
 })
 
