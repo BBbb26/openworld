@@ -727,6 +727,8 @@ export const CATALOG: Catalog = {
     'fixture:firewood': { base: t(CAMP, 0, 0, 2, 1) },
     'fixture:lantern': { base: t(CAMP, 6, 5, 1, 2) },
     'fixture:tent': { base: t(CAMP, 7, 0, 3, 3) },
+    // the watchman's wall hooks, bare (tools/src/art/watch-shelter.ts; the Cloudtop pair is drawn with its cloak by placedSprites)
+    'fixture:cloak_hooks': { base: px('lsw/Fixtures/WatchShelter.png', 64, 0, 32, 24, 16, 44) },
     'fixture:tent_torn': { base: t(CAMP, 10, 0, 3, 3) },
     // small things of the ground, scattered by mask: each a thing (pick a flower, burn the reeds)
     'fixture:flowers': { base: t(DETAIL, 5, 2), variants: [t(DETAIL, 5, 2), t(NATURE, 6, 11), t(NATURE, 3, 11), t(DETAIL, 2, 0)], ground: true, loose: true },

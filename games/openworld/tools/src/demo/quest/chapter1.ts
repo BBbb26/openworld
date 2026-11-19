@@ -152,7 +152,7 @@ export function chapter1Summit(m: MapBuilder): void {
   })
   // The hook holds the existing equipment instance, whose id persists in saves.
   const cloak = WATCH_SHELTER.cloak
-  m.fixture('fixture', cloak.x, cloak.y, { id: cloak.hook, name: L('Cloak hooks', '斗篷挂钩') })
+  m.fixture('fixture/cloak_hooks', cloak.x, cloak.y, { id: cloak.hook })
   const garment = m.makeItem(
     { form: 'item/clothing/cloak', material: 'cloth', quality: 'fine', name: L("Watchman's Cloak", '守夜人的斗篷'), props: { lookColor: cloak.lookColor } },
     { on: 'inside', holder: cloak.hook },

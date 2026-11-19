@@ -601,6 +601,8 @@ const fixtureTypes: TypeDef[] = [
   // a sign is read from a step or two off
   F('fixture/sign', 'sign', '告示牌', ['wooden', 'flammable', 'readable'], { solid: true, props: { material: 'wood', maxHp: 4, hp: 4, handsRange: 2 }, makeup: [{ type: 'item/material/stick', count: 1 }, { type: 'item/material/plank', count: 1 }] }),
   F('fixture/tent', 'tent', '帐篷', ['cloth', 'flammable', 'shelter', 'opaque'], { solid: true, footprint: [3, 3] }),
+  // the watchman's wall hooks in the Cloudtop shelter (content chapter1.ts WATCH_SHELTER): they hold his cloak, by their own rules
+  F('fixture/cloak_hooks', 'cloak hooks', '斗篷挂钩', []),
   // a tent left to rot, drawn torn (the forest's pilgrims' camp: docs/release-1.md)
   F('fixture/tent/torn', 'torn tent', '破帐篷', ['cloth', 'flammable', 'shelter', 'opaque'], { solid: true, footprint: [3, 3], sprite: 'fixture:tent_torn' }),
   // the knight's own pavilion in the Held Ground, white and red, its pennant up (docs/release-1.md §7)

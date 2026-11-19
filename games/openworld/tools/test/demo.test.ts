@@ -3782,7 +3782,7 @@ it('Cloudtop: the barrel opens on the southern shelter floor', () => {
   expect(rendered()?.open).toBe(false)
 })
 
-it('Cloudtop: take, drop and rehang the same cloak on its wall hooks', () => {
+req('C5h', "Cloudtop's wall hooks hold the watchman's cloak, and only it: taken off and worn, dropped, hung back on them, saved and loaded where it hangs", ['fixture/cloak_hooks'], () => {
   const f = fresh({ ai: false })
   const w = W(f)
   const { cloak, map } = WATCH_SHELTER
