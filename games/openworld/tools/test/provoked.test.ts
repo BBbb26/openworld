@@ -10,7 +10,7 @@ const onto = buildOntology()
 const { index, chunks } = buildFord()
 const GAP = 6
 
-function duel(kind: string, behaviour: 'melee' | 'ranged', shots: number) {
+function duel(kind: string, behaviour: 'melee' | 'ranged', shots: number, away = false) {
   const g = Game.create(index, onto, new RuleLibrary([...BASE_RULES, ...STORY_RULES]))
   for (const c of chunks) g.loadChunk(decodeChunk(c))
   g.mods.provider = { resolve: () => new Promise<null>(() => {}) }
@@ -33,17 +33,22 @@ function duel(kind: string, behaviour: 'melee' | 'ranged', shots: number) {
     eng.controls.sync()
     eng.controls.select(p.slots!.indexOf(eng.controls.key(bow)))
   })
+  if (away) eng.author(() => w.setProp(p, 'maxHp', 100000) || w.setProp(p, 'hp', 100000))
   const hp = w.num(p, 'hp')
   let closest = Infinity
+  let chased = 0
   for (let t = 0; t < 400; t++) {
     p.facing = 'right'
     if (t < shots) eng.playerAttack({ e: foe.id })
+    if (away && t === shots) eng.author(() => w.place(p, { on: 'tile', ...eng.nearestFree({ map, x: row.x - 8, y: row.y })! }))
     eng.tick()
+    const from = w.posOf(foe)!
+    if (t < 100) chased = Math.max(chased, Math.abs(from.x - home.x) + Math.abs(from.y - home.y))
     const at = w.posOf(foe)!
     closest = Math.min(closest, Math.abs(at.x - row.x) + Math.abs(at.y - row.y))
   }
   const at = w.posOf(foe)!
-  return { closest, lost: hp - w.num(p, 'hp'), home: Math.abs(at.x - home.x) + Math.abs(at.y - home.y), struck: w.num(foe, 'hp') < 5000 }
+  return { closest, chased, down: w.hasStatus({ e: p.id }, 'down'), lost: hp - w.num(p, 'hp'), home: Math.abs(at.x - home.x) + Math.abs(at.y - home.y), struck: w.num(foe, 'hp') < 5000 }
 }
 
 describe('a monster struck from beyond its sight', () => {
@@ -64,9 +69,10 @@ describe('a monster struck from beyond its sight', () => {
     expect(imp.lost).toBeGreaterThan(0)
   })
 
-  it('forgets them once they stop, and goes home', () => {
-    const wolf = duel('beast/wolf', 'melee', 1)
-    expect(wolf.struck).toBe(true)
+  it('forgets one who struck it and went out of its sight, and goes home', () => {
+    const wolf = duel('beast/wolf', 'melee', 1, true)
+    expect(wolf).toMatchObject({ struck: true, down: false })
+    expect(wolf.chased).toBeGreaterThanOrEqual(4)
     expect(wolf.home).toBeLessThanOrEqual(4)
   })
 })
