@@ -177,10 +177,10 @@ describe('creature kits', () => {
     const wisp = spawn('actor/creature/wisp/bog_wisp', 5)
     const near = () => Math.abs(w.posOf(wisp)!.x - w.posOf(p)!.x) + Math.abs(w.posOf(wisp)!.y - w.posOf(p)!.y)
     const x0 = w.posOf(p)!.x
-    expect(run(200, () => near() <= 1)).toBe(true)
-    expect(w.posOf(p)!.x).toBeGreaterThan(x0)
     const hp = w.num(p, 'hp')
+    expect(run(200, () => w.posOf(p)!.x > x0)).toBe(true)
     expect(run(20, () => w.num(p, 'hp') < hp)).toBe(true)
+    expect(near()).toBeLessThanOrEqual(1)
   })
 
   it('the Restless robe the hurt dead round them, who mend; the living are not robed', () => {

@@ -271,7 +271,7 @@ Souls game or Monster Hunter teaches one new read.
   `impulse/strike` rule of the status). **Strike the Account** 勾账: a cone of 2 toward its foe, 1 s, atk × 1.4 cut.
   The answer is to hold one's blows: the read Sekiro's and Dark Souls' parries ask of the player, turned round.
 - **The bog wisp** 沼火 (`wisp/bog_wisp`, a caster, keeps away at 3, the causeway and the drowned graves).
-  **Beckon** 招引: a line of 5 in its row, 1 s, pulls 3 toward it, and chains into **Corpse Light** 尸火: the ring of 8
+  **Beckon** 招引: from 2 to 4 cells off in its row, a line of 5, 1 s, pulls 3 toward it (so from its farthest one lands beside it), and chains into **Corpse Light** 尸火: the ring of 8
   round itself, 0.6 s, atk × 1.3. The will-o'-wisp that leads one into the bog, with a hook's two beats (Dota's Pudge):
   step off the line and neither lands; pulled, step out of the ring.
 - **The Restless** 不安者 (`undead/restless`, a caster, keeps away at 3, two in the catacombs among the dead).
