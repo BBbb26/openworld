@@ -33,7 +33,10 @@ function duel(kind: string, behaviour: 'melee' | 'ranged', shots: number, away =
     eng.controls.sync()
     eng.controls.select(p.slots!.indexOf(eng.controls.key(bow)))
   })
-  if (away) eng.author(() => w.setProp(p, 'maxHp', 100000) || w.setProp(p, 'hp', 100000))
+  if (away) eng.author(() => {
+    w.setProp(p, 'maxHp', 100000)
+    w.setProp(p, 'hp', 100000)
+  })
   const hp = w.num(p, 'hp')
   let closest = Infinity
   let chased = 0
