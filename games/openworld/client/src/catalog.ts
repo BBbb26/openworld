@@ -641,6 +641,13 @@ export const CATALOG: Catalog = {
     // mill's floor (2x2)
     waterwheel: { ...pf('lsw/Fixtures/WaterWheel.png', 0, 0, ['###', '###', '###'], 'water'), ground: true },
     millstones: pf('lsw/Fixtures/Millstones.png', 0, 0, ['##', '##'], 'woodwall'),
+    // the falls at the head of Vesper Ford (tools/src/art/ford-falls.ts): the river over the north cliff, eight cells
+    // wide and the cliff's three tall, laid over the river's top rows (its cells stay the river's water)
+    ford_falls: pf('lsw/Fixtures/FordFalls.png', 0, 0, ['########', '########', '########'], 'water'),
+    // a grey stone standing out of a river's current, the water white round it (the same module; one cell, the river's water under it)
+    river_rock: pf('lsw/Fixtures/RiverRock.png', 0, 0, ['#'], 'water'),
+    // a lily pad on still water (TilesetWater: a pond's open water with the pad on it), laid on a pond's inner cells
+    lily_pad: pf(WATER, 11, 3, ['#'], 'water'),
     // a bell's rope come down a tower's wall, its grip in reach of the floor (tools/src/art/bell-rope.ts; 1x2, walkable)
     bell_rope: pf('lsw/Fixtures/BellRope.png', 0, 0, ['.', '.']),
     // Desert lion-head wall fountain (2x3) and a square water basin (2x2).
