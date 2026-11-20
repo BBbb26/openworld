@@ -2,7 +2,8 @@
 // pixel instead, as alberic-human.swift does the pack's Master: every colour of the pack's sheet mapped to its own, the
 // drawing and its dark line kept, and on the slimes and the sporecap what tells them apart drawn on each frame — a
 // flame that flickers on the fire slime's crown, shards of ice on the frost slime's, a spark leaping off the spark
-// slime, spores drifting off the sporecap's cap. A frame's marks are outlined where they meet the empty air.
+// slime, spores drifting off the sporecap's cap. A frame's marks are outlined where they meet the empty air, and lowered
+// together where the body leaps too near the frame's top for them.
 //
 //   npx tsx games/openworld/tools/src/art/recolours.ts
 
@@ -39,18 +40,18 @@ const spores: Marks = (top, mid, step) => [[mid - 3 + step, top - 1 - (step % 2)
 
 export const RECOLOURS: Recolour[] = [
   {
-    from: 'Monster/Slime/Slime.png', to: 'Creature/FireSlime',
-    map: { '#141b1b': '#2a120c', '#4e484a': '#6a2414', '#548789': '#c2421e', '#79b8ce': '#f07a2c', '#f2eaf1': '#ffd36a', '#ffffff': '#fff4c0' },
+    from: 'Monster/Slime/Slime.png', to: 'Creature/FireSlime', face: 'Monster/Slime/Faceset.png',
+    map: { '#141b1b': '#2a120c', '#4e484a': '#6a2414', '#548789': '#c2421e', '#79b8ce': '#f07a2c', '#f2eaf1': '#ffd36a', '#ffffff': '#fff4c0', '#4a5270': '#6a2414', '#9ba7aa': '#f07a2c' },
     marks: flame, line: '#2a120c',
   },
   {
-    from: 'Monster/Slime/Slime.png', to: 'Creature/FrostSlime',
-    map: { '#141b1b': '#1d2f44', '#4e484a': '#4a78a8', '#548789': '#7fb6dc', '#79b8ce': '#bfe6f8', '#f2eaf1': '#ffffff', '#ffffff': '#ffffff' },
+    from: 'Monster/Slime/Slime.png', to: 'Creature/FrostSlime', face: 'Monster/Slime/Faceset.png',
+    map: { '#141b1b': '#1d2f44', '#4e484a': '#4a78a8', '#548789': '#7fb6dc', '#79b8ce': '#bfe6f8', '#f2eaf1': '#ffffff', '#ffffff': '#ffffff', '#4a5270': '#4a78a8', '#9ba7aa': '#7fb6dc' },
     marks: shards, line: '#1d2f44',
   },
   {
-    from: 'Monster/Slime2/Slime2.png', to: 'Creature/SparkSlime',
-    map: { '#141b1b': '#2a2210', '#56864c': '#7a5a10', '#74a334': '#c49a18', '#adbc3a': '#f2d230', '#e0394c': '#4ad6ff', '#f2eaf1': '#fff8c0' },
+    from: 'Monster/Slime2/Slime2.png', to: 'Creature/SparkSlime', face: 'Monster/Slime2/Faceset.png',
+    map: { '#141b1b': '#2a2210', '#56864c': '#7a5a10', '#74a334': '#c49a18', '#adbc3a': '#f2d230', '#e0394c': '#4ad6ff', '#f2eaf1': '#fff8c0', '#8f3e56': '#1f7fb0', '#fce2ca': '#ffffff' },
     marks: spark,
   },
   {
@@ -94,7 +95,9 @@ function mark(img: { w: number; h: number; rgba: Uint8Array }, marks: Marks, lin
       const top = rows[0]
       const xs = [...Array(16).keys()].filter((x) => solid(fx + x, fy + top))
       const mid = Math.round((xs[0] + xs[xs.length - 1]) / 2)
-      const placed = marks(top, mid, fy / 16).filter(([x, y]) => x >= 0 && y >= 0 && x < 16 && y < 16).map(([x, y, c]) => [fx + x, fy + y, c] as Mark)
+      const drawn = marks(top, mid, fy / 16)
+      const dy = Math.max(0, -Math.min(...drawn.map(([, y]) => y)))
+      const placed = drawn.filter(([x, y]) => x >= 0 && x < 16 && y + dy < 16).map(([x, y, c]) => [fx + x, fy + y + dy, c] as Mark)
       for (const [x, y, c] of placed) img.rgba.set([...rgb(c), 255], at(x, y))
       if (line) for (const [x, y] of placed) for (const [dx, dy] of [[1, 0], [-1, 0]])
         if (x + dx >= fx && x + dx < fx + 16 && y + dy >= fy && !solid(x + dx, y + dy)) img.rgba.set([...rgb(line), 255], at(x + dx, y + dy))

@@ -359,4 +359,9 @@ tells a kind apart at a glance is drawn on its frames:
 - **Hollow clerk:** the inspector gone to ash, his coat faded to ink-grey, his hat yellowed like old paper.
 - **Restless:** the monk gone grave-pale, in grey grave-cloth.
 
-The pack's Slime and Slime2 stay copied as the sources (copyAssets.ts `KEEP`). No minor monster wears a tinted sheet now.
+Where a leap brings the body to the frame's top, its marks are lowered with it rather than cut off. A felled one
+breaks into motes of its own colour (§16): the tint gave that colour before, and now the sheet's `tone` in the
+catalogue gives it, the bog wisp's too.
+
+The pack's Slime and Slime2, sheets and faces, stay copied as the sources (copyAssets.ts `KEEP`). No minor monster
+wears a tinted sheet now.

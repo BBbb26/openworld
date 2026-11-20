@@ -70,7 +70,7 @@ interface EView {
   walker?: { x: number; y: number; t: number }
   /** A flyer (a companion): where it heads; it is drawn gliding there, not stepped tile by tile. */
   flyer?: { x: number; y: number; t: number }
-  actor?: { key: string; rows: number; cols: number; tint?: number; scale?: number; idleRow?: number; dir: string; clips?: ActorDef['clips'] }
+  actor?: { key: string; rows: number; cols: number; tint?: number; tone?: number; scale?: number; idleRow?: number; dir: string; clips?: ActorDef['clips'] }
   /** The dragon's parts round its head: wings on the head's container, body and tail trailing it in the world. */
   dragon?: { wings: Phaser.GameObjects.Image[]; segments: Phaser.GameObjects.Image[]; trail: { x: number; y: number }[] }
   /** A built thing's second picture: a wall block's top (one storey up), a raised floor's edge. */
@@ -1322,7 +1322,7 @@ export class WorldScene extends Phaser.Scene {
       if (a) {
         const { img, fw, fh } = actorFrames(this, a.key, a.def)
         const col = (e.boss && a.def.rows >= 5) || a.def.rows === 1 ? 0 : (DIR_COL[e.facing] ?? 0)
-        return { img, frame: `${a.key}:${col},${a.def.idleRow ?? 0}`, ax: a.def.anchorX ?? fw / 2, ay: a.def.anchorY ?? fh, actor: { key: a.key, rows: a.def.rows, cols: a.def.cols, tint: a.def.tint, scale: a.def.scale, idleRow: a.def.idleRow, dir: a.def.dir, clips: a.def.clips } }
+        return { img, frame: `${a.key}:${col},${a.def.idleRow ?? 0}`, ax: a.def.anchorX ?? fw / 2, ay: a.def.anchorY ?? fh, actor: { key: a.key, rows: a.def.rows, cols: a.def.cols, tint: a.def.tint, tone: a.def.tone, scale: a.def.scale, idleRow: a.def.idleRow, dir: a.def.dir, clips: a.def.clips } }
       }
     }
     // a thing set in its cell (a built wall, a laid floor) is drawn as part of the place; a fixture
@@ -1797,7 +1797,7 @@ export class WorldScene extends Phaser.Scene {
     const s = v.actor?.scale ?? 1
     v.body.setScale(s).setPosition(0, v.poseDy ?? 0).setTint(0xffffff).setTintMode(Phaser.TintModes.FILL)
     if (v.shadow) this.tweens.add({ targets: v.shadow, alpha: 0, duration: 330 })
-    const tone = v.actor?.tint ?? 0xf4ead8
+    const tone = v.actor?.tone ?? v.actor?.tint ?? 0xf4ead8
     this.tweens.chain({
       targets: v.body,
       tweens: [
