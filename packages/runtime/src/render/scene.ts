@@ -60,6 +60,8 @@ interface EView {
   phase: number
   /** Drawn in a wind-up's pose this moment (windupPose): set back when it ends. */
   posed?: boolean
+  /** Jolted this moment: struck back from a blow (white at first), or lunging into one it deals bare. */
+  jolt?: { at: number; dx: number; dy: number; lunge?: boolean }
   bossAnimation?: BossAnimationClock
   /** The quest mark over a person ('!' a quest to give, '?' one to take back). */
   quest?: { mark: string; text: Phaser.GameObjects.Text }
@@ -741,7 +743,8 @@ export class WorldScene extends Phaser.Scene {
       if (!v) this.views.set(e.id, this.makeView(e))
       else this.updateView(v, e)
     }
-    for (const [id, v] of this.views) if (!seen.has(id)) (this.destroyView(v), this.views.delete(id))
+    const felled = new Set(f.fx.flatMap((x) => (x.t === 'damage' && x.fell ? [x.who] : [])))
+    for (const [id, v] of this.views) if (!seen.has(id)) (felled.has(id) && v.snap.tags.includes('creature') && !v.snap.boss ? this.fell(v) : this.destroyView(v), this.views.delete(id))
     this.drawQuestMarks(f)
     // (placed again every animation frame, as the camera glides: update)
     this.questFrame = f
@@ -1723,15 +1726,7 @@ export class WorldScene extends Phaser.Scene {
         if (v.overlay) v.root.add(v.overlay)
       }
     }
-    const tintStatus = e.statuses.find((s) => TINT_OF[s])
-    // a body is grey (docs/npc-sandbox.md §2.8)
-    if (e.tags.includes('body')) v.body.setTint(0x8a8a8a).setTintMode(Phaser.TintModes.MULTIPLY)
-    else if (tintStatus) v.body.setTint(TINT_OF[tintStatus]).setTintMode(Phaser.TintModes.MULTIPLY)
-    else if (v.actor?.tint) v.body.setTint(v.actor.tint).setTintMode(Phaser.TintModes.OVERLAY)
-    else v.body.clearTint()
-    // winding up a skill, it flashes white as the blow nears
-    const wound = this.windup.get(e.id)?.progress
-    if (wound !== undefined && wound > 0.5 && Math.floor(wound * 10) % 2 === 0) v.body.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL)
+    this.paint(v)
     // a thing an act waits on shimmers; one who is down lies on the ground
     v.body.setAlpha(this.alphaOf(v))
     this.drawPose(v, e.boss ? undefined : e.tags.includes('body') ? 'lie' : e.pose)
@@ -1750,6 +1745,72 @@ export class WorldScene extends Phaser.Scene {
       // red: would attack you; green: a person or a companion; amber: anything else (a creature at peace, a thing)
       const friend = e.tags.includes('person') || e.tags.includes('companion')
       v.hp.fillStyle(e.hostile ? 0xe04848 : friend ? 0x6ad06a : 0xd8b060, 1).fillRect(-w / 2, top2, Math.max(1, (w * e.hp) / e.maxHp), 2)
+    }
+  }
+
+  /** Its tint as it is now: grey as a body, a status's colour, its sheet's own, white as a wind-up nears its blow or a blow lands. */
+  private paint(v: EView): void {
+    const e = v.snap
+    const tintStatus = e.statuses.find((s) => TINT_OF[s])
+    // a body is grey (docs/npc-sandbox.md §2.8)
+    if (e.tags.includes('body')) v.body.setTint(0x8a8a8a).setTintMode(Phaser.TintModes.MULTIPLY)
+    else if (tintStatus) v.body.setTint(TINT_OF[tintStatus]).setTintMode(Phaser.TintModes.MULTIPLY)
+    else if (v.actor?.tint) v.body.setTint(v.actor.tint).setTintMode(Phaser.TintModes.OVERLAY)
+    else v.body.clearTint()
+    // winding up a skill, it flashes white as the blow nears
+    const wound = this.windup.get(e.id)?.progress
+    if (wound !== undefined && wound > 0.5 && Math.floor(wound * 10) % 2 === 0) v.body.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL)
+    if (v.jolt && !v.jolt.lunge && this.time.now - v.jolt.at < 90) v.body.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL)
+  }
+
+  /** A blow landed on a body other than the player's (struck back from the one who dealt it) or one it dealt bare (a lunge). */
+  private struck(fx: Extract<FxEvent, { t: 'damage' }>): void {
+    const v = this.views.get(fx.who)
+    if (!v || fx.who === this.playerId || fx.amount <= 0 || v.snap.boss || !v.snap.tags.includes('agent')) return
+    const from = fx.by && this.views.get(fx.by)
+    const [ax, ay] = from ? [v.root.x - from.root.x, v.root.y - from.root.y] : [0, 0]
+    const d = Math.hypot(ax, ay) || 1
+    const push = fx.affinity === 'weak' ? 4 : 2.5
+    v.jolt = { at: this.time.now, dx: (ax / d) * push, dy: (ay / d) * push }
+    this.paint(v)
+  }
+
+  private jolt(v: EView, time: number): void {
+    const j = v.jolt!
+    const u = (time - j.at) / (j.lunge ? 180 : 160)
+    if (u >= 1) {
+      v.jolt = undefined
+      if (!v.posed) v.body.x = 0
+      return this.paint(v)
+    }
+    const k = j.lunge ? Math.sin(Math.PI * u) : 1 - u
+    if (!j.lunge && time - j.at >= 90) this.paint(v)
+    v.body.x = (v.posed ? v.body.x : 0) + j.dx * k
+    v.body.y += j.dy * k
+  }
+
+  /** A minor monster felled: a white flash, a squash, and it rises out of sight in a burst of motes. */
+  private fell(v: EView): void {
+    v.hp.clear()
+    v.head.setVisible(false)
+    v.glow?.setVisible(false)
+    v.body.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL)
+    const s = v.body.scaleX
+    const tone = v.actor?.tint ?? 0xf4ead8
+    this.tweens.chain({
+      targets: v.body,
+      tweens: [
+        { scaleX: s * 1.3, scaleY: s * 0.7, duration: 70, ease: 'Quad.easeOut' },
+        { scaleX: s * 0.5, scaleY: s * 1.4, y: v.body.y - 8, alpha: 0, duration: 260, ease: 'Quad.easeIn' },
+      ],
+      onComplete: () => this.destroyView(v),
+    })
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2 + Math.random() * 0.6
+      const r = 8 + Math.random() * 6
+      const x = v.root.x, y = v.root.y - 6
+      const mote = this.add.rectangle(x, y, 2, 2, i % 2 ? 0xffffff : tone, 1).setDepth(v.root.depth + 1)
+      this.tweens.add({ targets: mote, x: x + Math.cos(a) * r, y: y + Math.sin(a) * r * 0.7 - 4, alpha: 0, duration: 300 + Math.random() * 140, ease: 'Quad.easeOut', onComplete: () => mote.destroy() })
     }
   }
 
@@ -1947,6 +2008,7 @@ export class WorldScene extends Phaser.Scene {
       }
       if (v.dragon) this.updateDragon(v, time)
       if (!e.boss) this.windupPose(v, time)
+      if (v.jolt) this.jolt(v, time)
       this.positionHeadMarks(v)
       if (v.glow) v.glow.setPosition(v.root.x, v.root.y - 8).setAlpha(this.darkness * 1.4 * (0.85 + 0.15 * Math.sin((time + v.phase) / 120)))
     }
@@ -2438,7 +2500,11 @@ export class WorldScene extends Phaser.Scene {
     const key = held ?? (isMe ? this.mainHand : undefined)
     const d = key ? catalog().items[key] : undefined
     const kind = d?.swing
-    if (!kind || !key || !d) return
+    if (!kind || !key || !d) {
+      const [dx, dy] = dirVec(dir)
+      if (!isMe && v.snap.tags.includes('creature') && !v.snap.boss) v.jolt = { at: this.time.now, dx: dx * 4, dy: dy * 4, lunge: true }
+      return
+    }
     const [frame] = spriteFrames(this, `ico:${key}`, d)
     const [dx, dy] = dirVec(dir)
     // the hand: before the body, to its right side as it faces (behind it, facing away)
@@ -2649,6 +2715,7 @@ export class WorldScene extends Phaser.Scene {
     if (fx.t === 'levelup') return this.jingle('levelup')
     if (fx.t === 'quest' && fx.state === 'done') return this.jingle('quest')
     if (fx.t === 'mapChanged') return this.sfx('door', 0.4)
+    if (fx.t === 'damage') this.struck(fx)
     if (fx.t === 'damage' && fx.who === this.playerId && fx.amount > 0) return this.sfx('hurt', 0.5)
     if (fx.t === 'undefined') return this.sfx('undefined', 0.6)
     if (fx.t === 'patched') return this.sfx('patched', 0.6)

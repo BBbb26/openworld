@@ -318,3 +318,25 @@ Checks: affinities.test.ts (a wolf takes half again from fire and less from ice,
 each with its mark in the frame; every kind immune to its own element, at most two immunities and two weaknesses, every
 element someone's weakness, the green slime neutral, every nature's tag worn by some minor kind; a reaction weighed once). The wiki's monster infobox
 reads the three rows from the data (templates.ts), and 元素 has the table.
+
+## 16. How a blow looks (2026-11-20)
+
+A minor monster answered a blow with a number over its head and nothing more, and fell by vanishing. Every action game
+since Zelda draws the blow on the body: Hollow Knight and Hades flash the struck body white for a few frames and knock
+it back from the striker; Minish Cap and Stardew's monsters burst into motes as they fall; Zelda's octoroks and
+Stardew's slimes lunge at you as they strike. The page now does the same (runtime `render/scene.ts`):
+
+- **Struck** (`struck`, `jolt`): white for 90 ms, knocked 2.5 px back from the one who dealt the blow (4 px on a
+  weakness), easing back over 160 ms. Only actors other than the player, never a boss (its own animations answer).
+- **Striking bare** (a monster's swing with no weapon to draw): a 4 px lunge the way it faces and back, 180 ms.
+- **Felled** (`fell`): white, squashed, then stretched upward and faded as it rises 8 px, with eight motes in its own
+  tint flying out; 330 ms in all, then the view is gone. Bosses and persons keep their own.
+
+For this the frame's `damage` carries `by` (who dealt it, when someone did) and `fell` (the blow brought it to
+nothing); the felled one leaves the frame in the same tick, so the page reads `fell` before the removal.
+
+The bog wisp has its own sheet now (tools `art/creatures.ts`): the storm wisp's ball of light in marsh-fire green, where
+it was the pack's spirit tinted.
+
+Checks: motion.test.ts (a landed blow names its striker; only a felling one says `fell`, and the felled is gone in that
+frame; a monster striking bare makes a swing naming it).
