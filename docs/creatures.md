@@ -309,7 +309,12 @@ weakness stars (one or two weaknesses a kind, never a wall of numbers), Elin's p
 model already). The green slime, the spider and the cyclops stay neutral, a baseline. The bosses keep theirs as their
 owners set them: `CREATURE_ROLES` names the minor kinds alone.
 
+The element/actor reaction no longer weighs its harm itself (water on the fiery took 1.2 of the blow's power, lightning
+on a construct a half): the resistances carry it, so a weakness is never counted twice. The fireproof draught's
+resFire 75 now meets fire blows as well as burns, which its own words and the wiki already promised (the dragon's
+fire does a quarter of its harm to one who drank it).
+
 Checks: affinities.test.ts (a wolf takes half again from fire and less from ice, a storm wisp nothing from lightning,
 each with its mark in the frame; every kind immune to its own element, at most two immunities and two weaknesses, every
-element someone's weakness, the green slime neutral, every nature's tag worn by some kind). The wiki's monster infobox
+element someone's weakness, the green slime neutral, every nature's tag worn by some minor kind; a reaction weighed once). The wiki's monster infobox
 reads the three rows from the data (templates.ts), and 元素 has the table.

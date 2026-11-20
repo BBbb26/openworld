@@ -5,7 +5,8 @@ import { buildFord } from '../src/demo/world.ts'
 
 // What the minor monsters make of the elements (content affinities.ts, docs/creatures.md §15): a blow carrying an element
 // meets the one struck's resistance to it, so a weakness takes more and an immunity nothing, and the frame says which;
-// every minor kind's affinities come from its element and its nature, and none is weak or immune to everything.
+// every minor kind's affinities come from its element and its nature, and none is weak or immune to everything; an
+// element's reaction on a body is held by the same resistance, never twice.
 
 const onto = buildOntology()
 const C = 'actor/creature'
@@ -68,6 +69,12 @@ describe('elemental affinities', () => {
     expect(cast(`${C}/slime/fire_slime`).some((f) => f.affinity === 'immune')).toBe(true)
   })
 
+  it('a reaction is weighed once: water on a fire slime, lightning on a golem, each by its resistance alone', () => {
+    const plain = strike(`${C}/slime/green_slime`).lost
+    expect(strike(`${C}/slime/fire_slime`, 'water').lost).toBe(Math.round(plain * 1.5) * 2)
+    expect(strike(`${C}/golem/stone_golem`, 'lightning').lost).toBe(Math.round(plain * 0.5) * 2)
+  })
+
   it('every minor kind is immune to its own element and to no more than two, weak to at most two, and some to none', () => {
     const elements = ELEMENTS
     for (const kind of Object.keys(CREATURE_ROLES)) {
@@ -78,6 +85,7 @@ describe('elemental affinities', () => {
     }
     for (const e of elements) expect(Object.keys(CREATURE_ROLES).some((k) => res(k, e) < 0), `someone is weak to ${e}`).toBe(true)
     expect(Object.keys(CREATURE_ROLES).filter((k) => elements.every((e) => !res(k, e)))).toContain(`${C}/slime/green_slime`)
-    for (const tag of Object.keys(TAG_AFFINITY)) expect(Object.values(onto.types).some((t) => t.tags?.includes(tag)), tag).toBe(true)
+    const worn = (k: string) => k.split('/').flatMap((_, i, parts) => onto.types[parts.slice(0, i + 1).join('/')]?.tags ?? [])
+    for (const tag of Object.keys(TAG_AFFINITY)) expect(Object.keys(CREATURE_ROLES).some((k) => worn(k).includes(tag)), tag).toBe(true)
   })
 })

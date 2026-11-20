@@ -1078,9 +1078,9 @@ export class Engine {
     // herbalist's draught gives it while it lasts, a worn thing may): all of it, none; below none, more
     const resist = element ? w.onto.data.resistances?.[element] : undefined
     const share = resist ? Math.min(100, w.stat(e, resist)) : 0
-    amount *= 1 - share / 100
     const affinity = share >= 100 ? 'immune' : share < 0 ? 'weak' : share > 0 ? 'resisted' : undefined
-    if (affinity === 'immune') return void w.fx.push({ t: 'damage', who: e.id, amount: 0, element, affinity })
+    if (affinity === 'immune' && amount > 0) return void w.fx.push({ t: 'damage', who: e.id, amount: 0, element, affinity })
+    amount *= 1 - share / 100
     if (amount <= 0) return
     const def = pierce ? 0 : w.stat(e, 'def')
     // the combat talents of the one struck (combat.ts): dodge, a guarded moment, reductions, the brink
