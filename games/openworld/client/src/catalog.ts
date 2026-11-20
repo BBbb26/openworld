@@ -118,19 +118,22 @@ function mon(folder: string, sheet = 'SpriteSheet.png', tint?: number): ActorDef
 function own(name: string): ActorDef {
   return { dir: 'lsw/Creature/' + name, sheet: 'SpriteSheet.png', cols: 4, rows: 4 }
 }
+/** One of the project's recoloured character sheets used as a creature (tools/src/art/recolours.ts): the character layout, with its face. */
+function ownChar(name: string): ActorDef {
+  return { dir: 'lsw/Creature/' + name, sheet: 'SpriteSheet.png', faceset: 'Faceset.png', cols: 4, rows: 7 }
+}
 /** A character-layout sheet used as a creature (cols = directions, rows 0-3 walk, 4-6 extras). */
 function charCreature(name: string, tint?: number): ActorDef {
   return { ...charDef(name), ...(tint !== undefined ? { tint } : {}) }
 }
 
-// Slimes: Slime4 = green, Slime3 = blue, Slime = pale grey-blue, Slime2 = olive with one eye.
-// Fire and lightning have no native colour: they reuse the paler sheets with a tint. Phaser's
-// default tint is multiplicative (it only darkens), so these tints are deliberately bright; a
-// renderer that wants punchier colours can use tintFill/additive at partial strength instead.
+// Slimes: the pack's green (Slime4) and blue (Slime3); fire, frost and spark are the pack's paler sheets recoloured,
+// each with its own mark (tools/src/art/recolours.ts).
 const SLIME_GREEN = mon('Slime4', 'Slime4.png')
-const SLIME_FIRE = mon('Slime', 'Slime.png', 0xff9a6a)
-const SLIME_ICE = mon('Slime', 'Slime.png', 0xd8f2ff)
-const SLIME_LIGHTNING = mon('Slime2', 'Slime2.png', 0xfff27a)
+const FROST_WOLF: ActorDef = { dir: 'lsw/Creature/FrostWolf', sheet: 'SpriteSheet.png', faceset: 'Faceset.png', cols: 4, rows: 4 }
+const SLIME_FIRE = own('FireSlime')
+const SLIME_ICE = own('FrostSlime')
+const SLIME_LIGHTNING = own('SparkSlime')
 const SLIME_WATER = mon('Slime3', 'Slime3.png')
 
 // ---------------------------------------------------------------------------------------------
@@ -1053,10 +1056,10 @@ export const CATALOG: Catalog = {
     'creature:slime:frost_slime': SLIME_ICE,
     'creature:slime:spark_slime': SLIME_LIGHTNING,
     'creature:slime:water_slime': SLIME_WATER,
-    // Grey horned beast for the wolf; frost wolf = same sheet tinted icy.
+    // Grey horned beast for the wolf; the frost wolf the same sheet recoloured in ice (tools/src/art/recolours.ts).
     'creature:wolf': mon('Beast2', 'Beast2.png'),
-    'creature:wolf:frost_wolf': mon('Beast2', 'Beast2.png', 0xb8dcff),
-    'creature:wolf:ice': mon('Beast2', 'Beast2.png', 0xb8dcff),
+    'creature:wolf:frost_wolf': FROST_WOLF,
+    'creature:wolf:ice': FROST_WOLF,
     // Red-brown tusked "Bear" monster (4 directions). Animal/WildBoar exists but is a 2-frame
     // side-view strip (34x16) without directions.
     'creature:boar': mon('Bear'),
@@ -1082,15 +1085,15 @@ export const CATALOG: Catalog = {
     'creature:wisp': own('StormWisp'),
     'creature:wisp:storm_wisp': own('StormWisp'),
     'creature:wisp:bog_wisp': own('BogWisp'),
-    'creature:clerk': charCreature('Inspector', 0xb8b0a0),
-    'creature:restless': charCreature('Monk2', 0xf4f0e8),
+    'creature:clerk': ownChar('HollowClerk'),
+    'creature:restless': ownChar('Restless'),
     'creature:crab': own('Crab'),
     // the main quest's monsters
     'creature:spider': mon('SpiderRed'),
-    // the sporecap: the pack's mushroom monster, whose first frame is also the mushroom and the fairy ring: tinted a
-    // sickly violet, so a sporecap among the Hollow's mushrooms is not taken for one of them
-    'creature:fungus': { dir: 'Actor/Monster/Mushroom', sheet: 'mushroom.png', cols: 4, rows: 4, tint: 0xc9a6e8 },
-    'creature:fungus:sporecap': { dir: 'Actor/Monster/Mushroom', sheet: 'mushroom.png', cols: 4, rows: 4, tint: 0xc9a6e8 },
+    // the sporecap: the pack's mushroom monster, whose first frame is also the mushroom and the fairy ring: recoloured a
+    // sickly violet with spores drifting off it, so a sporecap among the Hollow's mushrooms is not taken for one of them
+    'creature:fungus': own('Sporecap'),
+    'creature:fungus:sporecap': own('Sporecap'),
     'creature:whelp': mon('Dragon'),
     // the meadow's animals: the project's own art (tools/src/art/animals.ts), not the pack's
     'creature:cow': { dir: 'lsw/Animal/Cow', sheet: 'SpriteSheet.png', cols: 4, rows: 4 },

@@ -340,3 +340,23 @@ it was the pack's spirit tinted.
 
 Checks: motion.test.ts (a landed blow names its striker; only a felling one says `fell`, and the felled is gone in that
 frame; a monster striking bare makes a swing naming it).
+
+## 17. Their own colours (2026-11-20)
+
+Seven minor monsters wore one of the pack's sheets under a multiplying tint: the fire, frost and spark slimes, the
+frost wolf, the sporecap, the hollow clerk and the restless dead. A multiplying tint only darkens, so each came out a
+muddy cast of its source, and the fire slime and the frost slime were one sheet in two shades. They are recoloured
+pixel by pixel now (tools `art/recolours.ts`, after alberic-human.swift): every colour of the pack's sheet mapped to
+its own, the drawing and its line kept, the faces too, and the moods the face tool draws on the restless's. What
+tells a kind apart at a glance is drawn on its frames:
+
+- **Fire slime:** amber, a flame four pixels high on its crown that sways with its step.
+- **Frost slime:** pale ice, a cluster of cyan shards on its crown.
+- **Spark slime:** the one-eyed slime in yellow, its eye electric blue, a spark leaping off it at another place each step.
+- **Sporecap:** the cap violet with lime spots, spores drifting up off it. A sporecap no longer passes for one of the
+  Hollow's red mushrooms.
+- **Frost wolf:** the horned beast in ice, horns and fangs white and cyan.
+- **Hollow clerk:** the inspector gone to ash, his coat faded to ink-grey, his hat yellowed like old paper.
+- **Restless:** the monk gone grave-pale, in grey grave-cloth.
+
+The pack's Slime and Slime2 stay copied as the sources (copyAssets.ts `KEEP`). No minor monster wears a tinted sheet now.
