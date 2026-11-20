@@ -238,7 +238,6 @@ function wisp(view: View, step: number): Raster {
 }
 
 const WISP: Palette = { k: hex('#2a2a4a'), b: hex('#f2c230'), c: hex('#fff07a'), d: hex('#ffffff'), x: hex('#bff4ff'), e: hex('#4a3a10') }
-// the bog wisp: the same ball of light, gone the sick green of marsh-fire, its tail and motes drifting pale
 const BOG_WISP: Palette = { k: hex('#16261c'), b: hex('#6cc47a'), c: hex('#c4f2a8'), d: hex('#f4fff0'), x: hex('#a8e8c4'), e: hex('#173022') }
 
 // ------------------------------------------------------------------ written

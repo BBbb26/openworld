@@ -60,7 +60,6 @@ interface EView {
   phase: number
   /** Drawn in a wind-up's pose this moment (windupPose): set back when it ends. */
   posed?: boolean
-  /** Jolted this moment: struck back from a blow (white at first), or lunging into one it deals bare. */
   jolt?: { at: number; dx: number; dy: number; lunge?: boolean }
   bossAnimation?: BossAnimationClock
   /** The quest mark over a person ('!' a quest to give, '?' one to take back). */
@@ -222,6 +221,7 @@ export class WorldScene extends Phaser.Scene {
   private bossWarnings?: Phaser.GameObjects.Graphics
   /** The creatures winding up a skill this frame (the kits module), and how far along: they flash white near its end. */
   private windup = new Map<string, { progress: number; pose?: WindupPose }>()
+  private dying = new Set<EView>()
   private bossPreview?: { id: string; mode: Exclude<BossPreviewMode, 'live'>; startedAt?: number }
   private darkness = 0
   /** The look of the region the map lies in (RegionMeta.look), and the look shown, eased toward it as one goes from region to region. */
@@ -387,6 +387,8 @@ export class WorldScene extends Phaser.Scene {
     for (const finish of this.creationFlightViews.values()) finish()
     for (const v of this.views.values()) this.destroyView(v)
     this.views.clear()
+    for (const v of this.dying) (this.tweens.killTweensOf([v.body, ...(v.shadow ? [v.shadow] : [])]), this.destroyView(v))
+    this.dying.clear()
     for (const t of this.tileFx.values()) t.sprites.forEach((s) => s.destroy())
     this.tileFx.clear()
     for (const f of this.fishShadows) (this.tweens.killTweensOf(f), f.destroy())
@@ -1748,7 +1750,6 @@ export class WorldScene extends Phaser.Scene {
     }
   }
 
-  /** Its tint as it is now: grey as a body, a status's colour, its sheet's own, white as a wind-up nears its blow or a blow lands. */
   private paint(v: EView): void {
     const e = v.snap
     const tintStatus = e.statuses.find((s) => TINT_OF[s])
@@ -1763,7 +1764,6 @@ export class WorldScene extends Phaser.Scene {
     if (v.jolt && !v.jolt.lunge && this.time.now - v.jolt.at < 90) v.body.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL)
   }
 
-  /** A blow landed on a body other than the player's (struck back from the one who dealt it) or one it dealt bare (a lunge). */
   private struck(fx: Extract<FxEvent, { t: 'damage' }>): void {
     const v = this.views.get(fx.who)
     if (!v || fx.who === this.playerId || fx.amount <= 0 || v.snap.boss || !v.snap.tags.includes('agent')) return
@@ -1789,13 +1789,14 @@ export class WorldScene extends Phaser.Scene {
     v.body.y += j.dy * k
   }
 
-  /** A minor monster felled: a white flash, a squash, and it rises out of sight in a burst of motes. */
   private fell(v: EView): void {
     v.hp.clear()
     v.head.setVisible(false)
     v.glow?.setVisible(false)
-    v.body.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL)
-    const s = v.body.scaleX
+    this.dying.add(v)
+    const s = v.actor?.scale ?? 1
+    v.body.setScale(s).setPosition(0, v.poseDy ?? 0).setTint(0xffffff).setTintMode(Phaser.TintModes.FILL)
+    if (v.shadow) this.tweens.add({ targets: v.shadow, alpha: 0, duration: 330 })
     const tone = v.actor?.tint ?? 0xf4ead8
     this.tweens.chain({
       targets: v.body,
@@ -1803,7 +1804,7 @@ export class WorldScene extends Phaser.Scene {
         { scaleX: s * 1.3, scaleY: s * 0.7, duration: 70, ease: 'Quad.easeOut' },
         { scaleX: s * 0.5, scaleY: s * 1.4, y: v.body.y - 8, alpha: 0, duration: 260, ease: 'Quad.easeIn' },
       ],
-      onComplete: () => this.destroyView(v),
+      onComplete: () => (this.dying.delete(v), this.destroyView(v)),
     })
     for (let i = 0; i < 8; i++) {
       const a = (i / 8) * Math.PI * 2 + Math.random() * 0.6
@@ -2502,7 +2503,7 @@ export class WorldScene extends Phaser.Scene {
     const kind = d?.swing
     if (!kind || !key || !d) {
       const [dx, dy] = dirVec(dir)
-      if (!isMe && v.snap.tags.includes('creature') && !v.snap.boss) v.jolt = { at: this.time.now, dx: dx * 4, dy: dy * 4, lunge: true }
+      if (!isMe && v.snap.tags.includes('creature') && !v.snap.boss && !v.jolt) v.jolt = { at: this.time.now, dx: dx * 4, dy: dy * 4, lunge: true }
       return
     }
     const [frame] = spriteFrames(this, `ico:${key}`, d)
