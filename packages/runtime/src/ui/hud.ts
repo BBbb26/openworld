@@ -1,7 +1,8 @@
 // The heads-up display (design.md §5.3): the clock box top right with the journal button under
 // it, the bag and skill tree buttons bottom right, the toolbar at the bottom with health, hunger and experience above it (Minecraft's way),
 // messages bottom left, the map name as it fades in (what the inputs would do is the pointer's mark and the tip
-// over the framed spot: ui/cursor.ts), the dialogue box and the yes/no question, speech bubbles and floating numbers.
+// over the framed spot: ui/cursor.ts), the dialogue box and the yes/no question, speech bubbles and floating numbers,
+// and the "!" a creature that notices a foe shows, popped up a moment over it as action games do.
 
 import { bindSlotKeys, itemSlotHtml, placeFloating, windowManager } from './components/index.ts'
 import { xpToNext, type Frame, type FxEvent, type ItemInfo, type Mood, type TalkOption, type Text } from '@openworld/engine'
@@ -871,6 +872,7 @@ export class Hud {
       case 'emote':
         // the speaker of the open line shows it on their face too
         if (fx.who === this.dialogWho && !$('#dialog').classList.contains('hidden') && !this.questionOpen) this.showFace(fx.who, fx.mood)
+        if (fx.mood === 'surprised' && this.creature(frame, fx.who)) return this.alert(fx.who)
         return this.bubble(fx.who, MOOD_GLYPH[fx.mood])
       case 'card':
         return this.openCard(tx(fx.text), fx.art)
@@ -984,6 +986,20 @@ export class Hud {
     el.textContent = text
     $('#labels').appendChild(el)
     this.bubbles.set(who, { el, until: performance.now() + 2600 + text.length * 45, who })
+  }
+
+  private creature(frame: Frame | undefined, id: string): boolean {
+    const e = frame?.entities.find((x) => x.id === id)
+    return !!e && !e.look && !e.tags.includes('person')
+  }
+
+  private alert(who: string): void {
+    this.bubbles.get(who)?.el.remove()
+    const el = document.createElement('div')
+    el.className = 'alert'
+    el.innerHTML = '<span>!</span>'
+    $('#labels').appendChild(el)
+    this.bubbles.set(who, { el, until: performance.now() + 900, who })
   }
 
   floater(who: string, text: string, kind: string): void {
