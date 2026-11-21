@@ -60,6 +60,7 @@ export class Hud {
   modderOnline = false
 
   private bubbles = new Map<string, { el: HTMLElement; until: number; who: string }>()
+  private alerts = new Map<string, { el: HTMLElement; until: number; who: string }>()
   private floaters: { el: HTMLElement; born: number; who: string }[] = []
   private flyers: { el: HTMLElement; born: number; from: { x: number; y: number } }[] = []
   private dotEls = new Map<string, HTMLElement>()
@@ -994,12 +995,12 @@ export class Hud {
   }
 
   private alert(who: string): void {
-    this.bubbles.get(who)?.el.remove()
+    this.alerts.get(who)?.el.remove()
     const el = document.createElement('div')
     el.className = 'alert'
     el.innerHTML = '<span>!</span>'
     $('#labels').appendChild(el)
-    this.bubbles.set(who, { el, until: performance.now() + 900, who })
+    this.alerts.set(who, { el, until: performance.now() + 900, who })
   }
 
   floater(who: string, text: string, kind: string): void {
@@ -1021,6 +1022,16 @@ export class Hud {
         continue
       }
       b.el.style.transform = `translate(${p.x}px, ${p.y - 30}px) translate(-50%, -100%)`
+    }
+    for (const [id, a] of this.alerts) {
+      const p = this.screenOf(a.who)
+      if (!p || now > a.until) {
+        a.el.remove()
+        this.alerts.delete(id)
+        continue
+      }
+      const above = this.bubbles.get(id)?.el.offsetHeight ?? 0
+      a.el.style.transform = `translate(${p.x}px, ${p.y - 30 - (above && above + 8)}px) translate(-50%, -100%)`
     }
     this.floaters = this.floaters.filter((f) => {
       const age = now - f.born

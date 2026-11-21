@@ -379,7 +379,10 @@ trainer's does when you cross their sight and a guard's in Metal Gear.
   back at its leash and comes on again, or a foe at the edge of its sight, does not flicker it.
 - **The signal** is the one a startled person already gives (npc.ts): the `emote` fx with the mood `surprised`. The
   engine adds no new kind of fx. The page draws it for a creature as a short pop (hud.ts `alert`, 0.9 s) rather than
-  a person's speech bubble. Bosses (their own openings), people and companions are left out.
+  a person's speech bubble, and above whatever the creature says at the same moment: a monster that opens with a
+  skill shows the "!" over the skill's name, which still warns of the wind-up. Any other surprise of a creature's (a
+  rule's or a scene's emote, a step into fire) is drawn the same way. Bosses (their own openings), people and
+  companions are left out.
 - **Kept** for the map in hand only, as the people's runtime is: a save forgets it, and a monster already after you
   when a game is loaded shows it once more.
 
