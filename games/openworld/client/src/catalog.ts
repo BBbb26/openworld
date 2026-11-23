@@ -1192,6 +1192,16 @@ export const CATALOG: Catalog = {
   // name. The wilds rest between their pieces (silence and the ambience); a village plays on with short rests. Every
   // file is levelled by its measured loudness (loudness.json, `npm run loudness`).
   music: {
+    firstlight_route_night: { tracks: ['own/Audio/Musics/depersonalization-22.ogg'], enterImmediately: true },
+    hollow_route_night: { tracks: ['own/Audio/Musics/depersonalization-23.ogg'], enterImmediately: true },
+    cloudtop_route: { like: 'cloudtop', ignoreWeather: true, at: { night: 'firstlight_route_night' } },
+    firstlight_route: { like: 'firstlight', ignoreWeather: true, at: { night: 'firstlight_route_night' } },
+    dawnhill_route: { like: 'field', ignoreWeather: true, at: { night: 'firstlight_route_night' } },
+    ford_route: { like: 'ford', ignoreWeather: true, at: { night: 'firstlight_route_night' } },
+    woundstone_foot: { like: 'field', ignoreWeather: true, at: { night: 'firstlight_route_night' } },
+    dusklea: { like: 'field', ignoreWeather: true, at: { night: 'hollow_route_night' } },
+    hushwood: { like: 'forest', ignoreWeather: true, at: { night: 'hollow_route_night' } },
+    thornwood_hollow: { like: 'hollow', ignoreWeather: true, at: { night: 'hollow_route_night' } },
     // the title: its own pieces, whatever place shows behind it
     title: { tracks: [M('38 - Intro'), M('22 - Dream')] },
     // waking on Cloudtop: wonder and loneliness in the snow
@@ -1205,7 +1215,7 @@ export const CATALOG: Catalog = {
     storm: { tracks: [M('28 - Tension')], rest: [20, 60] },
     // a village: plays on with short rests; its dusk by the fire, its night all but silent
     village: { tracks: [M('33 - Calm Village'), M('36 - Village'), M('4 - Village')], rest: [15, 40], at: { dusk: 'village_dusk', night: 'village_night', rain: 'village_rain', storm: 'village_rain' } },
-    // Firstlight's selected daytime theme; the evening, night and rain keep the village's existing music.
+    // Firstlight's daytime theme on the shared village music table.
     firstlight: { tracks: ['lsw/Audio/Musics/che-shui-ma-long.ogg'], rest: [15, 40], at: { dusk: 'village_dusk', night: 'village_night', rain: 'village_rain', storm: 'village_rain' } },
     village_dusk: { tracks: [M('27 - Chill'), M('6 - Story')], rest: [20, 60] },
     village_night: { tracks: [M('9 - Quiet'), M('22 - Dream')], rest: [120, 260] },
@@ -1231,6 +1241,7 @@ export const CATALOG: Catalog = {
     // the dark: caves, the barrow and its crypts, the abbey's hall
     cave: { tracks: [M('2 - The Cave'), M('40 - Crypt')], rest: [30, 90] },
     crypt: { tracks: [M('40 - Crypt'), M('14 - Curse')], rest: [20, 60] },
+    barrow_floors: 'own/Audio/Musics/depersonalization-26.ogg',
     dungeon: { tracks: [M('21 - Dungeon'), M('30 - Ruins')], rest: [20, 60] },
     // the world map: the road
     worldmap: { tracks: [M('23 - Road'), M('35 - Adventure')], rest: [10, 30] },
@@ -1266,6 +1277,8 @@ export const CATALOG: Catalog = {
     ending: { tracks: [M('8 - End Theme'), M('25 - End Theme 2')] },
     credits: { tracks: [M('15 - Credit Theme')] },
   },
+  noBattleMusic: ['ford', 'meadow', 'meadow.store', 'dawnhill', 'foot', 'summit', 'pasture', 'forest', 'hollow', 'barrow', 'ossuary'],
+  noCrickets: ['pasture', 'forest', 'hollow'],
   loudness: LOUDNESS,
 
   // people with a portrait of their own (docs/character-art.md, docs/cast/): the dialogue's bust in place of their look's
