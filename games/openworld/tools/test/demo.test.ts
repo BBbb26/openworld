@@ -10,8 +10,10 @@
 import { describe, expect, it } from 'vitest'
 import { textOf, isPatch, restoreLibrary, EVENT_KINDS, FIRE_RADIUS, FIGHT_TICKS, APPEAR_EVERY, Game, RuleLibrary, SLOT_COUNT, TICKS_PER_HOUR, isRoot, kindCovers, leaves, rulesTie, tickAt, xpToNext, astar, performPlacement, snapshot, regionId, madeOf, CEILING, type Engine, type Entity, type GameEvent, type Key, type Patch, type Plan, type Ref, type World } from '@openworld/engine'
 import { travelToWaypoint, activeBoon, boonsOf, PROFESSION_LEVEL, takeProfession, socialOf, kitsOf } from '@openworld/modules'
-import { ALBERIC_ID, ACTIVE_SKILLS, SET_PIECES, CH1, HAVEN_UPGRADES, SET_DEFS, BOSS_BY_ID, DRAWINGS, HAVEN, BASE_RULES, SOCIAL_COIN, CROP_STAGES, NIGHT_CAP, NIGHT_EVERY, TREE_GROWS, VEIN_REGROWS, FIRSTLIGHT, TUTORIAL_DONE, TUTORIAL_DUMMY, TUTORIAL_HOUSE, TUTORIAL_OPEN, PART_TWO, CHAPTER_TWO, CHAPTER_THREE, CHAPTER_FOUR, CHAPTER_FIVE, FINALE, CH3, CH4, CH5, FIN, THE_FIVE, DUST_HEAP, FORM_BY_ID, PLACEMENT_BY_ID, PROFESSION_BY_ID, RECIPE_BY_ID, RECIPES, SKILLS, STORY_RULES, GARDEN_CROPS, WILD_W, buildOntology, decodeChunk, wildCell, wildChunk, wildChunkFor, ABBOT_ID, SWORN_SCALLOP, BOSS_ROOMS, WATCH_SHELTER } from '@openworld-game/content'
+import { ALBERIC_ID, ACTIVE_SKILLS, SET_PIECES, CH1, HAVEN_UPGRADES, SET_DEFS, BOSS_BY_ID, DRAWINGS, HAVEN, BASE_RULES, SOCIAL_COIN, CROP_STAGES, NIGHT_CAP, NIGHT_EVERY, TREE_GROWS, VEIN_REGROWS, FIRSTLIGHT, TUTORIAL_DONE, TUTORIAL_DUMMY, TUTORIAL_HOUSE, TUTORIAL_OPEN, PART_TWO, CHAPTER_TWO, CHAPTER_THREE, CHAPTER_FOUR, CHAPTER_FIVE, FINALE, CH3, CH4, CH5, FIN, THE_FIVE, DUST_HEAP, FORM_BY_ID, PLACEMENT_BY_ID, PROFESSION_BY_ID, RECIPE_BY_ID, RECIPES, SKILLS, STORY_RULES, GARDEN_CROPS, WILD_W, buildOntology, decodeChunk, wildCell, wildChunk, wildChunkFor, ABBOT_ID, SWORN_SCALLOP, BOSS_ROOMS, WATCH_SHELTER, FORD_CAMP } from '@openworld-game/content'
 import OPENWORLD_GAME from '../../content/src/game.ts'
+import { CATALOG } from '../../client/src/catalog.ts'
+import FERRY_CAMP_JSON from '../../client/src/ferry-camp.json'
 import { OVERWORLD } from '../src/demo/overworld.ts'
 import { AT, FOOTBRIDGE, PASTURE_GAP, SOUTH_GAP, STAND, WEST_GAP, buildFord } from '../src/demo/world.ts'
 import { CH1_AT } from '../src/demo/quest/chapter1.ts'
@@ -731,8 +733,9 @@ req('F11', 'a place, not a picture: all that is drawn or in the way is terrain o
   // nor a wall of its own: what blocks is solid terrain or a solid thing
   expect(raw.solid).toBeUndefined()
   for (const type of SEEN) expect([type, !!ofType(f, type)]).toEqual([type, true])
-  // the old axe on the chopping stump, pointed at where the stump is drawn over the grass
-  const stump = ofType(f, 'fixture/nature/stump')!
+  // an axe on a stump with nothing lying on it (the stool by the camp's fire; the old axe still lies in the block she
+  // splits wood on, and is met first there), pointed at where the stump is drawn over the ground
+  const stump = W(f).get(FORD_CAMP.seat.id)!
   const { x, y } = stump.place as { x: number; y: number }
   holdAxe(f)
   stand(f, x - 1, y, 'right')
@@ -756,6 +759,26 @@ req('F11', 'a place, not a picture: all that is drawn or in the way is terrain o
   expect(base.every(([x, y]) => !W(f).walkable('ford', x, y))).toBe(true)
   author(f, () => W(f).destroy(tent))
   expect(base.every(([x, y]) => W(f).walkable('ford', x, y))).toBe(true)
+})
+
+req('F11b', "the ferrykeeper's camp is drawn as the things it holds: every piece of the camp's pictures stands on its own thing's cell, and a group's pieces where its picture has them", ['fixture/furniture/rack/tools', 'fixture/nature/logpile/planks', 'fixture/coil', 'fixture/container/crate', 'fixture/container/barrel', 'fixture/container/sack', 'fixture/furniture/table', 'fixture/nature/plant', 'fixture/nature/stump'], () => {
+  const f = fresh()
+  const { map, ...things } = FORD_CAMP
+  const pieces = (FERRY_CAMP_JSON as unknown as { pieces: Record<string, { group?: { root: string; at: [number, number] } }> }).pieces
+  for (const [name, t] of Object.entries(things)) {
+    // the thing is there, where its picture is drawn
+    const e = W(f).get(t.id)
+    expect([name, e?.place]).toEqual([name, { on: 'tile', map, x: t.x, y: t.y }])
+    // drawn by its piece of the camp's sheet, a picture placed on its cell
+    const placed = CATALOG.placedSprites?.[t.id]
+    expect([name, placed && [placed.map, placed.x, placed.y, placed.sprite.img]]).toEqual([name, [map, t.x, t.y, 'lsw/Fixtures/FerryCamp.png']])
+    // a group's piece stands where the group's picture has it, counted from the group's first thing
+    const group = pieces[name]?.group
+    if (group) {
+      const root = things[group.root as keyof typeof things]
+      expect([name, t.x - root.x, t.y - root.y]).toEqual([name, ...group.at])
+    }
+  }
 })
 
 req('F5', 'the world acts alone: a storm strikes, the slimes come out of their burrow at night, people keep their day', ['weather:storm', 'actor/creature/slime/fire_slime', 'fixture/nature/burrow', 'npc.hesper', 'npc.tobin'], () => {

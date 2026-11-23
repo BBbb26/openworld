@@ -11,7 +11,7 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { storyTopics, tickAt, type AiData, type Entity, type MapMeta, type Pos, type StepDef, type ScheduleEntry, type ScheduleVariant, type Text, type WorldIndex } from '@openworld/engine'
-import { CH2, CHAPTER_FIVE, CHAPTER_FOUR, CHAPTER_THREE, FIN, FINALE, REGIONS, QUESTS, STORY_RULES, SOCIAL_COIN, codexEntries, FIRSTLIGHT, GUIDE_BEATS, INVARIANTS, PROLOGUE_BEATS, PROTECTED_FACTS, PLAYER_LOOK, favouriteFor, generateLook, piecesSoldBy, type RawChunk } from '@openworld-game/content'
+import { CH2, CHAPTER_FIVE, FORD_CAMP, CHAPTER_FOUR, CHAPTER_THREE, FIN, FINALE, REGIONS, QUESTS, STORY_RULES, SOCIAL_COIN, codexEntries, FIRSTLIGHT, GUIDE_BEATS, INVARIANTS, PROLOGUE_BEATS, PROTECTED_FACTS, PLAYER_LOOK, favouriteFor, generateLook, piecesSoldBy, type RawChunk } from '@openworld-game/content'
 import { MapBuilder, itemOf, linkEdge, reseed, rng } from './builder.ts'
 import { GROUND_YIELD, appears, clump, lay } from './kit.ts'
 import { plantGarden } from './garden.ts'
@@ -70,7 +70,8 @@ export const AT = {
   chest: [12, 14],
   cart: FIRSTLIGHT.cart,
   haystack: [9, 10],
-  axe: [7, 16],
+  /** the old axe, still in the block she splits wood on (content ford.ts FORD_CAMP.block) */
+  axe: [17, 17],
   torch: [15, 17],
   bucket: [25, 17],
   winch: [25, 15],
@@ -115,10 +116,8 @@ function buildMap(): MapBuilder {
   const grass = (t: string) => t === 'grass'
   // ------------------------------------------------------------ the river: a pool at the landing, narrows at the dead tree
   for (let y = 0; y < m.h; y++) for (let x = NEAR[y]; x <= FAR[y]; x++) m.set(x, y, 'water')
-  // the frost slime keeps its corner of the bank in rime and the river's edge frozen (the ice route, shown before it is taught)
-  // (the rime runs down to the water and the ice lies along the bank under it, one frozen margin, never a white blob
-  // on the grass: docs/release-1.md)
-  m.organic(25.6, 4, 1.4, 2.4, 'snow', { only: (t) => t === 'grass' })
+  // the frost slime keeps the river's edge frozen by its corner of the bank (the ice route, shown before it is taught):
+  // the ice lies along the bank, a frozen margin on the water, and the grass above it stays grass
   // (from the falls' foot down: the falls fill the river's top three rows)
   for (let y = 3; y <= 6; y++) m.set(NEAR[y], y, 'ice')
   for (const [x, y] of [[28, 3], [28, 4], [28, 5]] as const) m.set(x, y, 'ice')
@@ -147,7 +146,7 @@ function buildMap(): MapBuilder {
   m.fixture('fixture/nature/moss', 3, 4)
   // ------------------------------------------------------------ the woods: west and south, in clumps with depth, the road's gap open
   for (let y = 3; y < m.h; y++) for (let x = 0; x < 3; x++) if (!(y >= 18 && y <= 20) && (x < 2 || rng.chance(0.55))) m.set(x, y, rng.chance(0.25) ? 'pine' : 'tree')
-  for (const [cx, cy, r, p] of [[2.5, 7, 2.4, 0.7], [3, 13, 2, 0.55], [8.5, 26, 3, 0.75], [3, 25, 3, 0.8], [14, 28.5, 2.2, 0.8], [21, 29, 2, 0.75], [26, 28, 1.4, 0.6], [17.5, 4, 1.4, 0.5]] as const) clump(m, cx, cy, r, p)
+  for (const [cx, cy, r, p] of [[2.5, 7, 2.4, 0.7], [3, 13, 2, 0.55], [8.5, 26, 3, 0.75], [3, 25, 3, 0.8], [14, 28.5, 2.2, 0.8], [21, 29, 2, 0.75], [26, 28, 1.4, 0.6], [19.5, 7, 1.3, 0.6]] as const) clump(m, cx, cy, r, p)
   for (let x = 0; x < 27; x++) for (let y = 28; y < m.h; y++) if (grass(m.get(x, y))) m.set(x, y, rng.chance(0.2) ? 'pine' : 'tree')
   // the far bank: trees frame the road east to the Pilgrims' Rest; they close its north, south and east edges but for
   // the road's own way, so the far bank leads on only by the road, never off its edge onto the world map east of the
@@ -182,12 +181,20 @@ function buildMap(): MapBuilder {
   // the river's rocks, where no way across runs (the ice's row, the dead tree's, the ferry's, the footbridge's)
   for (const [x, y] of [[31, 7], [33, 19], [30, 26], [32, 28]] as const) m.scenery('river_rock', x, y)
   // ------------------------------------------------------------ paths: the road in from the west, through the camp to the landing; trails
-  m.path([[0, 19], [5, 19], [9, 19], [12, 20], [16, 20], [19, 18], [22, 16], [25, 16]], 'path', 2, { edge: 'dirt', edgeP: 0.18 })
-  m.path([[14, 14], [13, 11], [10, 8], [7, 6]], 'path', 1)
-  m.path([[22, 15], [24, 12], [27, 10]], 'path', 1)
+  m.path([[0, 19], [5, 19], [9, 19], [12, 20], [16, 20], [20, 19], [23, 17], [25, 16]], 'path', 2, { edge: 'dirt', edgeP: 0.18 })
+  m.path([[13, 12], [13, 11], [10, 8], [7, 6]], 'path', 1)
+  m.path([[23, 16], [24, 13], [27, 10]], 'path', 1)
   m.path([[FAR_BANK + 1, 16], [40, 15], [44, 13], [m.w - 1, 13]], 'path', 1)
   // the landing and the far one: a short pier out into the pool on each side, the gap the ferry crossed
   for (const [x, y] of [[26, 16], [27, 16], [34, 16], [35, 16]] as const) m.set(x, y, 'bridge')
+  // the camp's ground, the bank's sand trodden bare round the fire: from the tent's mouth to the stall
+  m.organic(14.6, 15.8, 8.2, 3, 'sand', { only: grass, rough: 0.12 })
+  // (kept a step off the road and the trails, so it meets them across the grass, never in a seam)
+  const trodden = (t: string) => t === 'path' || t === 'dirt'
+  for (let y = 12; y <= 20; y++)
+    for (let x = 6; x <= 23; x++) if (m.get(x, y) === 'sand' && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([i, j]) => trodden(m.get(x + i, y + j)))) m.set(x, y, 'grass')
+  // (but for the ground under the bench, the clearing's south edge, which the road runs by)
+  for (let x = FORD_CAMP.bench.x - 1; x <= FORD_CAMP.bench.x + 1; x++) m.set(x, FORD_CAMP.bench.y, 'sand')
   // ------------------------------------------------------------ the camp
   // the tent is a thing, not a stamp: three by three, in the way while it stands
   m.fixture('fixture/tent', ...AT.tent, { id: 'ford.tent' })
@@ -196,15 +203,34 @@ function buildMap(): MapBuilder {
     { form: 'item/tool/rope', props: { owner: '' } },
     { form: 'item/food/bread', props: { owner: 'npc.hesper' } },
   ])
-  // around the fire: a log bench to sit on, a rack for the pot; the woodpile and the chopping stump by the tent
+  // round the fire: a log bench to sit on, a rack for the pot; the firewood by the tent, the block she splits it on
   // anything that looks like a thing is one: every input reaches it (requirement F11)
-  m.fixture('fixture/furniture/bench/log', 14, 18)
-  m.fixture('fixture/furniture/rack', 17, 15)
-  m.fixture('fixture/nature/logpile/stack', 8, 15)
-  m.fixture('fixture/nature/stump', 6, 16)
+  const kept = FORD_CAMP
+  m.fixture('fixture/furniture/bench/log', kept.bench.x, kept.bench.y)
+  m.fixture('fixture/furniture/rack', kept.rack.x, kept.rack.y)
+  m.fixture('fixture/nature/logpile/stack', kept.logs.x, kept.logs.y)
+  m.fixture('fixture/nature/stump', kept.block.x, kept.block.y)
   m.item({ form: 'item/weapon/blade/axe', material: 'iron', name: L('Old Axe', '旧斧头') }, ...AT.axe)
   m.item('item/light/torch', ...AT.torch)
-  m.fixture('fixture/light/lantern', 16, 21)
+  m.fixture('fixture/light/lantern', kept.pondLantern.x, kept.pondLantern.y)
+  // what the camp's pictures show besides (content ford.ts FORD_CAMP), each a thing: by the tent her lantern post, potted
+  // flowers and crates; by the fire a small table and a stool; a signpost where the trail comes down to the camp; and
+  // the stall where she keeps what mends the crossing, with a barrel, potted flowers, a crate, sacks, spare planks and a
+  // coil of rope
+  const hers = { props: { owner: 'npc.hesper' } }
+  m.fixture('fixture/light/lantern', kept.lantern.x, kept.lantern.y, { id: kept.lantern.id })
+  m.fixture('fixture/nature/plant', kept.planter.x, kept.planter.y, { id: kept.planter.id })
+  m.fixture('fixture/container/crate', kept.crates.x, kept.crates.y, { id: kept.crates.id, ...hers })
+  m.fixture('fixture/furniture/table', kept.table.x, kept.table.y, { id: kept.table.id })
+  m.fixture('fixture/nature/stump', kept.seat.x, kept.seat.y, { id: kept.seat.id })
+  m.fixture('fixture/sign', kept.sign.x, kept.sign.y, { id: kept.sign.id, props: { text: 'FERRY. The keeper camps by the fire; the landing is east of it.', text_zh: '渡口。守渡人在火堆旁扎营，码头在营地东边。' } })
+  m.fixture('fixture/furniture/rack/tools', kept.stall.x, kept.stall.y, { id: kept.stall.id })
+  m.fixture('fixture/nature/plant', kept.pot.x, kept.pot.y, { id: kept.pot.id })
+  m.fixture('fixture/container/barrel', kept.barrel.x, kept.barrel.y, { id: kept.barrel.id, ...hers })
+  m.fixture('fixture/container/crate', kept.crate.x, kept.crate.y, { id: kept.crate.id, ...hers })
+  m.fixture('fixture/container/sack', kept.sacks.x, kept.sacks.y, { id: kept.sacks.id, ...hers })
+  m.fixture('fixture/nature/logpile/planks', kept.planks.x, kept.planks.y, { id: kept.planks.id })
+  m.fixture('fixture/coil', kept.rope.x, kept.rope.y, { id: kept.rope.id })
   // the open slope between the meadow and the river: a few boulders and bushes to break it up
   for (const [x, y] of [[20, 5], [21, 4], [17, 9]] as const) m.fixture('fixture/nature/boulder', x, y)
   clump(m, 22, 8, 1.2, 0.7)
@@ -231,10 +257,13 @@ function buildMap(): MapBuilder {
   m.anchor('landing.edge', 25, 13)
   m.anchor('far.landing', ...AT.farLanding)
   m.regions = { far_bank: [FAR_BANK, 0, m.w - FAR_BANK, m.h] }
-  // the far bank's ruins (the old way down the mountain, below): stood before the small things are strewn, so these
+  // the far bank's ruins and the stair's two columns (the old way down the mountain, below): stood before the small
+  // things are strewn, so these
   // keep to the open ground round them whatever the ground above was shaped into
   ruin(m, 'ruin_tower', 38, 3)
   ruin(m, 'ruin_wall_x3', 41, 18)
+  ruin(m, 'ruin_column_1', 16, 3)
+  ruin(m, 'ruin_column_2', 19, 3)
   // ------------------------------------------------------------ small things, by masks: where they belong, never uniform noise
   const by = (x: number, y: number, what: (t: string) => boolean) => m.near(x, y, what)
   const water = (t: string) => t === 'water'
@@ -242,6 +271,8 @@ function buildMap(): MapBuilder {
   const road = (t: string) => t === 'path' || t === 'dirt'
   const marsh = (x: number, y: number) => y >= 20 && y <= 27 && x >= 15 && x <= 26
   m.sprinkle('fixture/nature/reeds', 0.22, (x, y, t) => grass(t) && marsh(x, y) && by(x, y, water))
+  // small flowers strewn on the grass round the pond, a step or two off its rim
+  m.sprinkle('fixture/nature/flowers', 1, (x, y, t) => grass(t) && x >= 12 && x <= 26 && y >= 19 && m.near(x, y, (c, i) => water(c) && i < 26, 2))
   m.sprinkle('fixture/nature/ferns', 0.22, (x, y, t) => grass(t) && marsh(x, y))
   m.sprinkle('fixture/nature/reeds', 0.08, (x, y, t) => grass(t) && by(x, y, water) && (y < 9 || y > 21))
   m.sprinkle('fixture/nature/flowers', 0.12, (x, y, t) => grass(t) && by(x, y, road))
@@ -262,10 +293,9 @@ function buildMap(): MapBuilder {
   for (const x of FOOTBRIDGE.piers) m.set(x, FOOTBRIDGE.y, 'bridge')
   // the trail from the cliff stair to the camp (docs/prologue.md): drawn last, so every draw above stays as it was
   m.path([[17, 2], [17, 5], [15, 8], [13, 11]], 'path', 1)
-  // the old way down the mountain ends here as it began (prologue.ts): two columns at the foot of the cliff stair, a
-  // watchtower's stump on the far bank over the river, a run of wall by the road east
-  ruin(m, 'ruin_column_1', 16, 3)
-  ruin(m, 'ruin_column_2', 19, 3)
+  // the old way down the mountain ends here as it began (prologue.ts): two columns at the foot of the cliff stair (stood
+  // with the far bank's ruins, before the small things are strewn), a watchtower's stump on the far bank over the river,
+  // a run of wall by the road east
   for (const [name, x, y] of [['decor_column_fallen', 20, 10], ['decor_stones', 26, 8], ['decor_stones', 43, 17]] as [string, number, number][]) m.building(name, x, y)
   // what lies about (wildfloor.ts): never at the camp, the landing or the hollow's mouth
   const camp = (x: number, y: number) => (x >= 4 && x <= 20 && y >= 11 && y <= 23) || (x >= 21 && x <= 29 && y >= 10 && y <= 23) || (x <= 9 && y <= 8)

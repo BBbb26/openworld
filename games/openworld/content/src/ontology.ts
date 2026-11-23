@@ -568,6 +568,9 @@ const fixtureTypes: TypeDef[] = [
   // the Reed Bend's fisher's (docs/chapter-1.md §15): her nets hung on a pole to dry, her fish drying on a rack
   F('fixture/furniture/rack/nets', 'drying nets', '晾网架', ['wooden', 'flammable'], { solid: true }),
   F('fixture/furniture/rack/fish', 'fish-drying rack', '晾鱼架', ['wooden', 'flammable'], { solid: true, sprite: 'fixture:fish_rack' }),
+  // the Ford's ferrykeeper's (content ford.ts FORD_CAMP): a work table under an awning, the board behind it hung with
+  // her tools, in the corner where she keeps what mends the crossing
+  F('fixture/furniture/rack/tools', 'tool stall', '工具棚', ['wooden', 'flammable'], { solid: true, sprite: 'fixture:tool_rack' }),
   F('fixture/furniture/counter', 'counter', '柜台', ['surface']),
   // the general store's counter, the church's bookstand: shops whose offers are recipes (village.ts)
   F('fixture/furniture/counter/store', 'general store counter', '杂货铺柜台', ['shop', 'station:store'], { sprite: 'fixture:counter' }),
@@ -601,6 +604,8 @@ const fixtureTypes: TypeDef[] = [
   // a sign is read from a step or two off
   F('fixture/sign', 'sign', '告示牌', ['wooden', 'flammable', 'readable'], { solid: true, props: { material: 'wood', maxHp: 4, hp: 4, handsRange: 2 }, makeup: [{ type: 'item/material/stick', count: 1 }, { type: 'item/material/plank', count: 1 }] }),
   F('fixture/tent', 'tent', '帐篷', ['cloth', 'flammable', 'shelter', 'opaque'], { solid: true, footprint: [3, 3] }),
+  // a coil of rope laid on the ground (the Ford's ferrykeeper's spare line, content ford.ts FORD_CAMP)
+  F('fixture/coil', 'coil of rope', '一盘绳子', ['flammable'], { solid: false, sprite: 'fixture:rope_coil' }),
   // the watchman's wall hooks in the Cloudtop shelter (content chapter1.ts WATCH_SHELTER): they hold his cloak, by their own rules
   F('fixture/cloak_hooks', 'cloak hooks', '斗篷挂钩', []),
   // a tent left to rot, drawn torn (the forest's pilgrims' camp: docs/release-1.md)
@@ -692,6 +697,7 @@ const fixtureTypes: TypeDef[] = [
   F('fixture/nature/haystack', 'haystack', '干草垛', ['plant', 'flammable', 'dry']),
   F('fixture/nature/logpile', 'log pile', '柴堆', ['wooden', 'flammable']),
   F('fixture/nature/logpile/stack', 'firewood', '柴垛', [], { sprite: 'fixture:firewood' }),
+  F('fixture/nature/logpile/planks', 'spare planks', '备用木板', [], { sprite: 'fixture:plank_stack' }),
   F('fixture/nature/stump', 'stump', '树墩', ['wooden', 'flammable', 'surface'], { props: { material: 'wood', maxHp: 6, hp: 6 }, makeup: [{ type: 'item/material/log', count: 2 }] }),
   // the small things of the ground: each a thing, never a picture
   F('fixture/nature/flowers', 'wildflowers', '野花', ['plant', 'flower', 'flammable'], { solid: false }),

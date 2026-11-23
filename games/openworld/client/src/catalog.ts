@@ -16,9 +16,10 @@ import { SLATE, type ReliefPalette } from '@openworld/runtime/src/assets/relief.
 import FACES from './faces.json'
 import { COURTYARD_BENCH, COURTYARD_PREFABS, COURTYARD_SCALE, COURTYARD_TERRAIN_LOOKS } from './cloudtop-courtyard.ts'
 import BUILDINGS_JSON from './buildings.json'
+import FERRY_CAMP_JSON from './ferry-camp.json'
 import LOUDNESS from './loudness.json'
 import { CROP_FIXTURES, CROP_ITEMS, FLOWER_FIXTURES, FLOWER_ITEMS } from './crops.ts'
-import { SET_PIECES, WATCH_SHELTER } from '@openworld-game/content'
+import { FORD_CAMP, SET_PIECES, WATCH_SHELTER } from '@openworld-game/content'
 
 // ---------------------------------------------------------------------------------------------
 // Sheet paths
@@ -63,6 +64,16 @@ function px(img: string, x: number, y: number, w: number, h: number, ax = w / 2,
 /** A whole small image used as an icon (anchor bottom-centre). */
 function icon(img: string, w: number, h: number): SpriteDef {
   return { img, x: 0, y: 0, w, h, ax: Math.floor(w / 2), ay: h }
+}
+/**
+ * A piece of the ferrykeeper's camp at Vesper Ford (tools/src/art/ferry-camp.py → ferry-camp.json): where it is on the
+ * camp's sheet, and where on it the foot of the cell it stands on is (a group's piece stands off its middle, where the
+ * group's picture has it).
+ */
+function ferryCamp(piece: string): SpriteDef {
+  const p = (FERRY_CAMP_JSON as unknown as { img: string; pieces: Record<string, { x: number; y: number; w: number; h: number; ax: number; ay: number }> }).pieces[piece]
+  if (!p) throw new Error(`no piece ${piece} of the ferry camp`)
+  return px(FERRY_CAMP_JSON.img, p.x, p.y, p.w, p.h, p.ax, p.ay)
 }
 /** UI piece: whole image, anchored top-left. */
 function ui(img: string, w: number, h: number, extra: Partial<SpriteDef> = {}): SpriteDef {
@@ -295,6 +306,13 @@ export const CATALOG: Catalog = {
       open: px('lsw/Fixtures/WatchShelter.png', 160, 0, 32, 24, 16, 30),
     },
     [WATCH_SHELTER.log.id]: { map: WATCH_SHELTER.map, x: WATCH_SHELTER.log.x, y: WATCH_SHELTER.log.y, sprite: px('lsw/Fixtures/WatchShelter.png', 32, 0, 32, 24, 19, 23) },
+    // the ferrykeeper's camp at the Ford, each thing drawn with its piece of the camp pack (content ford.ts FORD_CAMP,
+    // named as its piece is; the lantern by the pond with the lantern post's); the fire is drawn cold, and the game's
+    // flame burns over it while it is lit; the old axe is drawn in the block while it lies there
+    ...((): Catalog['placedSprites'] => {
+      const { map, ...things } = FORD_CAMP
+      return Object.fromEntries(Object.entries(things).map(([name, t]) => [t.id, { map, x: t.x, y: t.y, sprite: ferryCamp(name === 'pondLantern' ? 'lantern' : name), ...(name === 'axe' && { scale: 1 }) }]))
+    })(),
   },
   composites: {
     'composite:garden_pavilion': (() => {
@@ -727,6 +745,10 @@ export const CATALOG: Catalog = {
     'fixture:firewood': { base: t(CAMP, 0, 0, 2, 1) },
     'fixture:lantern': { base: t(CAMP, 6, 5, 1, 2) },
     'fixture:tent': { base: t(CAMP, 7, 0, 3, 3) },
+    // the ferrykeeper's tool rack, her spare planks and her coil of rope (tools/src/art/ferry-camp.py)
+    'fixture:tool_rack': { base: ferryCamp('stall') },
+    'fixture:plank_stack': { base: ferryCamp('planks') },
+    'fixture:rope_coil': { base: ferryCamp('rope') },
     // the watchman's wall hooks, bare (tools/src/art/watch-shelter.ts; the Cloudtop pair is drawn with its cloak by placedSprites)
     'fixture:cloak_hooks': { base: px('lsw/Fixtures/WatchShelter.png', 64, 0, 32, 24, 16, 44) },
     'fixture:tent_torn': { base: t(CAMP, 10, 0, 3, 3) },
