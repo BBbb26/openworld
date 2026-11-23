@@ -75,6 +75,8 @@ export const AT = {
   torch: [15, 17],
   bucket: [25, 17],
   winch: [25, 15],
+  /** the line's post on the far bank, beside the far pier: pulled, it calls the ferry back */
+  farWinch: [36, 15],
   raft: [28, 16],
   deadTree: [28, 10],
   burrow: [5, 4],
@@ -89,6 +91,8 @@ export const STAND = {
   tree: [27, 10],
   /** south of the winch, on the landing */
   winch: [25, 16],
+  /** south of the far post, on the far bank */
+  farWinch: [36, 16],
   /** on the bank, with the river right (east) of it: where frost is cast to start a path */
   castFrom: [26, 13],
   /** a bank tile with water east of it, to fill a bucket */
@@ -238,7 +242,9 @@ function buildMap(): MapBuilder {
   m.fixture('fixture/sign', 40, 14, { props: { text: "EAST — the Pilgrims' Rest, and the Pilgrim's Road beyond it.", text_zh: '往东——朝圣者驿站，再往前是朝圣者之路。' } })
   m.fixture('fixture/nature/haystack', ...AT.haystack)
   // the landing: the post the ferry line ran from, the boat on the water, a bucket, a coil of old line
-  m.fixture('fixture/ferry/winch', ...AT.winch, { id: 'ford.winch', statuses: { broken: -1 } })
+  m.fixture('fixture/ferry/winch', ...AT.winch, { id: 'ford.winch', statuses: { broken: -1 }, props: { ferry: 'over' } })
+  // the line's other end, a post on the far bank: once the line is mended, a pull on either calls her to the other side
+  m.fixture('fixture/ferry/winch', ...AT.farWinch, { id: 'ford.winch.far', props: { ferry: 'back' } })
   m.fixture('fixture/ferry/raft', ...AT.raft, { id: 'ford.raft' })
   m.item('item/vessel/bucket/empty', ...AT.bucket)
   // the dead tree at the narrows, and the hollow the slimes come out of
@@ -636,6 +642,20 @@ const scenes: StepDef[] = [
       { place: 'npc.hesper', map: 'ford', x: 23, y: 14 },
       { fade: 'in' },
       say('npc.hesper', 'There. Mind the step. Mind the road, too. Nobody has walked it since the storm.', '到了。上岸当心脚下。那条路风暴以后还没人走过，路上也当心。'),
+    ],
+  },
+  {
+    // The ferry back: the line pulled at the far post, she comes over for you and rows you home to the camp's side.
+    id: 'ferry_back',
+    when: { map: 'ford' },
+    manual: true,
+    script: [
+      { fade: 'out' },
+      { wait: 12 },
+      { warp: 'ford', x: STAND.winch[0], y: STAND.winch[1] },
+      { place: 'npc.hesper', map: 'ford', x: 23, y: 14 },
+      { fade: 'in' },
+      say('npc.hesper', 'I felt the line jump. Back again, then. The fire is still going.', '我感觉到绳子在跳。又回来了。火还没灭。'),
     ],
   },
   {

@@ -618,6 +618,37 @@ req('F2a', 'the ferry:the rope from her chest, the winch mended, and she takes y
   expect(far(f)).toBe(true)
 })
 
+req('F2d', "the ferry runs both ways: a post on each bank holds the line, and once it is mended a pull on either calls her, so whoever crossed by her can come back to the camp's side (and go over again)", ['ford.winch.far'], () => {
+  // before the line is mended, the far post only says it hangs slack: nobody comes
+  const g = fresh()
+  stand(g, ...STAND.farWinch)
+  W(g).fx = []
+  expect(run(g, 'hands', ...AT.farWinch).rule).toBe('ford/call-ferry')
+  expect(W(g).fx.some((x) => x.t === 'log' && /slack/.test(JSON.stringify((x as { text?: unknown }).text)))).toBe(true)
+  ticks(g, 40)
+  expect(W(g).posOf(W(g).player)).toMatchObject({ map: 'ford', x: STAND.farWinch[0], y: STAND.farWinch[1] })
+  const f = fresh()
+  const camp = W(f).partAt('ford', ...AT.spawn)
+  const side = () => W(f).partAt('ford', W(f).posOf(W(f).player)!.x, W(f).posOf(W(f).player)!.y)
+  const idle = () => ticks(f, 600, () => !W(f).scene)
+  // over by her, as the first time
+  byFerry(f)
+  expect(far(f)).toBe(true)
+  idle()
+  expect(side()).not.toBe(camp)
+  // back: the far post's line pulled
+  stand(f, ...STAND.farWinch)
+  expect(run(f, 'hands', ...AT.farWinch).rule).toBe('ford/call-ferry')
+  expect(ticks(f, 600, () => side() === camp)).toBe(true)
+  expect(W(f).posOf(W(f).player)).toMatchObject({ map: 'ford', x: STAND.winch[0], y: STAND.winch[1] })
+  idle()
+  // and over again from the near post
+  stand(f, ...STAND.winch)
+  expect(run(f, 'hands', ...AT.winch).rule).toBe('ford/call-ferry')
+  expect(ticks(f, 600, () => side() !== camp)).toBe(true)
+  expect(W(f).posOf(W(f).player)).toMatchObject({ map: 'ford', x: AT.farLanding[0], y: AT.farLanding[1] })
+})
+
 req('F2b', 'the dead tree: the axe, three blows from the west, and a walk across', ['item/weapon/blade/axe', 'fixture/nature/dead_tree'], () => {
   const f = fresh()
   byTree(f)
