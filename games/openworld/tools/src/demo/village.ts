@@ -346,7 +346,7 @@ export function villageInteriors(): Interior[] {
   }
   // the general store: the shop (shelves, the counter, Greta behind it), the storeroom behind it, her room
   // The shop shares the square's cue, so entering and leaving carries on the same piece (or its rest).
-  const { m: store, P: ST } = flHouse('flstore', 'meadow.store', 'General Store', '杂货铺', 'floor_wood', ['shop', 'store', 'room'], { music: 'firstlight' })
+  const { m: store, P: ST } = flHouse('flstore', 'meadow.store', 'General Store', '杂货铺', 'floor_wood', ['shop', 'store', 'room'], { music: 'firstlight_route' })
   {
     const S = ST.shop
     for (const x of [S.x, S.x + 1, S.x + 2, S.x + 6, S.x + 7, S.x + 8]) store.fixture('fixture/container/shelf', x, S.y)

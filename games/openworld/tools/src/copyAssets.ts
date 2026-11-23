@@ -33,8 +33,7 @@ export function catalogPaths(): string[] {
   // a music cue is a file or its pieces (docs/music.md)
   for (const cue of Object.values(c.music)) for (const p of typeof cue === 'string' ? [cue] : (cue.tracks ?? [])) paths.add(p)
   for (const p of Object.values(c.sfx)) paths.add(p)
-  // the project's own art (public/assets/lsw/) is not the pack's
-  return [...paths].filter((p) => !p.startsWith('lsw/')).sort()
+  return [...paths].filter((p) => !p.startsWith('lsw/') && !p.startsWith('own/')).sort()
 }
 
 /**

@@ -35,6 +35,7 @@ export function momentsOf(m: Moment): MusicMoment[] {
 /** A cue by name, through its `like`s and its versions for the moment: the name it comes to and its pieces. */
 export function resolveCue(cues: Record<string, string | MusicCue>, name: string, moment?: Moment): { name: string; cue: MusicCue } | undefined {
   const seen = new Set<string>()
+  let moments = moment && momentsOf(moment)
   let n = name
   for (;;) {
     if (seen.has(n)) return undefined
@@ -42,13 +43,12 @@ export function resolveCue(cues: Record<string, string | MusicCue>, name: string
     const raw = cues[n]
     if (raw === undefined) return undefined
     const cue: MusicCue = typeof raw === 'string' ? { tracks: [raw] } : raw
-    if (cue.like) {
-      n = cue.like
-      continue
-    }
-    const version = moment && cue.at ? momentsOf(moment).map((m) => cue.at![m]).find((v) => v && cues[v] !== undefined && !seen.has(v)) : undefined
-    if (version) {
-      n = version
+    // The time-of-day version is last; keep this restriction when following the cue's fallback.
+    if (cue.ignoreWeather && moments) moments = moments.slice(-1)
+    const version = moments && cue.at ? moments.map((m) => cue.at![m]).find((v) => v && cues[v] !== undefined && !seen.has(v)) : undefined
+    const nextCue = version ?? cue.like
+    if (nextCue) {
+      n = nextCue
       continue
     }
     return cue.tracks?.length ? { name: n, cue } : undefined

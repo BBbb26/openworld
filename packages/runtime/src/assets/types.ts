@@ -203,6 +203,10 @@ export interface Catalog {
    * `indoor`, `dark` for a map that names no mood. A cue is a file, or a MusicCue. Paths relative to the pack root.
    */
   music: Record<string, string | MusicCue>
+  /** Maps where ordinary fights keep the place music playing. */
+  noBattleMusic?: string[]
+  /** Maps where the ambience omits nighttime cricket chirps. */
+  noCrickets?: string[]
   /** Each music file's measured loudness (integrated LUFS, `npm run loudness`): every piece is played as loud as the rest. */
   loudness?: Record<string, number>
   sfx: Record<string, string>
@@ -246,12 +250,16 @@ export type MusicMoment = 'dawn' | 'day' | 'dusk' | 'night' | 'rain' | 'storm' |
 export interface MusicCue {
   /** The pieces, played in a shuffled order that never plays the same one twice running. */
   tracks?: string[]
-  /** Another cue it is the same as (a mood that sounds like another). */
+  /** The cue to use when none of this cue's versions matches the moment. */
   like?: string
   /** Seconds of silence after each piece, [least, most]. */
   rest?: [number, number]
   /** How loud against the others, 0–1 (default 1). */
   volume?: number
+  /** Crossfade in when this place cue is selected, even if the previous piece is still playing. */
+  enterImmediately?: boolean
+  /** Select versions by time of day only, including through the fallback cue. */
+  ignoreWeather?: boolean
   /** Its versions by the hour and the weather: the cue played instead (the weather's first, then the hour's). */
   at?: Partial<Record<MusicMoment, string>>
 }
