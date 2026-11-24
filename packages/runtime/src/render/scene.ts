@@ -12,6 +12,7 @@ import { LSW_FLOOR, LSW_STAIRS, LSW_WALL } from '../assets/types.ts'
 import { faceFrame, personLook } from '../assets/looks.ts'
 import { crowdLook, figureDef, figureId, portraitOf, preparePortrait } from '../assets/figure/index.ts'
 import { RUN_ROW } from '../assets/figure/sprite.ts'
+import { themedFixture } from '../assets/themes.ts'
 import { GroundAtlas, T, groundBeneath, groundTile, hash2, lookCellsWithWhen, objectAt } from '../assets/ground.ts'
 import { SLATE, paintRelief } from '../assets/relief.ts'
 import { paintSnowTile } from '../assets/snow.ts'
@@ -1368,14 +1369,23 @@ export class WorldScene extends Phaser.Scene {
     // a thing set in its cell (a built wall, a laid floor) is drawn as part of the place; a fixture
     // one can carry (a bed) is drawn as itself once set down, not as its icon in the bag
     if (!e.tags.includes('agent') && (!e.tags.includes('portable') || e.spaces || e.type.startsWith('fixture/'))) {
+      // the look the map's theme gives it (a farmhouse's plain bed, a lord's seat's rich one)
+      const themed = themedFixture(catalog(), e.sprite, this.base?.id, e.statuses.includes('lit'), e.facing)
+      if (themed) {
+        const [frame] = spriteFrames(this, themed.key, themed.def)
+        return { img: themed.def.img, frame, ax: themed.def.ax, ay: themed.def.ay, scale: themed.scale }
+      }
       const f = this.fixtureDef(e)
       if (f) {
         // a look of its own among the type's variants, kept for its life
         const v = f.variants?.length ? hashStr(e.id) % f.variants.length : -1
         // a thing that turns, turned east or west, shows its picture across (a fence running north-south)
         const across = (e.facing === 'left' || e.facing === 'right') && f.across
-        const d = ((e.statuses.includes('lit') || e.statuses.includes('attuned')) && f.lit) || (e.open && f.open) || across || (v >= 0 ? f.variants![v] : f.base)
-        const [frame] = spriteFrames(this, `fix:${e.sprite}:${d === f.lit ? 'lit' : d === f.open ? 'open' : d === across ? 'across' : v >= 0 ? `v${v}` : 'base'}`, d)
+        // lit: the variant's own lit picture, else the type's; open: with its things in, or empty
+        const lit = (e.statuses.includes('lit') || e.statuses.includes('attuned')) && ((v >= 0 && f.litVariants?.[v]) || f.lit)
+        const open = e.open && ((!e.hasContents && f.emptied) || f.open)
+        const d = lit || open || across || (v >= 0 ? f.variants![v] : f.base)
+        const [frame] = spriteFrames(this, `fix:${e.sprite}:${d === lit ? (d === f.lit ? 'lit' : `lit${v}`) : d === open ? (d === f.emptied ? 'emptied' : 'open') : d === across ? 'across' : v >= 0 ? `v${v}` : 'base'}`, d)
         return { img: d.img, frame, ax: d.ax, ay: d.ay, scale: f.scale }
       }
     }
@@ -1757,7 +1767,7 @@ export class WorldScene extends Phaser.Scene {
     v.root.setVisible(!(!!me && (e.z ?? 0) > me.z && (this.ceilingOverlay || this.underRoof.has(`${e.x},${e.y}`))))
     // status overlay + tint
     // (a thing with a lit picture of its own, a brazier, shows that, not a flame over it)
-    const top = OVERLAY_FX.find(([o]) => e.overlays?.includes(o) && !(o === 'flame' && catalog().fixtures[e.sprite]?.lit))
+    const top = OVERLAY_FX.find(([o]) => e.overlays?.includes(o) && !(o === 'flame' && (catalog().fixtures[e.sprite]?.lit || themedFixture(catalog(), e.sprite, this.base?.id, true)?.key.endsWith(':lit'))))
     const want = top?.[1]
     if (want !== v.overlayName) {
       v.overlay?.destroy()

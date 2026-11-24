@@ -19,6 +19,9 @@ import BUILDINGS_JSON from './buildings.json'
 import FERRY_CAMP_JSON from './ferry-camp.json'
 import FORD_CROSSING_JSON from './ford-crossing.json'
 import GENERIC_PROPS_JSON from './generic-props.json'
+import INTERIOR_FURNITURE_JSON from './interior-furniture.json'
+import CONTAINERS_JSON from './containers.json'
+import LIGHTS_JSON from './lights.json'
 import LOUDNESS from './loudness.json'
 import { CROP_FIXTURES, CROP_ITEMS, FLOWER_FIXTURES, FLOWER_ITEMS } from './crops.ts'
 import { FORD_CAMP, SET_PIECES, WATCH_SHELTER } from '@openworld-game/content'
@@ -118,6 +121,53 @@ function genericProp(piece: string): SpriteDef {
   return px(GENERIC_PROPS_JSON.img, p.x, p.y, p.w, p.h, p.ax, p.ay)
 }
 const GENERIC_PROPS_SCALE = GENERIC_PROPS_JSON.scale
+/**
+ * The containers and goods (tools/src/art/containers.py → containers.json): the art pack's own at four pixels to the
+ * game's one (drawn at `CONTAINERS_SCALE`).
+ */
+function container(piece: string): SpriteDef {
+  const p = (CONTAINERS_JSON as unknown as { pieces: Record<string, { x: number; y: number; w: number; h: number; ax: number; ay: number }> }).pieces[piece]
+  if (!p) throw new Error(`no piece ${piece} of the containers`)
+  return px(CONTAINERS_JSON.img, p.x, p.y, p.w, p.h, p.ax, p.ay)
+}
+const CONTAINERS_SCALE = CONTAINERS_JSON.scale
+/** A piece of one of the art packs cut by tools/src/art/*.py (`{img, scale, pieces}`), drawn at its `scale`. */
+function packPiece(pack: { img: string }, piece: string): SpriteDef {
+  const p = (pack as unknown as { pieces: Record<string, { x: number; y: number; w: number; h: number; ax: number; ay: number }> }).pieces[piece]
+  if (!p) throw new Error(`no piece ${piece} in ${pack.img}`)
+  return px(pack.img, p.x, p.y, p.w, p.h, p.ax, p.ay)
+}
+const furniture = (piece: string) => packPiece(INTERIOR_FURNITURE_JSON, piece)
+const light = (piece: string) => packPiece(LIGHTS_JSON, piece)
+/**
+ * The furniture of the rooms in two makes, plain and rich, and the tavern's tables and seats (tools/src/art/
+ * interior-furniture.py → interior-furniture.json): the art pack's own at four pixels to the game's one; which a room
+ * has is its map's theme, by the rules the script writes beside them (by what the room is, else the place it is a room
+ * of, else picked by the map). A table and its seats are sets, one to a room; a seat faces the table beside it (its
+ * picture turned west, `left`). The pot's beside them (containers.py), and the lights' (lights.py), lit and cold.
+ */
+const INTERIOR_THEMES: NonNullable<Catalog['fixtureThemes']> = (() => {
+  const j = INTERIOR_FURNITURE_JSON as unknown as { scale: number; rules: { match: string; theme: string }[]; pieces: Record<string, unknown> }
+  const scale = j.scale
+  const looks: NonNullable<Catalog['fixtureThemes']>['looks'] = {}
+  for (const k of ['bed', 'long_table', 'counter', 'shelf', 'bookshelf', 'workbench', 'fireplace', 'plant'])
+    looks[`fixture:${k}`] = Object.fromEntries(['plain', 'rich'].map((t) => [t, { sprite: furniture(`${k}_${t}`), ...(j.pieces[`${k}_${t}_lit`] ? { lit: furniture(`${k}_${t}_lit`) } : {}), scale }]))
+  // a table and its seats, a set to a room (`_2` a theme's second); a seat with a picture turned west faces the table
+  const seat = (n: string) => ({ sprite: furniture(n), ...(j.pieces[`${n}_left`] ? { left: furniture(`${n}_left`) } : {}), scale })
+  const sets = (t: string) => [t, `${t}_2`]
+  looks['fixture:table'] = Object.fromEntries(['plain', 'rich', 'tavern'].map((t) => [t, sets(`table_${t}`).map((n) => ({ sprite: furniture(n), scale }))]))
+  looks['fixture:chair'] = Object.fromEntries(['plain', 'rich', 'tavern'].map((t) => [t, sets(`chair_${t}`).map((n) => seat(j.pieces[n] ? n : `chair_${t}`))]))
+  // the pot, plain or painted (tools/src/art/containers.py)
+  looks['fixture:pot'] = { plain: { sprite: container('pot_plain'), scale: CONTAINERS_SCALE }, rich: { sprite: container('pot_rich'), scale: CONTAINERS_SCALE } }
+  // the lights, cold and lit (tools/src/art/lights.py): the candlestick of a rich room one of its two candelabra
+  for (const k of ['brazier', 'lamppost', 'lantern'])
+    looks[`fixture:${k}`] = Object.fromEntries(['plain', 'rich'].map((t) => [t, { sprite: light(`${k}_${t}`), lit: light(`${k}_${t}_lit`), scale: LIGHTS_JSON.scale }]))
+  const candles = (n: string) => ({ sprite: light(n), lit: light(`${n}_lit`), scale: LIGHTS_JSON.scale })
+  looks['fixture:candles'] = { plain: candles('candles_plain'), rich: [candles('candles_rich'), candles('candelabrum')] }
+  // the tavern's rest is the plain room's
+  for (const byTheme of Object.values(looks)) byTheme.tavern ??= byTheme.plain
+  return { rules: j.rules, looks }
+})()
 /** UI piece: whole image, anchored top-left. */
 function ui(img: string, w: number, h: number, extra: Partial<SpriteDef> = {}): SpriteDef {
   return { img, x: 0, y: 0, w, h, ax: 0, ay: 0, ...extra }
@@ -542,6 +592,8 @@ export const CATALOG: Catalog = {
   groundLooks: {
     ford: Object.fromEntries([29, 30, 31, 32, 33, 34].map((x) => [`${x},10`, { terrain: 'bridge', as: 'water', when: FELLED }])),
   },
+  // a room's furniture by its map's theme (tools/src/art/interior-furniture.py)
+  fixtureThemes: INTERIOR_THEMES,
   terrainObjectGaps: {
     summit: { terrain: 'drygrass', cells: [[5, 9], [8, 10], [6, 12]] },
   },
@@ -761,11 +813,13 @@ export const CATALOG: Catalog = {
   fixtures: {
     'fixture:fixture': { base: t(DUNGEON, 2, 1), open: t(DUNGEON, 3, 1) },
     'fixture:container': { base: px('Items/Treasure/BigTreasureChest.png', 0, 0, 16, 14), open: px('Items/Treasure/BigTreasureChest.png', 16, 0, 16, 14) },
-    'fixture:chest': { base: px('Items/Treasure/BigTreasureChest.png', 0, 0, 16, 14), open: px('Items/Treasure/BigTreasureChest.png', 16, 0, 16, 14) },
-    // a barrel is 22px tall in the house sheet, its lid in the row above (cut a tile high it lost its top)
-    'fixture:barrel': { base: px(HOUSE, 256, 234, 16, 22, 8, 22), open: px(HOUSE, 272, 234, 16, 22, 8, 22) },
-    'fixture:crate': { base: t(DUNGEON, 2, 1), open: t(DUNGEON, 3, 1) },
-    'fixture:pot': { base: t(ELEM, 2, 9) },
+    // the containers: the chest and the crate shut, open with things in, open and empty (tools/src/art/
+    // interior-furniture.py); the barrel and the sack shut and open (tools/src/art/containers.py)
+    'fixture:chest': { base: furniture('chest'), open: furniture('chest_open'), emptied: furniture('chest_empty'), scale: INTERIOR_FURNITURE_JSON.scale },
+    'fixture:barrel': { base: container('barrel'), open: container('barrel_open'), scale: CONTAINERS_SCALE },
+    'fixture:crate': { base: furniture('crate'), open: furniture('crate_open'), emptied: furniture('crate_empty'), scale: INTERIOR_FURNITURE_JSON.scale },
+    // (plain or painted by the map's theme: fixtureThemes)
+    'fixture:pot': { base: container('pot_plain'), scale: CONTAINERS_SCALE },
     'fixture:wardrobe': { base: t(ELEM, 2, 7, 1, 2) },
     // the dresser's standing mirror (TilesetElement (8,10))
     'fixture:mirror': { base: t(ELEM, 8, 10) },
@@ -773,7 +827,7 @@ export const CATALOG: Catalog = {
     'fixture:bookshelf': { base: t(ELEM, 3, 7, 1, 2) },
     // the showcase's furniture, drawn by the oblique renderer (tools/src/art/arch/buildings/inside.ts, BUILDINGS_JSON.props)
     ...propFixtures(),
-    'fixture:sack': { base: t(ELEM, 1, 1) },
+    'fixture:sack': { base: container('sack'), open: container('sack_open'), scale: CONTAINERS_SCALE },
     'fixture:furniture': { base: t(ELEM, 5, 7) },
     'fixture:table': { base: t(ELEM, 5, 7) },
     // a household's furniture (docs/release-1.md): the long table (3x1, centred on its cell like its footprint), the
@@ -801,8 +855,10 @@ export const CATALOG: Catalog = {
     'fixture:soot': { base: px('lsw/Fixtures/Soot.png', 0, 0, 48, 32, 24, 22), ground: true },
     'fixture:stump': { base: t(CAMP, 1, 5, 2, 2) },
     // the camp sheet's stack of split logs, their ends out (2x1)
-    'fixture:firewood': { base: t(CAMP, 0, 0, 2, 1) },
-    'fixture:lantern': { base: t(CAMP, 6, 5, 1, 2) },
+    // logs bound, or split wood: each pile its own (tools/src/art/containers.py)
+    'fixture:firewood': { base: container('firewood_logs'), variants: [container('firewood_logs'), container('firewood_split')], scale: CONTAINERS_SCALE },
+    // (plain or rich by the map's theme, as the brazier, the lamp post and the candlestick: fixtureThemes)
+    'fixture:lantern': { base: light('lantern_plain'), lit: light('lantern_plain_lit'), scale: LIGHTS_JSON.scale },
     'fixture:tent': { base: t(CAMP, 7, 0, 3, 3) },
     // the ferrykeeper's tool rack, her spare planks and her coil of rope (tools/src/art/ferry-camp.py)
     'fixture:tool_rack': { base: ferryCamp('stall') },
@@ -823,11 +879,11 @@ export const CATALOG: Catalog = {
     'fixture:counter': { base: t(ELEM, 14, 0) },
     'fixture:stall': { base: t(ELEM, 7, 1, 1, 2) },
     'fixture:light': { base: px(ELEM, 96, 48, 16, 32, 8, 29) },
-    'fixture:campfire': { base: px(CAMP, 192, 80, 32, 32, 16, 24) },
-    'fixture:brazier': { base: t(HOUSE, 32, 11), lit: t(HOUSE, 31, 11) },
-    'fixture:lamppost': { base: px(ELEM, 96, 48, 16, 32, 8, 29) },
-    // The only candle in the pack is already burning.
-    'fixture:candles': { base: t(CAMP, 13, 7) },
+    // a ring of stones round its logs, or its sticks stood up over the fire: each campfire its own, cold and lit (tools/src/art/lights.py)
+    'fixture:campfire': { base: light('campfire_ring'), variants: [light('campfire_ring'), light('campfire_tepee')], lit: light('campfire_ring_lit'), litVariants: [light('campfire_ring_lit'), light('campfire_tepee_lit')], scale: LIGHTS_JSON.scale },
+    'fixture:brazier': { base: light('brazier_plain'), lit: light('brazier_plain_lit'), scale: LIGHTS_JSON.scale },
+    'fixture:lamppost': { base: light('lamppost_plain'), lit: light('lamppost_plain_lit'), scale: LIGHTS_JSON.scale },
+    'fixture:candles': { base: light('candles_plain'), lit: light('candles_plain_lit'), scale: LIGHTS_JSON.scale },
     'fixture:fireplace': { base: px(HOUSE, 464, 176, 32, 32, 16, 30) },
     'fixture:water': { base: t(ELEM, 6, 2) },
     'fixture:well': { base: t(ELEM, 6, 2) },
@@ -957,7 +1013,8 @@ export const CATALOG: Catalog = {
     'fixture:vein_gold': { base: t(NATURE, 5, 14) },
     // a vein's spent face: a plain rock face, no ore showing
     'fixture:spentvein': { base: t(NATURE, 6, 16) },
-    'fixture:haystack': { base: px(ELEM, 192, 64, 16, 32, 8, 31) },
+    // bales or a sheaf: each its own (tools/src/art/containers.py)
+    'fixture:haystack': { base: container('hay_bales'), variants: [container('hay_bales'), container('hay_sheaf')], scale: CONTAINERS_SCALE },
     // a felled log lying (the camp sheet's): the house sheet's plank drawn for it read as a bench
     'fixture:logpile': { base: px(CAMP, 16, 29, 32, 18, 16, 18) },
     // No static mushroom art: first frame of the (red-capped) Mushroom monster.
@@ -1008,7 +1065,8 @@ export const CATALOG: Catalog = {
     'fixture:scarecrow': { base: px('lsw/Fixtures/Scarecrow.png', 0, 0, 16, 32, 8, 31) },
     // the pack's line on its posts with its laundry pegged on it, put together (tools/src/art/washing-line.ts)
     'fixture:washing_line': { base: px('lsw/Fixtures/WashingLine.png', 0, 0, 64, 32, 32, 31) },
-    'fixture:cart': { base: t(ELEM, 0, 3, 2, 2, 16, 30) },
+    // empty, or loaded with a sack and a crate under a cloth: each its own (tools/src/art/containers.py)
+    'fixture:cart': { base: container('cart_empty'), variants: [container('cart_empty'), container('cart_loaded')], scale: CONTAINERS_SCALE },
     'fixture:flower_cart': { base: t(ELEM, 2, 3, 2, 2, 16, 30) },
     'fixture:workbench': { base: t(HOUSE, 29, 8, 2, 1, 16, 16) },
   },

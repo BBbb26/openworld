@@ -15,6 +15,7 @@ import { OntologyIndex, type Dir, type Entity, type Look } from '@openworld/engi
 import { TERRAIN_CHARS } from '@openworld-game/content'
 import { LSW_FLOOR, LSW_STAIRS, LSW_WALL } from '@openworld/runtime/src/assets/types.ts'
 import { CATALOG } from './bundle.ts'
+import { themedFixture } from '@openworld/runtime/src/assets/themes.ts'
 import { T, groundBeneath, groundTile, hash2, objectAt, type GroundAtlas } from '@openworld/runtime/src/assets/ground.ts'
 import { paintSnowTile } from '@openworld/runtime/src/assets/snow.ts'
 import { SLATE, paintRelief } from '@openworld/runtime/src/assets/relief.ts'
@@ -382,11 +383,16 @@ function bodyOf(e: Snap, mapId: string): Body | undefined {
     return { img, rect: [pose.col * fw, pose.row * fh, fw, fh], ox: a.anchorX ?? fw / 2, oy: a.anchorY ?? fh, scale: a.scale, tint: a.tint, flipX: 'flipX' in pose ? pose.flipX : undefined }
   }
   if (!e.tags.includes('portable') || e.spaces || e.type.startsWith('fixture/')) {
+    const themed = themedFixture(CATALOG, e.sprite, mapId, e.statuses.includes('lit'), e.facing)
+    if (themed) {
+      const img = image(themed.def.img)
+      if (img) return { img, rect: frameOf(themed.def), ox: themed.def.ax, oy: themed.def.ay, scale: themed.scale }
+    }
     const f = fixtureDef(e)
     if (f) {
       // a look of its own among the type's variants, kept for its life
       const v = f.variants?.length ? hashStr(e.id) % f.variants.length : -1
-      const d = ((e.statuses.includes('lit') || e.statuses.includes('attuned')) && f.lit) || (e.open && f.open) || (v >= 0 ? f.variants![v] : f.base)
+      const d = ((e.statuses.includes('lit') || e.statuses.includes('attuned')) && ((v >= 0 && f.litVariants?.[v]) || f.lit)) || (e.open && ((!e.hasContents && f.emptied) || f.open)) || (v >= 0 ? f.variants![v] : f.base)
       const img = image(d.img)
       return img && { img, rect: frameOf(d), ox: d.ax, oy: d.ay, scale: f.scale }
     }
@@ -579,7 +585,7 @@ export function renderMap(g: Game, mapId: string, scale = 1): { w: number; h: nu
     }
     parts.push(...after)
     // what a status draws over it (a brazier with a lit picture of its own shows that, not a flame)
-    const top = OVERLAY_FX.find(([o]) => e.overlays.includes(o) && !(o === 'flame' && CATALOG.fixtures[e.sprite]?.lit))
+    const top = OVERLAY_FX.find(([o]) => e.overlays.includes(o) && !(o === 'flame' && (CATALOG.fixtures[e.sprite]?.lit || themedFixture(CATALOG, e.sprite, mapId, true)?.key.endsWith(':lit'))))
     const ov = top && fxFrame(top[1], hashStr(e.id, 31))
     if (ov) parts.push(() => pic.blit({ ...ov, x: rx, y: ry, ox: ov.rect[2] / 2, oy: ov.rect[3], sx: ov.scale ?? 1, sy: ov.scale ?? 1 }))
     const hd = e.held && agent ? CATALOG.items[e.held] : undefined

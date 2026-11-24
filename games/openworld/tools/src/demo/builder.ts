@@ -676,9 +676,22 @@ export class MapBuilder {
     }
   }
 
+  /** A chair turns to the table beside it, east or west (its picture turned so), unless it was turned by hand. */
+  seatsToTables() {
+    const at = (e: Entity) => (e.place.on === 'tile' ? `${e.place.x},${e.place.y}` : '')
+    const tables = new Set(this.entities.filter((e) => e.type.startsWith('fixture/furniture/table')).map(at))
+    for (const e of this.entities) {
+      if (e.facing || e.place.on !== 'tile' || !e.type.startsWith('fixture/furniture/chair')) continue
+      const { x, y } = e.place
+      if (tables.has(`${x + 1},${y}`)) e.facing = 'right'
+      else if (tables.has(`${x - 1},${y}`)) e.facing = 'left'
+    }
+  }
+
   chunk(): RawChunk {
     this.clearVolumes()
     this.joinFences()
+    this.seatsToTables()
     // the ground a roof hides is walked as any other, one goes behind the house and out of sight (the user's call,
     // 2026-10-27): walled while the map was made, so nothing was laid where no one would see it, given back now
     for (const [key, ground] of this.covered) {

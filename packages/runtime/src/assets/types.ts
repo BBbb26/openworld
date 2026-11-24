@@ -150,6 +150,15 @@ export interface TerrainLook {
   when?: Record<string, string>
 }
 
+/** A fixture's look in a theme (Catalog.fixtureThemes). */
+export interface ThemeLook {
+  sprite: SpriteDef
+  lit?: SpriteDef
+  /** its picture facing west */
+  left?: SpriteDef
+  scale?: number
+}
+
 export interface Catalog {
   /** Registered source rectangles assembled once into a single ordinary sprite texture. */
   composites?: Record<string, { width: number; height: number; parts: { sprite: SpriteDef; x: number; y: number }[] }>
@@ -215,11 +224,19 @@ export interface Catalog {
    * Fixtures by sprite key. `variants`: looks picked per thing (by its id); `ground`: drawn flat
    * on the ground, under whatever stands there; `loose`: set a little off the grid, never in rows.
    */
-  fixtures: Record<string, { base: SpriteDef; open?: SpriteDef; lit?: SpriteDef; variants?: SpriteDef[]; ground?: boolean; loose?: boolean; /** Reuse an authored prop at the world's tile scale. */ scale?: number; /** its picture turned east or west (a fence running north-south) */ across?: SpriteDef }>
+  fixtures: Record<string, { base: SpriteDef; open?: SpriteDef; /** open with nothing in it (`open` is with things in) */ emptied?: SpriteDef; lit?: SpriteDef; variants?: SpriteDef[]; /** each variant's own `lit`, in its order */ litVariants?: SpriteDef[]; ground?: boolean; loose?: boolean; /** Reuse an authored prop at the world's tile scale. */ scale?: number; /** its picture turned east or west (a fence running north-south) */ across?: SpriteDef }>
   /** Item sprite keys used by the ontology ('item:sword', …) -> 16x16 icon; a weapon's, how it is seen as it strikes (`swing`). */
   items: Record<string, ItemSpriteDef>
   /** A prop's picture at its authored placement, with optional frames for open and filled containers. */
   placedSprites?: Record<string, { map: string; x: number; y: number; sprite: SpriteDef; open?: SpriteDef; filled?: SpriteDef; scale?: number; /** its look while it bears a status (the first it bears, in this order) */ statuses?: Record<string, SpriteDef> }>
+  /**
+   * Fixtures drawn by the theme of the map they stand on (assets/themes.ts): a map's theme is the first rule whose
+   * `match` (a regular expression) matches its id; a theme of several, space separated, is the one the map's id picks.
+   * A fixture with a look for it (by its sprite key) is drawn with it, `lit` while it is lit, `left` while it faces west
+   * (a chair turned to the table on its west); one with none as it is. A theme's looks in a list are sets (a table and
+   * its chairs): the map picks one, the same place in every list, so a room's table and chairs match.
+   */
+  fixtureThemes?: { rules: { match: string; theme: string }[]; looks: Record<string, Record<string, ThemeLook | ThemeLook[]>> }
   /** Posture contact points keyed by authored entity ID or fixture sprite. */
   furniturePoses?: Record<string, FurniturePose>
   /** Character looks for NPCs and the player: key -> sheet. */
