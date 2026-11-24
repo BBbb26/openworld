@@ -618,7 +618,7 @@ req('F2a', 'the ferry:the rope from her chest, the winch mended, and she takes y
   expect(far(f)).toBe(true)
 })
 
-req('F2d', "the ferry runs both ways: a post on each bank holds the line, and once it is mended a pull on either calls her, so whoever crossed by her can come back to the camp's side (and go over again)", ['ford.winch.far'], () => {
+req('F2d', "the ferry runs both ways: a post on each bank holds the line, and once it is mended a pull on either calls her, so whoever crossed by her can come back to the camp's side (and go over again)", ['fixture/ferry/winch'], () => {
   // before the line is mended, the far post only says it hangs slack: nobody comes
   const g = fresh()
   stand(g, ...STAND.farWinch)

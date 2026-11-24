@@ -288,7 +288,7 @@ export function buildCampWarhall(): MapBuilder {
     tags: ['readable'],
     props: { text: 'A map of the March pinned to the table. Across the middle ravine of the Lashmarks two lines of little flags face each other. They have been moved back and forth so often that the paper under them is worn through.', text_zh: '桌上钉着一张边境地图。鞭痕原中间那道沟的两边，两排小旗面对面插着。它们被来回挪了太多次，底下的纸都磨穿了。' },
   })
-  for (const x of [H.x + 9, H.x + 14]) m.fixture('fixture/furniture/chair', x, H.y + 4)
+  for (const x of [H.x + 9, H.x + 13]) m.fixture('fixture/furniture/chair', x, H.y + 3)
   m.fixture('fixture/furniture/throne', D.x + 4, D.y, { name: L("The captain's chair", '队长的椅子') })
   m.fixture('fixture/furniture/bed', D.x + 8, D.y, { name: L("The captain's cot", '队长的行军床') })
   for (const [x, y] of [[D.x, D.y], [D.x + 9, D.y]] as Cell[]) m.fixture(RED_STANDARD, x, y, banner(true))

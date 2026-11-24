@@ -392,7 +392,7 @@ function bodyOf(e: Snap, mapId: string): Body | undefined {
     if (f) {
       // a look of its own among the type's variants, kept for its life
       const v = f.variants?.length ? hashStr(e.id) % f.variants.length : -1
-      const d = ((e.statuses.includes('lit') || e.statuses.includes('attuned')) && ((v >= 0 && f.litVariants?.[v]) || f.lit)) || (e.open && ((!e.hasContents && f.emptied) || f.open)) || (v >= 0 ? f.variants![v] : f.base)
+      const d = ((e.statuses.includes('lit') || e.statuses.includes('attuned')) && ((v >= 0 && f.litVariants?.[v]) || f.lit)) || (e.open && ((!e.hasContents && f.emptied) || f.open)) || (e.facing === 'up' && f.back) || (v >= 0 ? f.variants![v] : f.base)
       const img = image(d.img)
       return img && { img, rect: frameOf(d), ox: d.ax, oy: d.ay, scale: f.scale }
     }

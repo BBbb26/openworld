@@ -676,16 +676,34 @@ export class MapBuilder {
     }
   }
 
-  /** A chair turns to the table beside it, east or west (its picture turned so), unless it was turned by hand. */
+  /**
+   * A seat turns to the table (or desk) it is set at, its picture turned so: a chair at the table's west or east end,
+   * a bench along its north or south side. The pictures show a chair from the side or the front, never from behind, so
+   * a chair north or south of a table is an error to fix where it is set (a bench goes there); one turned by hand is
+   * the author's.
+   */
   seatsToTables() {
-    const at = (e: Entity) => (e.place.on === 'tile' ? `${e.place.x},${e.place.y}` : '')
-    const tables = new Set(this.entities.filter((e) => e.type.startsWith('fixture/furniture/table')).map(at))
+    const table = new Set<string>()
+    for (const e of this.entities)
+      if (e.place.on === 'tile' && /^fixture\/furniture\/(table|desk)/.test(e.type)) {
+        const [w, d] = ONTO.resolve(e.type).footprint
+        for (let x = e.place.x - Math.floor((w - 1) / 2); x <= e.place.x + Math.floor(w / 2); x++) for (let y = e.place.y - d + 1; y <= e.place.y; y++) table.add(`${x},${y}`)
+      }
+    const wrong: string[] = []
     for (const e of this.entities) {
-      if (e.facing || e.place.on !== 'tile' || !e.type.startsWith('fixture/furniture/chair')) continue
+      if (e.facing || e.place.on !== 'tile') continue
       const { x, y } = e.place
-      if (tables.has(`${x + 1},${y}`)) e.facing = 'right'
-      else if (tables.has(`${x - 1},${y}`)) e.facing = 'left'
+      const at = (dx: number, dy: number) => table.has(`${x + dx},${y + dy}`)
+      if (e.type.startsWith('fixture/furniture/chair')) {
+        if (at(1, 0)) e.facing = 'right'
+        else if (at(-1, 0)) e.facing = 'left'
+        else if (at(0, 1) || at(0, -1)) wrong.push(`${x},${y}`)
+      } else if (e.type === 'fixture/furniture/bench') {
+        if (at(0, 1)) e.facing = 'down'
+        else if (at(0, -1)) e.facing = 'up'
+      }
     }
+    if (wrong.length) throw new Error(`${this.id}: a chair north or south of a table, at ${wrong.join(' ')} (set it at an end, or a bench there)`)
   }
 
   chunk(): RawChunk {

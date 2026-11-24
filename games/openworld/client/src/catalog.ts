@@ -22,6 +22,7 @@ import GENERIC_PROPS_JSON from './generic-props.json'
 import INTERIOR_FURNITURE_JSON from './interior-furniture.json'
 import CONTAINERS_JSON from './containers.json'
 import LIGHTS_JSON from './lights.json'
+import OUTDOOR_JSON from './outdoor.json'
 import LOUDNESS from './loudness.json'
 import { CROP_FIXTURES, CROP_ITEMS, FLOWER_FIXTURES, FLOWER_ITEMS } from './crops.ts'
 import { FORD_CAMP, SET_PIECES, WATCH_SHELTER } from '@openworld-game/content'
@@ -139,6 +140,8 @@ function packPiece(pack: { img: string }, piece: string): SpriteDef {
 }
 const furniture = (piece: string) => packPiece(INTERIOR_FURNITURE_JSON, piece)
 const light = (piece: string) => packPiece(LIGHTS_JSON, piece)
+/** A thing of the outdoors in its two makes (tools/src/art/outdoor.py), each thing one of them, at the pack's scale. */
+const outdoor = (key: string) => ({ base: packPiece(OUTDOOR_JSON, `${key}_1`), variants: [1, 2].map((i) => packPiece(OUTDOOR_JSON, `${key}_${i}`)), scale: OUTDOOR_JSON.scale })
 /**
  * The furniture of the rooms in two makes, plain and rich, and the tavern's tables and seats (tools/src/art/
  * interior-furniture.py → interior-furniture.json): the art pack's own at four pixels to the game's one; which a room
@@ -839,13 +842,14 @@ export const CATALOG: Catalog = {
     'fixture:plant': { base: t(ELEM, 0, 7, 1, 2) },
     'fixture:chair': { base: t(ELEM, 0, 9) },
     'fixture:bed': { base: t(BED, 5, 3, 1, 2) },
-    // a bench (tools/src/art/generic-props.py): each its own make, the backed one most (they stand in chapels and halls)
-    'fixture:bench': { base: genericProp('pew'), variants: [genericProp('pew'), genericProp('pew'), genericProp('bench'), genericProp('worn')], scale: GENERIC_PROPS_SCALE },
-    // the camp's things: a log bench three wide, a cooking rack, the chopping stump, firewood, a lantern post, the tent
-    'fixture:log_bench': { base: t(CAMP, 0, 7, 3, 1) },
-    'fixture:rack': { base: t(CAMP, 8, 3, 2, 2) },
-    // the project's own (tools/src/art/arms-rack.ts): the camp's rack is a cooking rack, its pot hung over the fire
-    'fixture:arms_rack': { base: px('lsw/Fixtures/ArmsRack.png', 0, 0, 32, 32, 16, 31) },
+    // a bench (tools/src/art/generic-props.py): each its own make, the backed one most (they stand in chapels and halls);
+    // one south of a table, seen from behind, the plain one with no back
+    'fixture:bench': { base: genericProp('pew'), variants: [genericProp('pew'), genericProp('pew'), genericProp('bench'), genericProp('worn')], back: genericProp('bench'), scale: GENERIC_PROPS_SCALE },
+    // the camp's things: a bench by the fire (with a back or without), the cooking rack over the fire, the chopping
+    // stump, firewood, a lantern post, the tent; the bench, the rack and the arms rack in two makes each (tools/src/art/outdoor.py)
+    'fixture:log_bench': outdoor('log_bench'),
+    'fixture:rack': outdoor('rack'),
+    'fixture:arms_rack': outdoor('arms_rack'),
     // the Reed Bend's (tools/src/art/flanks.ts): the fisher's nets hung to dry on their pole, her rack of fish drying;
     // her rowboat is the pack's (the Ford's ferry raft is the same boat)
     'fixture:nets': { base: px('lsw/Fixtures/Nets.png', 0, 0, 32, 32, 16, 31) },
@@ -886,7 +890,8 @@ export const CATALOG: Catalog = {
     'fixture:candles': { base: light('candles_plain'), lit: light('candles_plain_lit'), scale: LIGHTS_JSON.scale },
     'fixture:fireplace': { base: px(HOUSE, 464, 176, 32, 32, 16, 30) },
     'fixture:water': { base: t(ELEM, 6, 2) },
-    'fixture:well': { base: t(ELEM, 6, 2) },
+    // under its roof, or its bare frame (tools/src/art/outdoor.py)
+    'fixture:well': outdoor('well'),
     'fixture:fountain': { base: px(DESERT, 128, 112, 32, 32, 16, 28) },
     'fixture:trough': { base: t(ELEM, 6, 10) },
     // a sign, a notice board, a commission board: the notice board under its roof (tools/src/art/generic-props.py)
@@ -1020,8 +1025,9 @@ export const CATALOG: Catalog = {
     // No static mushroom art: first frame of the (red-capped) Mushroom monster.
     'fixture:mushroom_ring': { base: t('Actor/Monster/Mushroom/mushroom.png', 0, 0) },
     'fixture:beehive': { base: t(ELEM, 12, 0) },
-    // The Ford: the dead tree at the narrows (the pack's bare tree), the slimes' hollow, the ferry's winch and raft.
-    'fixture:dead_tree': { base: px(NATURE, 64, 0, 32, 32, 16, 31) },
+    // The Ford: the dead tree (two makes, tools/src/art/outdoor.py; the one at the narrows its own, placedSprites), the
+    // slimes' hollow, the ferry's winch and raft.
+    'fixture:dead_tree': outdoor('dead_tree'),
     // the hollow: a mossy rock mound with a cave mouth, drawn on the mouth's tile
     'fixture:burrow': { base: px(RELIEF_DETAIL, 0, 112, 48, 48, 24, 48) },
     // the ferry: a rope post on the landing, and the rowboat that crosses on the line
@@ -1061,8 +1067,8 @@ export const CATALOG: Catalog = {
     'fixture:ring': { base: px(CAMP, 160, 48, 32, 32, 16, 28) },
     // The Great Hearth: a wide ring of stones around old ash; lit, the embers glow.
     'fixture:hearth': { base: t(CAMP, 12, 5, 2, 2, 16, 24), lit: t(CAMP, 12, 3, 2, 2, 16, 24) },
-    // the project's own (tools/src/art/scarecrow.ts): the training dummy is the pack's straw man
-    'fixture:scarecrow': { base: px('lsw/Fixtures/Scarecrow.png', 0, 0, 16, 32, 8, 31) },
+    // a straw man in a blue smock or a red one (tools/src/art/outdoor.py)
+    'fixture:scarecrow': outdoor('scarecrow'),
     // the pack's line on its posts with its laundry pegged on it, put together (tools/src/art/washing-line.ts)
     'fixture:washing_line': { base: px('lsw/Fixtures/WashingLine.png', 0, 0, 64, 32, 32, 31) },
     // empty, or loaded with a sack and a crate under a cloth: each its own (tools/src/art/containers.py)

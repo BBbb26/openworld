@@ -1380,12 +1380,12 @@ export class WorldScene extends Phaser.Scene {
         // a look of its own among the type's variants, kept for its life
         const v = f.variants?.length ? hashStr(e.id) % f.variants.length : -1
         // a thing that turns, turned east or west, shows its picture across (a fence running north-south)
-        const across = (e.facing === 'left' || e.facing === 'right') && f.across
+        const across = ((e.facing === 'left' || e.facing === 'right') && f.across) || (e.facing === 'up' && f.back)
         // lit: the variant's own lit picture, else the type's; open: with its things in, or empty
         const lit = (e.statuses.includes('lit') || e.statuses.includes('attuned')) && ((v >= 0 && f.litVariants?.[v]) || f.lit)
         const open = e.open && ((!e.hasContents && f.emptied) || f.open)
         const d = lit || open || across || (v >= 0 ? f.variants![v] : f.base)
-        const [frame] = spriteFrames(this, `fix:${e.sprite}:${d === lit ? (d === f.lit ? 'lit' : `lit${v}`) : d === open ? (d === f.emptied ? 'emptied' : 'open') : d === across ? 'across' : v >= 0 ? `v${v}` : 'base'}`, d)
+        const [frame] = spriteFrames(this, `fix:${e.sprite}:${d === lit ? (d === f.lit ? 'lit' : `lit${v}`) : d === open ? (d === f.emptied ? 'emptied' : 'open') : d === across ? (d === f.back ? 'back' : 'across') : v >= 0 ? `v${v}` : 'base'}`, d)
         return { img: d.img, frame, ax: d.ax, ay: d.ay, scale: f.scale }
       }
     }

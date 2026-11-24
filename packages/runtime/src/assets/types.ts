@@ -224,7 +224,7 @@ export interface Catalog {
    * Fixtures by sprite key. `variants`: looks picked per thing (by its id); `ground`: drawn flat
    * on the ground, under whatever stands there; `loose`: set a little off the grid, never in rows.
    */
-  fixtures: Record<string, { base: SpriteDef; open?: SpriteDef; /** open with nothing in it (`open` is with things in) */ emptied?: SpriteDef; lit?: SpriteDef; variants?: SpriteDef[]; /** each variant's own `lit`, in its order */ litVariants?: SpriteDef[]; ground?: boolean; loose?: boolean; /** Reuse an authored prop at the world's tile scale. */ scale?: number; /** its picture turned east or west (a fence running north-south) */ across?: SpriteDef }>
+  fixtures: Record<string, { base: SpriteDef; open?: SpriteDef; /** open with nothing in it (`open` is with things in) */ emptied?: SpriteDef; lit?: SpriteDef; variants?: SpriteDef[]; /** each variant's own `lit`, in its order */ litVariants?: SpriteDef[]; ground?: boolean; loose?: boolean; /** Reuse an authored prop at the world's tile scale. */ scale?: number; /** its picture turned east or west (a fence running north-south) */ across?: SpriteDef; /** its picture seen from behind, facing north (a bench south of a table) */ back?: SpriteDef }>
   /** Item sprite keys used by the ontology ('item:sword', …) -> 16x16 icon; a weapon's, how it is seen as it strikes (`swing`). */
   items: Record<string, ItemSpriteDef>
   /** A prop's picture at its authored placement, with optional frames for open and filled containers. */
