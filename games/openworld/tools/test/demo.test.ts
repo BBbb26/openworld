@@ -2526,7 +2526,7 @@ req('S3', 'each profession\'s forged gear covers the whole body (head, ear, neck
 
 req('PR1', "the Pilgrim's Road (docs/chapter-1.md §14), played through the player's own inputs: past the river, the Church's Rest — its people, the Holy See's notice (the pilgrimage as proclaimed), the litany, the priest's oath at the five wounds and the pilgrim's own scallop; five wayside shrines on the road, each lit only by what its suffering asks, laid on it (G) from what the road itself holds (F: a hat, a cord, a loaf in an abandoned cart, a helm, a candle); a penitent on it; the Abbey of the Thorn north of it — the roll, a leaf of Alberic's journal read, the writ of relief never sent; in its crypt the Order's last keeper, fought down with blows, and its seal; the Kneeling Field of those who would not kneel to him; each a stage of the First Seal", [
   'npc.caius', 'npc.ezra', 'npc.maud', 'npc.wynn', 'fixture/sacred/wayshrine/crown', 'fixture/sacred/wayshrine/scourge', 'fixture/sacred/wayshrine/scales', 'fixture/sacred/wayshrine/nails', 'fixture/sacred/wayshrine/lance',
-  'item/document/writ_of_relief', 'item/valuable/order_seal', 'fixture/scarecrow', 'fixture/furniture/bookstand', 'fixture/furniture/cart', 'fixture/sign', 'item/document/letter', 'item/clothing/hat', 'item/light/candle',
+  'item/document/writ_of_relief', 'item/valuable/order_seal', 'fixture/scarecrow', 'fixture/furniture/bookstand', 'fixture/furniture/cart', 'fixture/sign', 'item/document/letter', 'item/clothing/hat', 'item/light/candle', 'fixture/furniture/pew/long',
 ], () => {
   const f = fresh({ main: 'rescue' })
   const w = W(f)
@@ -2612,6 +2612,8 @@ req('PR1', "the Pilgrim's Road (docs/chapter-1.md §14), played through the play
   // into the chapel of the Five: the litany on its bookstand, read (E)
   expect(door('waystation', 'waystation.chapel')).toBe('waystation.chapel')
   expect(read(things('waystation.chapel', 'fixture/furniture/bookstand')[0])).toContain('极夜便不会归来')
+  // its two long pews either side of the runner, along the nave
+  expect(things('waystation.chapel', 'fixture/furniture/pew/long').length).toBe(2)
   // the oath at the altar of the five wounds; the pilgrim's own scallop
   enter('waystation.chapel', w.map('waystation.chapel')!.regions!.altar, 'pilgrim_oath')
   expect(w.fact('ch1.oath')).toBe(1)
@@ -3260,9 +3262,14 @@ req('T2', 'the general store: Greta keeps it by day, behind her counter; a hand 
   expect(f.eng.controls.count('item/misc/thornmark')).toBe(10 - RECIPE_BY_ID['store/buy/light-torch'].needs[0].count + RECIPE_BY_ID['store/sell/material-herb'].count!)
 })
 
-req('T3', "Firstlight's chapel, Sister Ilse's, behind Astra's altar on the square: Brother Anselm keeps its bookstand, where every skill one learns from a book is sold — the common ones cheaper, a profession's dearer; bought and read, the book teaches its skill", ['npc.anselm', 'fixture/furniture/bookstand'], () => {
+req('T3', "Firstlight's chapel, Sister Ilse's, behind Astra's altar on the square: at its head the five wounds carved round Astra over its stone altar, four cells wide on the nave's middle, that no one walks into; Brother Anselm keeps its bookstand, where every skill one learns from a book is sold — the common ones cheaper, a profession's dearer; bought and read, the book teaches its skill", ['npc.anselm', 'fixture/furniture/bookstand', 'fixture/sacred/altar/stone'], () => {
   const f = fresh()
   const w = W(f)
+  const [altar] = onMap(f, 'fixture/sacred/altar/stone', 'meadow.church')
+  expect(String(altar.props?.text_zh)).toContain('五道圣伤')
+  const at = altar.place as { x: number; y: number }
+  for (const dx of [-1, 0, 1, 2]) expect([dx, w.solidAt('meadow.church', at.x + dx, at.y)?.id]).toEqual([dx, altar.id])
+  expect([w.solidAt('meadow.church', at.x - 2, at.y)?.type, w.solidAt('meadow.church', at.x + 3, at.y)?.type]).toEqual(['fixture/light/candles', 'fixture/light/candles'])
   setHour(f, 2, 10)
   const stand0 = w.posOf(w.get('church.books')!)!
   f.eng.author(() => f.eng.teleport(w.player, { map: 'meadow.church', x: stand0.x - 1, y: stand0.y + 1 }))

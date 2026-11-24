@@ -173,8 +173,11 @@ export const HALLS = {
   // its bedroom
   // the Chapel of the First Dawn on Dawn Hill (2026-10-28): its nave, the apse at its head where the first hearth stands,
   // and through an arch in its east wall the foot of the bell tower
-  dhchapel: hallPlan(21, 14, 7, { apse: [6, 1, 5, 2], nave: [3, 3, 11, 9], arch: [14, 5, 1, 1], tower: [15, 3, 4, 5], entry: [7, 12, 3, 1] }, [[8, 13]]),
+  // (its tower three cells across since 2026-11-24, the bell's beam between the piers either side of it)
+  dhchapel: hallPlan(21, 14, 7, { apse: [6, 1, 5, 2], nave: [3, 3, 11, 9], arch: [14, 5, 1, 1], tower: [15, 3, 3, 5], entry: [7, 12, 3, 1] }, [[8, 13]]),
   prchapel: hallPlan(21, 13, 7, { nave: [2, 2, 11, 9], cell: [14, 3, 5, 6], arch: [13, 5, 1, 1], entry: [6, 11, 3, 1] }, [[7, 12]]),
+  // the Rest's chapel of the Five alone (2026-11-24): the plan of prchapel, its walls its own (tools/src/art/rest-chapel.py)
+  wschapel: hallPlan(21, 13, 7, { nave: [2, 2, 11, 9], cell: [14, 3, 5, 6], arch: [13, 5, 1, 1], entry: [6, 11, 3, 1] }, [[7, 12]]),
   prhostel: hallPlan(23, 12, 6, { common: [2, 2, 9, 8], dorm: [12, 2, 9, 8], arch: [11, 5, 1, 2], entry: [5, 10, 3, 1] }, [[6, 11]]),
   abhall: hallPlan(28, 13, 7, { scriptorium: [2, 4, 5, 6], hall: [8, 2, 11, 9], cell: [20, 4, 6, 6], aW: [7, 6, 1, 1], aE: [19, 6, 1, 1], entry: [12, 11, 3, 1] }, [[13, 12]]),
   abcrypt: hallPlan(28, 20, 5, { vault: [3, 7, 22, 8], arch: [13, 6, 2, 1], entry: [12, 15, 4, 3] }, [[13, 18]]),

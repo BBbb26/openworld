@@ -578,6 +578,8 @@ const fixtureTypes: TypeDef[] = [
   F('fixture/furniture/pew', 'pew', '教堂长椅', ['surface'], { footprint: [3, 1], props: { material: 'wood', maxHp: 10, hp: 10 }, makeup: [{ type: 'item/material/plank', count: 3 }] }),
   // one left to the weather in a roofless chapel: grey, no cushion, its back split
   F('fixture/furniture/pew/old', 'old pew', '旧长椅', ['surface'], { footprint: [3, 1], sprite: 'fixture:pew_old' }),
+  // a pew set along the nave, five cells long north to south, its end to the aisle (the Rest's chapel of the Five)
+  F('fixture/furniture/pew/long', 'long pew', '纵排长椅', [], { footprint: [1, 5], sprite: 'fixture:pew_long' }),
   F('fixture/furniture/desk', "copyist's desk", '抄写台', ['surface'], { props: { material: 'wood', maxHp: 6, hp: 6 }, makeup: [{ type: 'item/material/plank', count: 2 }] }),
   F('fixture/furniture/throne', 'throne', '王座', [], { props: { material: 'wood', maxHp: 14, hp: 14 }, makeup: [{ type: 'item/material/plank', count: 3 }] }),
   F('fixture/furniture/stall', 'market stall', '市集摊位', ['cloth', 'surface']),
@@ -636,6 +638,9 @@ const fixtureTypes: TypeDef[] = [
   F('fixture/sacred/altar', 'altar', '祭坛', ['holy', 'surface']),
   // a hearth of the Five, a ring of stones round its ash: the Chapel of the First Dawn's, where the Firstlight was kindled
   F('fixture/sacred/altar/hearth', 'stone hearth', '石砌火坛', ['holy'], { footprint: [3, 1], sprite: 'fixture:firsthearth' }),
+  // a block of stone on two steps, its frontal red with a gold cross: Firstlight's chapel's, before the carved five wounds
+  // (four cells wide, its middle between the second and the third)
+  F('fixture/sacred/altar/stone', 'stone altar', '石祭坛', [], { footprint: [4, 1], sprite: 'fixture:stone_altar' }),
   // the Held Ground's heart: Alberic's longsword, point down in the earth (tools/src/art/planted-sword.ts)
   F('fixture/sacred/sword', 'planted sword', '插在地上的长剑', ['metal', 'conductive'], { sprite: 'fixture:planted_sword' }),
   F('fixture/sacred/statue', 'statue', '雕像', []),

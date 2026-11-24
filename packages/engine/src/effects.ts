@@ -338,7 +338,11 @@ export class EffectRunner {
         // a thing moved by one who is not its owner keeps whose it was: taken, it is still theirs (docs/npc-sandbox.md §2.1)
         const was = eng.society.ownerOf(host)
         const mover = w.get(ev.roles.actor?.e ?? ev.cause)
-        if (was && w.prop(host, 'owner') === undefined && mover && eng.society.relation(was, mover) === 'another') w.setProp(host, 'owner', was)
+        // and one's own thing set down on the ground stays one's own: it does not become the house's it lies in
+        if (was && w.prop(host, 'owner') === undefined && mover) {
+          const rel = eng.society.relation(was, mover)
+          if (rel === 'another' || (rel === 'mine' && place.on === 'tile')) w.setProp(host, 'owner', was)
+        }
         eng.touch({ e: host.id })
         w.place(host, place)
         delete host.dropped
