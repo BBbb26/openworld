@@ -16,7 +16,7 @@ const say = (who: string, en: string, zh: string, mood?: 'neutral' | 'happy' | '
 /** Where the chapter puts things (map coordinates). */
 export const CH1_AT = {
   village: { shrine: [23, 16] as const, statue: [24, 14] as const, drawing: [20, 16] as const, statueStone: [30, 19] as const, severin: [26, 18] as const, courier: [24, 18] as const },
-  ford: { stone: [17, 11] as const, drawing: [27, 21] as const, briars: [[29, 21], [35, 21]] as const },
+  ford: { stone: [17, 11] as const, drawing: [27, 21] as const, briars: [[27, 23], [36, 23]] as const },
   foot: { drawing: [22, 13] as const },
   summit: { log: [WATCH_SHELTER.log.x, WATCH_SHELTER.log.y] as const },
   pasture: { watch: [20, 12] as const },

@@ -34,7 +34,7 @@ export const COURTYARD_SUPPLIES = { x: 34, y: 17 }
 // The round teal silhouettes are the native snow-rock art. Keep the sprite
 // choice independent of the cell's terrain, which still determines collision.
 const NATURE = 'Backgrounds/Tilesets/TilesetNature.png'
-type TerrainLook = NonNullable<Catalog['terrainObjectLooks']>[string][string]
+type TerrainLook = Exclude<NonNullable<Catalog['terrainObjectLooks']>[string][string], unknown[]>
 const native = (x: number, y: number, size: number, ay = size): SpriteDef =>
   ({ img: NATURE, x, y, w: size, h: size, ax: size / 2, ay })
 

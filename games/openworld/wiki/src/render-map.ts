@@ -360,7 +360,8 @@ function figureImage(look: Look): Image {
 function bodyOf(e: Snap, mapId: string): Body | undefined {
   const placed = CATALOG.placedSprites?.[e.id]
   if (placed?.map === mapId && placed.x === e.x && placed.y === e.y && !e.z) {
-    const d = (e.open && placed.open) || (e.hasContents && placed.filled) || placed.sprite
+    const status = Object.keys(placed.statuses ?? {}).find((s) => e.statuses.includes(s))
+    const d = (status && placed.statuses![status]) || (e.open && placed.open) || (e.hasContents && placed.filled) || placed.sprite
     const img = image(d.img)
     if (img) return { img, rect: frameOf(d), ox: d.ax, oy: d.ay, scale: placed.scale }
   }
@@ -387,7 +388,7 @@ function bodyOf(e: Snap, mapId: string): Body | undefined {
       const v = f.variants?.length ? hashStr(e.id) % f.variants.length : -1
       const d = ((e.statuses.includes('lit') || e.statuses.includes('attuned')) && f.lit) || (e.open && f.open) || (v >= 0 ? f.variants![v] : f.base)
       const img = image(d.img)
-      return img && { img, rect: frameOf(d), ox: d.ax, oy: d.ay }
+      return img && { img, rect: frameOf(d), ox: d.ax, oy: d.ay, scale: f.scale }
     }
   }
   // gear lying on the ground is a bundle, all alike
@@ -427,7 +428,7 @@ export function renderMap(g: Game, mapId: string, scale = 1): { w: number; h: nu
   // outside the map the edge continues, so autotiles draw no border there
   const terrainAt = (x: number, y: number): string => terrain[Math.min(H - 1, Math.max(0, y)) * W + Math.min(W - 1, Math.max(0, x))]
   // the ground under buildings and fences is the ground round them, as the client draws it (ground.ts groundBeneath)
-  const groundAt = groundBeneath(CATALOG, raw.stamps, terrainAt)
+  const groundAt = groundBeneath(CATALOG, raw.stamps, terrainAt, mapId)
   const pic = new Picture(W * T, H * T, scale, BACKGROUND)
   // what is drawn, by depth; two at one depth in the order the client adds them (the sort is stable)
   const ops: { depth: number; draw: () => void }[] = []

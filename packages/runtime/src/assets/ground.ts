@@ -388,7 +388,17 @@ const STANDING = new Set(['wall', 'woodwall', 'door', 'roof', 'tree', 'pine', 'b
  * a terrain reader for the ground layer: the ground beneath a stamped cell, else the terrain itself. A stamp drawn as
  * ground (the spring) keeps its own.
  */
-export function groundBeneath(catalog: Catalog, stamps: { key: string; x: number; y: number }[] | undefined, terrainAt: (x: number, y: number) => string): (x: number, y: number) => string {
+export function groundBeneath(catalog: Catalog, stamps: { key: string; x: number; y: number }[] | undefined, terrainAt: (x: number, y: number) => string, mapId?: string): (x: number, y: number) => string {
+  // a cell drawn as another ground (Catalog.groundLooks): what it is drawn as, read live
+  const looks = mapId ? catalog.groundLooks?.[mapId] : undefined
+  if (looks) {
+    const plain = groundBeneath(catalog, stamps, terrainAt)
+    return (x, y) => {
+      const l = looks[`${x},${y}`]
+      const holds = l && terrainAt(x, y) === l.terrain && Object.entries(l.when ?? {}).every(([k, want]) => terrainAt(...(k.split(',').map(Number) as [number, number])) === want)
+      return holds ? l.as : plain(x, y)
+    }
+  }
   const covered = new Set<string>()
   for (const s of stamps ?? []) {
     const p = catalog.prefabs[s.key]
@@ -430,6 +440,12 @@ export function groundBeneath(catalog: Catalog, stamps: { key: string; x: number
   return (x, y) => (covered.has(`${x},${y}`) ? under(x, y) : ground(x, y))
 }
 
+/** The cells of a map whose look reads other cells' terrains (`TerrainLook.when`): drawn again when any terrain changes. */
+export function lookCellsWithWhen(catalog: Catalog, mapId: string | undefined): [number, number][] {
+  const cells = mapId ? catalog.terrainObjectLooks?.[mapId] : undefined
+  return Object.entries(cells ?? {}).filter(([, l]) => (Array.isArray(l) ? l : [l]).some((x) => x.when)).map(([k]) => k.split(',').map(Number) as [number, number])
+}
+
 /** Terrains whose objects sit off the grid when the catalogue does not say (`looseObjects`). */
 const LOOSE = ['drygrass', 'flowers', 'bush']
 
@@ -440,19 +456,21 @@ const LOOSE = ['drygrass', 'flowers', 'bush']
  */
 export function objectAt(catalog: Catalog, terrainAt: (x: number, y: number) => string, groundAt: (x: number, y: number) => string, x: number, y: number, mapId?: string): { key: string; def: SpriteDef; dx: number; dy: number; scale?: number } | undefined {
   const t = terrainAt(x, y)
-  const replacement = mapId ? catalog.terrainObjectLooks?.[mapId]?.[`${x},${y}`] : undefined
-  if (replacement?.terrain === t) return { key: `${mapId}:${x},${y}`, def: replacement.sprite, dx: 0, dy: 0, scale: replacement.scale }
+  const looks = mapId ? catalog.terrainObjectLooks?.[mapId]?.[`${x},${y}`] : undefined
+  const list = looks === undefined ? [] : Array.isArray(looks) ? looks : [looks]
+  const i = list.findIndex((l) => l.terrain === t && Object.entries(l.when ?? {}).every(([k, want]) => terrainAt(...(k.split(',').map(Number) as [number, number])) === want))
+  if (i >= 0) return list[i].sprite ? { key: `${mapId}:${x},${y}:${i}`, def: list[i].sprite!, dx: 0, dy: 0, scale: list[i].scale } : undefined
   const gaps = mapId ? catalog.terrainObjectGaps?.[mapId] : undefined
   if (gaps?.terrain === t && gaps.cells.some(([gx, gy]) => gx === x && gy === y)) return undefined
   let look = objectLook(catalog, t, groundAt(x, y))
   if (catalog.terrainObjects[`${look}_inner`]?.length && terrainAt(x, y - 1) === t && terrainAt(x + 1, y) === t && terrainAt(x, y + 1) === t && terrainAt(x - 1, y) === t) look = `${look}_inner`
-  const list = catalog.terrainObjects[look]
-  if (!list?.length) return undefined
+  const objects = catalog.terrainObjects[look]
+  if (!objects?.length) return undefined
   // tall grass is a meadow, not a crop: a third of its tiles stay bare
   if (t === 'drygrass' && hash2(x, y, 13) % 100 < 35) return undefined
-  const i = hash2(x, y, 11) % list.length
+  const pick = hash2(x, y, 11) % objects.length
   const loose = (catalog.looseObjects ?? LOOSE).includes(t)
-  return { key: `${look}:${i}`, def: list[i], dx: loose ? (hash2(x, y, 17) % 9) - 4 : 0, dy: loose ? (hash2(x, y, 19) % 5) - 2 : 0 }
+  return { key: `${look}:${pick}`, def: objects[pick], dx: loose ? (hash2(x, y, 17) % 9) - 4 : 0, dy: loose ? (hash2(x, y, 19) % 5) - 2 : 0 }
 }
 
 /** Terrains drawn as a thing standing on the ground (scene.ts placeObject): a tree, a pine, a bush, a rock, a stump. */

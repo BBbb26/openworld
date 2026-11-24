@@ -141,6 +141,15 @@ export interface FxDef {
   beam?: boolean
 }
 
+/** A look a terrain takes at one cell (Catalog.terrainObjectLooks). */
+export interface TerrainLook {
+  terrain: string
+  sprite?: SpriteDef
+  scale?: number
+  /** Other cells' terrains this look holds for: "x,y" → terrain. */
+  when?: Record<string, string>
+}
+
 export interface Catalog {
   /** Registered source rectangles assembled once into a single ordinary sprite texture. */
   composites?: Record<string, { width: number; height: number; parts: { sprite: SpriteDef; x: number; y: number }[] }>
@@ -167,8 +176,17 @@ export interface Catalog {
    * The renderer picks a variant per position.
    */
   terrainObjects: Record<string, SpriteDef[]>
-  /** Sprite replacements for named terrain at individual map cells. */
-  terrainObjectLooks?: Record<string, Record<string, { terrain: string; sprite: SpriteDef; scale?: number }>>
+  /**
+   * Sprite replacements for named terrain at individual map cells (map → "x,y" → its look). A cell may list several:
+   * the first whose `terrain` is the cell's and whose `when` holds (each "x,y" listed has that terrain now) is drawn;
+   * one with no `sprite` draws nothing there. None holding, the terrain's own object is drawn.
+   */
+  terrainObjectLooks?: Record<string, Record<string, TerrainLook | TerrainLook[]>>
+  /**
+   * A cell's ground drawn as another terrain's (map → "x,y" → its look) while it is `terrain` and `when` holds: a tree
+   * fallen across a river is a way over it (bridge), its trunk drawn standing in the water (the river drawn under it).
+   */
+  groundLooks?: Record<string, Record<string, { terrain: string; as: string; when?: Record<string, string> }>>
   /** Map-specific gaps in terrain decoration, applied only while the named terrain is present. */
   terrainObjectGaps?: Record<string, { terrain: string; cells: [number, number][] }>
   /** Maps whose ground is composed with the detailed snow surface. */
@@ -201,7 +219,7 @@ export interface Catalog {
   /** Item sprite keys used by the ontology ('item:sword', …) -> 16x16 icon; a weapon's, how it is seen as it strikes (`swing`). */
   items: Record<string, ItemSpriteDef>
   /** A prop's picture at its authored placement, with optional frames for open and filled containers. */
-  placedSprites?: Record<string, { map: string; x: number; y: number; sprite: SpriteDef; open?: SpriteDef; filled?: SpriteDef; scale?: number }>
+  placedSprites?: Record<string, { map: string; x: number; y: number; sprite: SpriteDef; open?: SpriteDef; filled?: SpriteDef; scale?: number; /** its look while it bears a status (the first it bears, in this order) */ statuses?: Record<string, SpriteDef> }>
   /** Posture contact points keyed by authored entity ID or fixture sprite. */
   furniturePoses?: Record<string, FurniturePose>
   /** Character looks for NPCs and the player: key -> sheet. */

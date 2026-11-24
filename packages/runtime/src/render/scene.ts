@@ -12,7 +12,7 @@ import { LSW_FLOOR, LSW_STAIRS, LSW_WALL } from '../assets/types.ts'
 import { faceFrame, personLook } from '../assets/looks.ts'
 import { crowdLook, figureDef, figureId, portraitOf, preparePortrait } from '../assets/figure/index.ts'
 import { RUN_ROW } from '../assets/figure/sprite.ts'
-import { GroundAtlas, T, groundBeneath, groundTile, hash2, objectAt } from '../assets/ground.ts'
+import { GroundAtlas, T, groundBeneath, groundTile, hash2, lookCellsWithWhen, objectAt } from '../assets/ground.ts'
 import { SLATE, paintRelief } from '../assets/relief.ts'
 import { paintSnowTile } from '../assets/snow.ts'
 /** What a room's frame is drawn over: its walls (a door or a doorway through them is left open). */
@@ -439,7 +439,7 @@ export class WorldScene extends Phaser.Scene {
       this.fishWater = cells
     }
     // the ground layer reads the ground under buildings and fences as the ground round them (ground.ts groundBeneath)
-    this.groundAt = groundBeneath(catalog(), map.stamps, this.terrainAt)
+    this.groundAt = groundBeneath(catalog(), map.stamps, this.terrainAt, map.id)
     const detailedSnow = catalog().snowSurfaceMaps?.includes(map.id) ?? false
     const data: number[][] = []
     for (let y = 0; y < map.height; y++) {
@@ -1228,6 +1228,8 @@ export class WorldScene extends Phaser.Scene {
         for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) redo.add(`${x + dx},${y + dy}`)
         this.placeObject(x, y)
       }
+      // a look that reads other cells' terrains (a bridge mended plank by plank) is drawn again
+      for (const [x, y] of lookCellsWithWhen(catalog(), this.base?.id)) if (!dirty.has(`${x},${y}`)) this.placeObject(x, y)
       for (const k of redo) {
         const [x, y] = k.split(',').map(Number)
         if (x < 0 || y < 0 || x >= this.base!.width || y >= this.base!.height) continue
@@ -1341,8 +1343,10 @@ export class WorldScene extends Phaser.Scene {
     const placed = catalog().placedSprites?.[e.id]
     if (placed && placed.map === this.base?.id && placed.x === e.x && placed.y === e.y && !e.z) {
       const state = e.open && placed.open ? 'open' : e.hasContents && placed.filled ? 'filled' : undefined
-      const d = (state && placed[state]) || placed.sprite
-      const [frame] = spriteFrames(this, 'placed:' + e.id + (state ? ':' + state : ''), d)
+      // (a look while it bears a status: the winch with its line spliced or snapped)
+      const status = Object.keys(placed.statuses ?? {}).find((s) => e.statuses.includes(s))
+      const d = (status && placed.statuses![status]) || (state && placed[state]) || placed.sprite
+      const [frame] = spriteFrames(this, 'placed:' + e.id + (status ? ':s:' + status : state ? ':' + state : ''), d)
       return { img: d.img, frame, ax: d.ax, ay: d.ay, scale: placed.scale }
     }
     // a body (docs/npc-sandbox.md §2.8): the one it was, as they looked, lying where they fell

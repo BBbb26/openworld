@@ -17,6 +17,8 @@ import FACES from './faces.json'
 import { COURTYARD_BENCH, COURTYARD_PREFABS, COURTYARD_SCALE, COURTYARD_TERRAIN_LOOKS } from './cloudtop-courtyard.ts'
 import BUILDINGS_JSON from './buildings.json'
 import FERRY_CAMP_JSON from './ferry-camp.json'
+import FORD_CROSSING_JSON from './ford-crossing.json'
+import GENERIC_PROPS_JSON from './generic-props.json'
 import LOUDNESS from './loudness.json'
 import { CROP_FIXTURES, CROP_ITEMS, FLOWER_FIXTURES, FLOWER_ITEMS } from './crops.ts'
 import { FORD_CAMP, SET_PIECES, WATCH_SHELTER } from '@openworld-game/content'
@@ -75,6 +77,47 @@ function ferryCamp(piece: string): SpriteDef {
   if (!p) throw new Error(`no piece ${piece} of the ferry camp`)
   return px(FERRY_CAMP_JSON.img, p.x, p.y, p.w, p.h, p.ax, p.ay)
 }
+/**
+ * A piece of the crossing at Vesper Ford (tools/src/art/ford-crossing.py → ford-crossing.json): the art packs' own
+ * pieces at four pixels to the game's one (drawn at `FORD_CROSSING_SCALE`), where on the sheet it is and where on it the
+ * foot of the cell it is drawn on is.
+ */
+function fordCrossing(piece: string): SpriteDef {
+  const p = (FORD_CROSSING_JSON as unknown as { pieces: Record<string, { x: number; y: number; w: number; h: number; ax: number; ay: number }> }).pieces[piece]
+  if (!p) throw new Error(`no piece ${piece} of the ford's crossing`)
+  return px(FORD_CROSSING_JSON.img, p.x, p.y, p.w, p.h, p.ax, p.ay)
+}
+const FORD_CROSSING_SCALE = FORD_CROSSING_JSON.scale
+/** The dead tree at the Ford felled: its cell a stump (world.ts AT.deadTree). */
+const FELLED = { '28,10': 'stump' }
+/**
+ * The footbridge at the Ford by its gap (world.ts FOOTBRIDGE: x 31–33 of row 22): whole once all three are laid; else
+ * its two torn ends, and in each cell of the gap a stump of a pile while it is water, a new plank once one is laid.
+ */
+const FORD_FOOTBRIDGE: NonNullable<Catalog['terrainObjectLooks']>[string] = (() => {
+  const look = (terrain: string, piece?: string, when?: Record<string, string>) => ({ terrain, ...(piece && { sprite: fordCrossing(piece), scale: FORD_CROSSING_SCALE }), ...(when && { when }) })
+  const whole = { '31,22': 'bridge', '32,22': 'bridge', '33,22': 'bridge' }
+  return {
+    // the dead tree at the narrows felled (content ford.ts ford/chop-dead-tree): its stump, its trunk across the river
+    '28,10': look('stump', 'stump'),
+    '29,10': look('bridge', 'trunk', FELLED),
+    '26,16': look('bridge', 'pier_w'),
+    '34,16': look('bridge', 'pier_e'),
+    '28,22': [look('bridge', 'bridge', whole), look('bridge', 'end_w')],
+    '34,22': [look('bridge', undefined, whole), look('bridge', 'end_e')],
+    ...Object.fromEntries([31, 32, 33].map((x) => [`${x},22`, [look('water', `pile_${x}`), look('bridge', undefined, whole), look('bridge', `plank_${x}`)]])),
+  }
+})()
+/**
+ * One of the things the whole game has many of (tools/src/art/generic-props.py → generic-props.json): the notice board,
+ * the stone cross, the benches, the art pack's own at four pixels to the game's one (drawn at `GENERIC_PROPS_SCALE`).
+ */
+function genericProp(piece: string): SpriteDef {
+  const p = (GENERIC_PROPS_JSON as unknown as { pieces: Record<string, { x: number; y: number; w: number; h: number; ax: number; ay: number }> }).pieces[piece]
+  if (!p) throw new Error(`no piece ${piece} of the generic props`)
+  return px(GENERIC_PROPS_JSON.img, p.x, p.y, p.w, p.h, p.ax, p.ay)
+}
+const GENERIC_PROPS_SCALE = GENERIC_PROPS_JSON.scale
 /** UI piece: whole image, anchored top-left. */
 function ui(img: string, w: number, h: number, extra: Partial<SpriteDef> = {}): SpriteDef {
   return { img, x: 0, y: 0, w, h, ax: 0, ay: 0, ...extra }
@@ -313,6 +356,14 @@ export const CATALOG: Catalog = {
       const { map, ...things } = FORD_CAMP
       return Object.fromEntries(Object.entries(things).map(([name, t]) => [t.id, { map, x: t.x, y: t.y, sprite: ferryCamp(name === 'pondLantern' ? 'lantern' : name), ...(name === 'axe' && { scale: 1 }) }]))
     })(),
+    // the crossing's (tools/src/art/ford-crossing.py): the winch, its line strung to the far post once it is spliced
+    // (snapped, the pack's winch with its frayed ends), the far post, the boat
+    'ford.winch': { map: 'ford', x: 25, y: 15, sprite: fordCrossing('line'), statuses: { broken: fordCrossing('winch') }, scale: FORD_CROSSING_SCALE },
+    'ford.winch.far': { map: 'ford', x: 36, y: 15, sprite: fordCrossing('post'), scale: FORD_CROSSING_SCALE },
+    'ford.raft': { map: 'ford', x: 28, y: 16, sprite: fordCrossing('boat'), scale: FORD_CROSSING_SCALE },
+    'ford.dead_tree': { map: 'ford', x: 28, y: 10, sprite: fordCrossing('dead_tree'), scale: FORD_CROSSING_SCALE },
+    // the first three maps keep their own pictures where the generic props would change them: the Ford's signpost east
+    'ford~p': { map: 'ford', x: 40, y: 14, sprite: t(ELEM, 0, 2) },
   },
   composites: {
     'composite:garden_pavilion': (() => {
@@ -479,11 +530,17 @@ export const CATALOG: Catalog = {
   snowSurfaceMaps: ['summit'],
   terrainObjectLooks: {
     summit: COURTYARD_TERRAIN_LOOKS,
+    // the Ford's piers and its footbridge, drawn from the crossing's art packs as the gap stands
+    ford: FORD_FOOTBRIDGE,
     // Presentation only: original flower terrain and harvesting stay at each cell.
     foot: Object.fromEntries(Array.from({ length: 14 * 10 }, (_, i) => {
       const x = 14 + i % 14, y = 9 + Math.floor(i / 14)
       return [`${x},${y}`, { terrain: 'flowers', sprite: px('lsw/Fixtures/FootShrine.png', 80 + ((x + y * 2) % 3) * 16, 0, 16, 16, 8, 15) }]
     })),
+  },
+  // the river under the dead tree's trunk once it is felled across it (the trunk is drawn over: terrainObjectLooks.ford)
+  groundLooks: {
+    ford: Object.fromEntries([29, 30, 31, 32, 33, 34].map((x) => [`${x},10`, { terrain: 'bridge', as: 'water', when: FELLED }])),
   },
   terrainObjectGaps: {
     summit: { terrain: 'drygrass', cells: [[5, 9], [8, 10], [6, 12]] },
@@ -634,7 +691,8 @@ export const CATALOG: Catalog = {
     foot_hunter_chips: { img: 'lsw/Fixtures/HunterYard.png', x: 80, y: 48, tw: 3, th: 1, grid: ['   '], ground: true },
     foot_hunter_glove_stone: { img: 'lsw/Fixtures/HunterYard.png', x: 0, y: 48, tw: 2, th: 1, grid: ['  '], ground: true },
     foot_hunter_broken_rail: { img: 'lsw/Fixtures/HunterYard.png', x: 32, y: 64, tw: 2, th: 1, grid: ['  '], ground: true },
-    foot_waycross: { img: 'lsw/Fixtures/FootWayside.png', x: 32, y: 0, tw: 2, th: 4, grid: ['  ', '  ', '  ', '# '], base: 3 },
+    // the wayside cross, the stone cross of the generic props at 64 pixels a tile (tools/src/art/generic-props.py)
+    foot_waycross: { img: 'lsw/Fixtures/FootWaycross.png', x: 0, y: 0, tw: 2, th: 4, grid: ['  ', '  ', '  ', '# '], base: 3, pixelsPerTile: 64 },
     foot_shrine_courtyard: { img: 'lsw/Fixtures/FootCourtyard.png', x: 0, y: 0, tw: 14, th: 10, grid: Array(10).fill('              '), ground: true },
     foot_shrine_banner: { img: 'lsw/Fixtures/FootShrine.png', x: 64, y: 32, tw: 1, th: 2, grid: [' ', ' '], base: 1 },
     // Bridges run north-south (planks across, rails on the east/west sides). 4 wide x 3 long.
@@ -727,7 +785,8 @@ export const CATALOG: Catalog = {
     'fixture:plant': { base: t(ELEM, 0, 7, 1, 2) },
     'fixture:chair': { base: t(ELEM, 0, 9) },
     'fixture:bed': { base: t(BED, 5, 3, 1, 2) },
-    'fixture:bench': { base: t(CAMP, 3, 7) },
+    // a bench (tools/src/art/generic-props.py): each its own make, the backed one most (they stand in chapels and halls)
+    'fixture:bench': { base: genericProp('pew'), variants: [genericProp('pew'), genericProp('pew'), genericProp('bench'), genericProp('worn')], scale: GENERIC_PROPS_SCALE },
     // the camp's things: a log bench three wide, a cooking rack, the chopping stump, firewood, a lantern post, the tent
     'fixture:log_bench': { base: t(CAMP, 0, 7, 3, 1) },
     'fixture:rack': { base: t(CAMP, 8, 3, 2, 2) },
@@ -774,7 +833,8 @@ export const CATALOG: Catalog = {
     'fixture:well': { base: t(ELEM, 6, 2) },
     'fixture:fountain': { base: px(DESERT, 128, 112, 32, 32, 16, 28) },
     'fixture:trough': { base: t(ELEM, 6, 10) },
-    'fixture:sign': { base: t(ELEM, 0, 2) },
+    // a sign, a notice board, a commission board: the notice board under its roof (tools/src/art/generic-props.py)
+    'fixture:sign': { base: genericProp('board'), scale: GENERIC_PROPS_SCALE },
     // a place on the overworld: a signpost where it is; the wild shows no mark of its own
     'site:place': { base: wm('waystone') },
     // the hand-made places, each by its kind; the Ford is its crossing
@@ -794,8 +854,8 @@ export const CATALOG: Catalog = {
     'structure:door_open': { base: t(IFLOOR, 12, 1) },
     // the wild: its ground is its picture
     'site:wild': { base: wm('none') },
-    'fixture:noticeboard': { base: t(ELEM, 1, 2) },
-    'fixture:questboard': { base: t(ELEM, 1, 2) },
+    'fixture:noticeboard': { base: genericProp('board'), scale: GENERIC_PROPS_SCALE },
+    'fixture:questboard': { base: genericProp('board'), scale: GENERIC_PROPS_SCALE },
     'fixture:craft': { base: t(HOUSE, 29, 15) },
     'fixture:anvil': { base: t(HOUSE, 29, 15) },
     'fixture:forge': { base: px(HOUSE, 496, 192, 32, 48, 16, 46) },
@@ -857,7 +917,8 @@ export const CATALOG: Catalog = {
     'fixture:channel_thorn': { base: px('lsw/Fixtures/ChannelThorn.png', 0, 0, 16, 16, 8, 15), ground: true },
     'fixture:bearer_statue': { base: px('lsw/Fixtures/BearerStatue.png', 0, 0, 16, 40, 8, 39) },
     'fixture:statue': { base: t(HOUSE, 5, 15, 2, 2) },
-    'fixture:gravestone': { base: t(ELEM, 4, 2) },
+    // a stone cross over a grave (tools/src/art/generic-props.py)
+    'fixture:gravestone': { base: genericProp('cross'), scale: GENERIC_PROPS_SCALE },
     // what a person leaves (docs/npc-sandbox.md §2.8): a body is drawn from its look, lying (scene.ts); bones, a skull
     'fixture:body': { base: t(DETAIL, 13, 0) },
     'fixture:bones': { base: t(DETAIL, 13, 0) },
