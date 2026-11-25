@@ -27,6 +27,7 @@ import REST_CHAPEL_JSON from './rest-chapel.json'
 import SCOURGE_CHAPEL_JSON from './scourge-chapel.json'
 import SCOURGE_UNDERCROFT_JSON from './scourge-undercroft.json'
 import FAIRWEIGHT_CHAPEL_JSON from './fairweight-chapel.json'
+import WHITEVEIL_CHURCH_JSON from './whiteveil-church.json'
 import NAILGATE_CHAPEL_JSON from './nailgate-chapel.json'
 import FIRSTLIGHT_GRAVES_JSON from './firstlight-graves.json'
 import LIGHTS_JSON from './lights.json'
@@ -221,8 +222,11 @@ const INTERIOR_THEMES: NonNullable<Catalog['fixtureThemes']> = (() => {
   looks['fixture:shelf'].fairweight = fairweight('shelf')
   looks['fixture:sack'] = { fairweight: fairweight('sacks') }
   looks['fixture:long_table'].fairweight = fairweight('table')
+  // the Church of Whiteveil (tools/src/art/whiteveil-church.py): the Chapel of the Pillar's pews, as the user asked; the
+  // rest of its things drawn where they stand (placedSprites)
+  looks['fixture:pew'].whiteveil = scourge('pew')
   return {
-    rules: [{ match: '^meadow\\.church$', theme: 'chapel' }, { match: '^scourgehouse\\.hall$', theme: 'scourge' }, { match: '^scourgehouse\\.undercroft$', theme: 'undercroft' }, { match: '^fairweight\\.chapel$', theme: 'fairweight' }, { match: '^fairweight\\.(poorhouse|miller|home-\\d+)$', theme: 'poor' }, { match: '^holy\\.quarter-5\\.home-\\d+$', theme: 'poor' }, ...j.rules],
+    rules: [{ match: '^meadow\\.church$', theme: 'chapel' }, { match: '^scourgehouse\\.hall$', theme: 'scourge' }, { match: '^scourgehouse\\.undercroft$', theme: 'undercroft' }, { match: '^fairweight\\.chapel$', theme: 'fairweight' }, { match: '^whiteveil\\.church$', theme: 'whiteveil' }, { match: '^fairweight\\.(poorhouse|miller|home-\\d+)$', theme: 'poor' }, { match: '^holy\\.quarter-5\\.home-\\d+$', theme: 'poor' }, ...j.rules],
     looks,
   }
 })()
@@ -362,6 +366,8 @@ export const BUILDINGS: typeof generatedBuildings = {
   fwchapel_shell: { ...generatedBuildings.fwchapel_shell, ...FAIRWEIGHT_CHAPEL_JSON.walls },
   // Nailgate's Chapel of the Nail's walls with their banners, lamps and shelves (tools/src/art/nailgate-chapel.py)
   ngchapel_shell: { ...generatedBuildings.ngchapel_shell, ...NAILGATE_CHAPEL_JSON.walls },
+  // the Church of Whiteveil's walls with their windows, drapes and banners of the lance (tools/src/art/whiteveil-church.py)
+  wvchurch_shell: { ...generatedBuildings.wvchurch_shell, ...WHITEVEIL_CHURCH_JSON.walls },
   snow_ruin_tower: {
     ...signalTower,
     img: 'lsw/Buildings/cloudtop-signal-tower.png',
@@ -506,6 +512,27 @@ export const CATALOG: Catalog = {
         at('nailgate.lampchest', 14, 12, 'lampchest'),
         at('nailgate.cot.sexton', 2, 14, 'cot_patched'),
         at('nailgate.cot.traveller', 15, 14, 'cot_worn'),
+      ])
+    })(),
+    // the Church of Whiteveil (tools/src/art/whiteveil-church.py): every thing of it drawn where it stands, by its id
+    ...((): Catalog['placedSprites'] => {
+      const piece = (name: string) => packPiece(WHITEVEIL_CHURCH_JSON, name)
+      const at = (id: string, x: number, y: number, name: string, lit = false) => [id, { map: 'whiteveil.church', x, y, sprite: piece(name), ...(lit && { statuses: { lit: piece(name) } }), scale: WHITEVEIL_CHURCH_JSON.scale }] as const
+      return Object.fromEntries([
+        at('whiteveil.altar', 14, 11, 'altar'),
+        at('whiteveil.candles.w', 11, 11, 'candelabrum_w', true),
+        at('whiteveil.candles.e', 18, 11, 'candelabrum_e', true),
+        at('whiteveil.statue.w', 9, 14, 'statue'),
+        at('whiteveil.statue.e', 20, 14, 'statue'),
+        at('whiteveil.lilies.1', 8, 14, 'lilies_w'),
+        at('whiteveil.lilies.2', 10, 14, 'lilies_e'),
+        at('whiteveil.lilies.3', 19, 14, 'lilies_w'),
+        at('whiteveil.lilies.4', 21, 14, 'lilies_e'),
+        at('whiteveil.lilies.5', 4, 17, 'lilies_back'),
+        at('whiteveil.lilies.6', 25, 18, 'lilies_w'),
+        at('whiteveil.lilies.7', 27, 18, 'lilies_e'),
+        at('whiteveil.chest', 4, 18, 'chest'),
+        at('whiteveil.candles.chapel', 2, 18, 'candles', true),
       ])
     })(),
     // Fairweight's Chapel of the Measure (tools/src/art/fairweight-chapel.py): the altar of the Measure
@@ -877,6 +904,10 @@ export const CATALOG: Catalog = {
     ngchapel_floor: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(NAILGATE_CHAPEL_JSON.floor),
     ...Object.fromEntries(([['w', '# '], ['e', ' #']] as const).map(([k, last]) => [`ngchapel_post_${k}`, (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, base: 1, grid: ['  ', '  ', last] }))(NAILGATE_CHAPEL_JSON.posts[k])])),
     // Fairweight's Chapel of the Measure (tools/src/art/fairweight-chapel.py; chapter3.ts lays it): the altar's platform
+    // the Church of Whiteveil (tools/src/art/whiteveil-church.py; chapter5.ts lays them): the green stone and the slab before
+    // the altar; the arch over the stair down, standing on the stair's row, its piers solid either side of the way down
+    wvchurch_floor: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(WHITEVEIL_CHURCH_JSON.floor),
+    wvchurch_stair: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, base: 3, grid: ['   ', '   ', '   ', '# #'] }))(WHITEVEIL_CHURCH_JSON.stair),
     fwchapel_steps: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(FAIRWEIGHT_CHAPEL_JSON.steps),
     wschapel_runner: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(REST_CHAPEL_JSON.runner),
     wschapel_rug: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(REST_CHAPEL_JSON.rug),

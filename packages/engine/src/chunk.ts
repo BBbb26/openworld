@@ -21,6 +21,7 @@ export interface RawMap {
   music?: string
   light?: MapData['light']
   environment?: MapData['environment']
+  look?: MapData['look']
   vistas?: MapData['vistas']
   lights?: MapData['lights']
   fish?: boolean
@@ -64,6 +65,7 @@ export function decodeRawMap(m: RawMap, chars: Record<string, string>): MapData 
     music: m.music,
     light: m.light,
     ...(m.environment && { environment: m.environment }),
+    ...(m.look && { look: m.look }),
     ...(m.vistas && { vistas: m.vistas }),
     ...(m.lights && { lights: m.lights }),
     fish: m.fish,

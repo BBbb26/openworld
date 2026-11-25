@@ -358,6 +358,12 @@ function figureImage(look: Look): Image {
   return img
 }
 
+/** Whether the picture drawn for this thing where it stands, by its id, has a lit look of its own (no flame over it then). */
+function placedLit(e: Snap, mapId: string): boolean {
+  const placed = CATALOG.placedSprites?.[e.id]
+  return !!(placed?.map === mapId && placed.x === e.x && placed.y === e.y && !e.z && placed.statuses?.lit)
+}
+
 function bodyOf(e: Snap, mapId: string): Body | undefined {
   const placed = CATALOG.placedSprites?.[e.id]
   if (placed?.map === mapId && placed.x === e.x && placed.y === e.y && !e.z) {
@@ -585,7 +591,7 @@ export function renderMap(g: Game, mapId: string, scale = 1): { w: number; h: nu
     }
     parts.push(...after)
     // what a status draws over it (a brazier with a lit picture of its own shows that, not a flame)
-    const top = OVERLAY_FX.find(([o]) => e.overlays.includes(o) && !(o === 'flame' && (CATALOG.fixtures[e.sprite]?.lit || themedFixture(CATALOG, e.sprite, mapId, true)?.key.endsWith(':lit'))))
+    const top = OVERLAY_FX.find(([o]) => e.overlays.includes(o) && !(o === 'flame' && (CATALOG.fixtures[e.sprite]?.lit || themedFixture(CATALOG, e.sprite, mapId, true)?.key.endsWith(':lit') || placedLit(e, mapId))))
     const ov = top && fxFrame(top[1], hashStr(e.id, 31))
     if (ov) parts.push(() => pic.blit({ ...ov, x: rx, y: ry, ox: ov.rect[2] / 2, oy: ov.rect[3], sx: ov.scale ?? 1, sy: ov.scale ?? 1 }))
     const hd = e.held && agent ? CATALOG.items[e.held] : undefined

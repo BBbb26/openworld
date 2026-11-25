@@ -188,6 +188,9 @@ export const HALLS = {
   fwchapel: hallPlan(21, 13, 7, { nave: [2, 2, 11, 9], cell: [14, 3, 5, 6], arch: [13, 5, 1, 1], entry: [6, 11, 3, 1] }, [[7, 12]]),
   // Nailgate's Chapel of the Nail alone (2026-11-25): the healer's hut's plan, its walls its own
   // (tools/src/art/nailgate-chapel.py)
+  // the Church of Whiteveil alone (2026-11-25): the Chapel of the Pillar's plan, its walls its own
+  // (tools/src/art/whiteveil-church.py)
+  wvchurch: hallPlan(30, 19, 9, { nave: [5, 5, 20, 10], apse: [11, 2, 8, 3], chapelW: [2, 8, 3, 5], chapelE: [25, 8, 3, 5], entry: [12, 15, 6, 3] }, [[14, 18]]),
   ngchapel: hallPlan(18, 13, 5, { hut: [2, 3, 14, 7], entry: [7, 10, 4, 2] }, [[8, 12]]),
   wschapel: hallPlan(21, 13, 7, { nave: [2, 2, 11, 9], cell: [14, 3, 5, 6], arch: [13, 5, 1, 1], entry: [6, 11, 3, 1] }, [[7, 12]]),
   prhostel: hallPlan(23, 12, 6, { common: [2, 2, 9, 8], dorm: [12, 2, 9, 8], arch: [11, 5, 1, 2], entry: [5, 10, 3, 1] }, [[6, 11]]),

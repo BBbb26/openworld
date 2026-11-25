@@ -1340,9 +1340,15 @@ export class WorldScene extends Phaser.Scene {
     return def ? { key: `cre:${key}`, def } : undefined
   }
 
-  private textureFor(e: EntitySnap): { img: string; frame: string; ax: number; ay: number; scale?: number; actor?: EView['actor'] } {
+  /** The picture drawn for this thing where it stands now, by its id (the catalogue's `placedSprites`), if it has one. */
+  private placedFor(e: EntitySnap) {
     const placed = catalog().placedSprites?.[e.id]
-    if (placed && placed.map === this.base?.id && placed.x === e.x && placed.y === e.y && !e.z) {
+    return placed && placed.map === this.base?.id && placed.x === e.x && placed.y === e.y && !e.z ? placed : undefined
+  }
+
+  private textureFor(e: EntitySnap): { img: string; frame: string; ax: number; ay: number; scale?: number; actor?: EView['actor'] } {
+    const placed = this.placedFor(e)
+    if (placed) {
       const state = e.open && placed.open ? 'open' : e.hasContents && placed.filled ? 'filled' : undefined
       // (a look while it bears a status: the winch with its line spliced or snapped)
       const status = Object.keys(placed.statuses ?? {}).find((s) => e.statuses.includes(s))
@@ -1771,7 +1777,7 @@ export class WorldScene extends Phaser.Scene {
     v.root.setVisible(!(!!me && (e.z ?? 0) > me.z && (this.ceilingOverlay || this.underRoof.has(`${e.x},${e.y}`))))
     // status overlay + tint
     // (a thing with a lit picture of its own, a brazier, shows that, not a flame over it)
-    const top = OVERLAY_FX.find(([o]) => e.overlays?.includes(o) && !(o === 'flame' && (catalog().fixtures[e.sprite]?.lit || themedFixture(catalog(), e.sprite, this.base?.id, true)?.key.endsWith(':lit'))))
+    const top = OVERLAY_FX.find(([o]) => e.overlays?.includes(o) && !(o === 'flame' && (catalog().fixtures[e.sprite]?.lit || themedFixture(catalog(), e.sprite, this.base?.id, true)?.key.endsWith(':lit') || this.placedFor(e)?.statuses?.lit)))
     const want = top?.[1]
     if (want !== v.overlayName) {
       v.overlay?.destroy()
