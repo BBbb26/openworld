@@ -183,6 +183,12 @@ export const HALLS = {
   // the Scourging House's undercroft alone (2026-11-25): the undercroft's plan, its walls its own
   // (tools/src/art/scourge-undercroft.py)
   scundercroft: hallPlan(26, 18, 5, { hall: [3, 3, 20, 10], apse: [9, 1, 8, 2], landing: [11, 13, 4, 3] }, []),
+  // Fairweight's Chapel of the Measure alone (2026-11-25): the plan of prchapel, its walls its own
+  // (tools/src/art/fairweight-chapel.py)
+  fwchapel: hallPlan(21, 13, 7, { nave: [2, 2, 11, 9], cell: [14, 3, 5, 6], arch: [13, 5, 1, 1], entry: [6, 11, 3, 1] }, [[7, 12]]),
+  // Nailgate's Chapel of the Nail alone (2026-11-25): the healer's hut's plan, its walls its own
+  // (tools/src/art/nailgate-chapel.py)
+  ngchapel: hallPlan(18, 13, 5, { hut: [2, 3, 14, 7], entry: [7, 10, 4, 2] }, [[8, 12]]),
   wschapel: hallPlan(21, 13, 7, { nave: [2, 2, 11, 9], cell: [14, 3, 5, 6], arch: [13, 5, 1, 1], entry: [6, 11, 3, 1] }, [[7, 12]]),
   prhostel: hallPlan(23, 12, 6, { common: [2, 2, 9, 8], dorm: [12, 2, 9, 8], arch: [11, 5, 1, 2], entry: [5, 10, 3, 1] }, [[6, 11]]),
   abhall: hallPlan(28, 13, 7, { scriptorium: [2, 4, 5, 6], hall: [8, 2, 11, 9], cell: [20, 4, 6, 6], aW: [7, 6, 1, 1], aE: [19, 6, 1, 1], entry: [12, 11, 3, 1] }, [[13, 12]]),

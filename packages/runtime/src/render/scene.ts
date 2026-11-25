@@ -1968,7 +1968,8 @@ export class WorldScene extends Phaser.Scene {
       if (v.walker) this.walk(v, time)
       v.head?.setPosition(v.root.x, v.root.y).setVisible(v.root.visible).setAlpha(v.root.alpha)
       // a body between two cells is ordered by where it is drawn now (depth.ts footOf)
-      if (e.tags.includes('agent') && !e.boss) v.root.setDepth(this.depthOf(e, footOf(e.y, v.root.y + (e.z ?? 0) * STOREY_LIFT + this.liftOf(e))))
+      // (one sat on a seat seen from behind is drawn behind it: under a thing in its cell, not over it)
+      if (e.tags.includes('agent') && !e.boss) v.root.setDepth(this.depthOf(e, footOf(e.y, v.root.y + (e.z ?? 0) * STOREY_LIFT + this.liftOf(e))) - (v.furniturePose?.behind ? 3 : 0))
       // a boss drawn on its own atlas (rows of poses); one drawn otherwise (the dragon in parts) moves as any creature
       if (v.actor && e.boss && (v.actor.clips || v.actor.rows >= 5)) {
         let animated = e.boss

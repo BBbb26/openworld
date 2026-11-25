@@ -340,6 +340,13 @@ const STYLES: Record<keyof typeof HALLS, Style> = {
   // banner pictures of their own laid on it
   // (tools/src/art/scourge-undercroft.py)
   scundercroft: { wall: 'granite', trim: 'granite', h: 68, windows: 'none', hang: ['none'], feature: 'none', pilasters: 'whiteStone', course: 0, bare: true, pilastersAt: (f) => (f.x1 - f.x0 + 1 === 8 ? [f.x0, f.x0 + 2.35, f.x1 + 1 - 2.35, f.x1 + 1] : Array.from({ length: Math.floor((f.x1 + 1 - f.x0) / 3) + 1 }, (_, i) => Math.min(f.x0 + 3 * i, f.x1 + 1))) },
+  // Fairweight's Chapel of the Measure: pale stone as tall as the user's mock-up, pilasters at the nave's corners and a bay
+  // in from each, at the almoner's room's corners, a string course under the windows; its windows, banners, niches and the
+  // bread's tablet pictures of their own laid on it (tools/src/art/fairweight-chapel.py)
+  fwchapel: { wall: 'stone', trim: 'stone', h: 124, windows: 'none', hang: ['none'], feature: 'none', pilasters: 'stone', course: 0.56, bare: true, pilastersAt: (f) => (f.x1 - f.x0 + 1 >= 9 ? [f.x0, f.x0 + 3, f.x1 - 2, f.x1 + 1] : [f.x0, f.x1 + 1]) },
+  // Nailgate's Chapel of the Nail: dark boards as tall as the user's mock-up, its square windows the arch's, a rail
+  // under them, no hearth; its banners, lamps and shelves pictures of their own laid on it (tools/src/art/nailgate-chapel.py)
+  ngchapel: { wall: 'darkwood', trim: 'timber', h: 76, windows: 'rect', hang: ['none'], feature: 'none', course: 0.47, bare: true },
   prhostel: { wall: 'plaster', trim: 'timber', h: 72, windows: 'rect', hang: ['painting', 'jars', 'none'], feature: 'hearth', pilasters: 'timber' },
   abhall: { wall: 'granite', trim: 'darkwood', h: 96, windows: 'lancet', glass: 'blue', hang: ['banner', 'books', 'trophy'], feature: 'canopy', pilasters: 'granite' },
   abcrypt: { wall: 'graniteRough', trim: 'graniteRough', h: 72, windows: 'none', hang: ['niches', 'niches', 'none'], feature: 'none', pilasters: 'graniteRough' },

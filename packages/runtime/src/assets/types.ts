@@ -17,6 +17,8 @@ export interface FurniturePose {
   reveal?: number
   scale?: number
   facing?: Dir
+  /** The seat is seen from behind (a pew facing an altar to the north): the one on it is drawn behind it, its back hiding them. */
+  behind?: boolean
 }
 
 /** A rectangle in an image, in pixels, plus the anchor that sits on the entity's tile. */

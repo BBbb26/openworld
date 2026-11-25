@@ -22,11 +22,12 @@ import GENERIC_PROPS_JSON from './generic-props.json'
 import INTERIOR_FURNITURE_JSON from './interior-furniture.json'
 import CONTAINERS_JSON from './containers.json'
 import FIRSTLIGHT_CHAPEL_JSON from './firstlight-chapel.json'
-import CHAPEL_ALTARS_JSON from './chapel-altars.json'
 import FIRST_DAWN_JSON from './first-dawn-chapel.json'
 import REST_CHAPEL_JSON from './rest-chapel.json'
 import SCOURGE_CHAPEL_JSON from './scourge-chapel.json'
 import SCOURGE_UNDERCROFT_JSON from './scourge-undercroft.json'
+import FAIRWEIGHT_CHAPEL_JSON from './fairweight-chapel.json'
+import NAILGATE_CHAPEL_JSON from './nailgate-chapel.json'
 import FIRSTLIGHT_GRAVES_JSON from './firstlight-graves.json'
 import LIGHTS_JSON from './lights.json'
 import OUTDOOR_JSON from './outdoor.json'
@@ -186,8 +187,13 @@ const INTERIOR_THEMES: NonNullable<Catalog['fixtureThemes']> = (() => {
   looks['fixture:table'].chapel = chapel('desk')
   looks['fixture:chair'].chapel = chapel('stool')
   looks['fixture:drawers'] = { chapel: chapel('nightstand') }
-  // the tavern's rest is the plain room's, and so is the chapel's
-  for (const byTheme of Object.values(looks)) if (byTheme.plain) (byTheme.tavern ??= byTheme.plain), (byTheme.chapel ??= byTheme.plain)
+  // the poorest rooms of the world, by what the story says of them (Fairweight's poorhouse, its hovels and the miller's
+  // house, the Holy City's poor quarter): the patched cot or the worn one (tools/src/art/nailgate-chapel.py), a room's
+  // beds all of one; the rest of them the plain room's
+  const cot = (piece: string) => ({ sprite: packPiece(NAILGATE_CHAPEL_JSON, piece), scale: NAILGATE_CHAPEL_JSON.scale })
+  looks['fixture:bed'].poor = [cot('poor_cot_patched'), cot('poor_cot_worn')]
+  // the tavern's rest is the plain room's, and so is the chapel's and the poor room's
+  for (const byTheme of Object.values(looks)) if (byTheme.plain) (byTheme.tavern ??= byTheme.plain), (byTheme.chapel ??= byTheme.plain), (byTheme.poor ??= byTheme.plain)
   // the Scourging House's Chapel of the Pillar, as the user drew it (tools/src/art/scourge-chapel.py): its gilt
   // candlesticks, lit, its pews with the Order's cloth, the vestry chest a cupboard, Firstlight's bookshelf, the
   // register open on the copyist's desk
@@ -207,8 +213,16 @@ const INTERIOR_THEMES: NonNullable<Catalog['fixtureThemes']> = (() => {
   looks['fixture:pot'].undercroft = undercroft('amphora')
   looks['fixture:candles'].undercroft = { ...undercroft('candelabrum'), lit: undercroft('candelabrum').sprite }
   looks['fixture:red_channel'] = { undercroft: undercroft('nothing') }
+  // Fairweight's Chapel of the Measure, as the user drew it (tools/src/art/fairweight-chapel.py): Firstlight's pews, the
+  // Rest's candelabra, lit; in the almoner's room the shelf, the sacks and the table with the basket of bread
+  const fairweight = (piece: string) => ({ sprite: packPiece(FAIRWEIGHT_CHAPEL_JSON, piece), scale: FAIRWEIGHT_CHAPEL_JSON.scale })
+  looks['fixture:pew'].fairweight = chapel('pew')
+  looks['fixture:candles'].fairweight = { ...fairweight('candelabrum'), lit: fairweight('candelabrum').sprite }
+  looks['fixture:shelf'].fairweight = fairweight('shelf')
+  looks['fixture:sack'] = { fairweight: fairweight('sacks') }
+  looks['fixture:long_table'].fairweight = fairweight('table')
   return {
-    rules: [{ match: '^meadow\\.church$', theme: 'chapel' }, { match: '^scourgehouse\\.hall$', theme: 'scourge' }, { match: '^scourgehouse\\.undercroft$', theme: 'undercroft' }, ...j.rules],
+    rules: [{ match: '^meadow\\.church$', theme: 'chapel' }, { match: '^scourgehouse\\.hall$', theme: 'scourge' }, { match: '^scourgehouse\\.undercroft$', theme: 'undercroft' }, { match: '^fairweight\\.chapel$', theme: 'fairweight' }, { match: '^fairweight\\.(poorhouse|miller|home-\\d+)$', theme: 'poor' }, { match: '^holy\\.quarter-5\\.home-\\d+$', theme: 'poor' }, ...j.rules],
     looks,
   }
 })()
@@ -343,6 +357,11 @@ export const BUILDINGS: typeof generatedBuildings = {
   // the Scourging House's undercroft's walls with their niches, torches and the Order's banner
   // (tools/src/art/scourge-undercroft.py)
   scundercroft_shell: { ...generatedBuildings.scundercroft_shell, ...SCOURGE_UNDERCROFT_JSON.walls },
+  // Fairweight's Chapel of the Measure's walls with their windows, banners, niches and the bread's tablet
+  // (tools/src/art/fairweight-chapel.py)
+  fwchapel_shell: { ...generatedBuildings.fwchapel_shell, ...FAIRWEIGHT_CHAPEL_JSON.walls },
+  // Nailgate's Chapel of the Nail's walls with their banners, lamps and shelves (tools/src/art/nailgate-chapel.py)
+  ngchapel_shell: { ...generatedBuildings.ngchapel_shell, ...NAILGATE_CHAPEL_JSON.walls },
   snow_ruin_tower: {
     ...signalTower,
     img: 'lsw/Buildings/cloudtop-signal-tower.png',
@@ -430,6 +449,8 @@ export const CATALOG: Catalog = {
     'foot.hut~5': { pose: 'sit', x: -5, y: -8, facing: 'right' },
     [COURTYARD_BENCH.id]: { pose: 'sit', x: -4, y: -9 },
     'fixture:bed': { pose: 'lie', x: 0, y: -21, reveal: 0.48, scale: 0.8, facing: 'down' },
+    // a pew faces the altar: one sits on it facing north, drawn behind its back, only the head and shoulders over it
+    'fixture:pew': { pose: 'sit', x: 0, y: -10, facing: 'up', behind: true },
     [WATCH_SHELTER.chair.id]: { pose: 'sit', x: -8, y: -8 },
   },
   placedSprites: {
@@ -469,16 +490,26 @@ export const CATALOG: Catalog = {
     'ford.winch.far': { map: 'ford', x: 36, y: 15, sprite: fordCrossing('post'), scale: FORD_CROSSING_SCALE },
     'ford.raft': { map: 'ford', x: 28, y: 16, sprite: fordCrossing('boat'), scale: FORD_CROSSING_SCALE },
     'ford.dead_tree': { map: 'ford', x: 28, y: 10, sprite: fordCrossing('dead_tree'), scale: FORD_CROSSING_SCALE },
-    // the altars of the Church's chapels on the road, each as its words describe it, a carved retable behind it
-    // (tools/src/art/chapel-altars.py): by the altar's id where its map sets it
+    // Nailgate's Chapel of the Nail (tools/src/art/nailgate-chapel.py): every thing of it drawn where it stands, by its id
     ...((): Catalog['placedSprites'] => {
-      const altar = (piece: string) => packPiece(CHAPEL_ALTARS_JSON, piece)
-      const at = (id: string, map: string, x: number, y: number, piece: string) => [id, { map, x, y, sprite: altar(piece), scale: CHAPEL_ALTARS_JSON.scale }] as const
+      const piece = (name: string) => packPiece(NAILGATE_CHAPEL_JSON, name)
+      const at = (id: string, x: number, y: number, name: string, lit = false) => [id, { map: 'nailgate.chapel', x, y, sprite: piece(name), ...(lit && { statuses: { lit: piece(name) } }), scale: NAILGATE_CHAPEL_JSON.scale }] as const
       return Object.fromEntries([
-        at('fairweight.chapel~1', 'fairweight.chapel', 7, 9, 'measure'),
-        at('nailgate.chapel~1', 'nailgate.chapel', 9, 8, 'nail'),
+        at('nailgate.altar', 8, 8, 'altar'),
+        at('nailgate.candles.w', 7, 8, 'candelabrum', true),
+        at('nailgate.candles.e', 11, 8, 'candelabrum', true),
+        at('nailgate.chronicle', 4, 9, 'chronicle'),
+        at('nailgate.tables', 13, 10, 'tables'),
+        at('nailgate.forge', 3, 10, 'forge', true),
+        at('nailgate.anvil', 5, 11, 'anvil'),
+        at('nailgate.nails', 14, 8, 'nails'),
+        at('nailgate.lampchest', 14, 12, 'lampchest'),
+        at('nailgate.cot.sexton', 2, 14, 'cot_patched'),
+        at('nailgate.cot.traveller', 15, 14, 'cot_worn'),
       ])
     })(),
+    // Fairweight's Chapel of the Measure (tools/src/art/fairweight-chapel.py): the altar of the Measure
+    'fairweight.altar': { map: 'fairweight.chapel', x: 7, y: 9, sprite: packPiece(FAIRWEIGHT_CHAPEL_JSON, 'altar'), scale: FAIRWEIGHT_CHAPEL_JSON.scale },
     // the Scourging House's Chapel of the Pillar (tools/src/art/scourge-chapel.py): the altar of the Post
     'scourgehouse.altar': { map: 'scourgehouse.hall', x: 14, y: 12, sprite: packPiece(SCOURGE_CHAPEL_JSON, 'altar'), scale: SCOURGE_CHAPEL_JSON.scale },
     // the Rest's chapel of the Five (tools/src/art/rest-chapel.py): the altar of the five wounds, the candelabra lit
@@ -841,6 +872,12 @@ export const CATALOG: Catalog = {
     // channels, the drains, the blood and the bowl; the font of blood standing on its cell
     scundercroft_floor: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(SCOURGE_UNDERCROFT_JSON.floor),
     scundercroft_font: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, base: 1, grid: ['  ', '  ', ' #'] }))(SCOURGE_UNDERCROFT_JSON.font),
+    // Nailgate's Chapel of the Nail (tools/src/art/nailgate-chapel.py; chapter4.ts lays them): its dais and runner, and the
+    // doorposts bristling with nails, each standing on its cell
+    ngchapel_floor: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(NAILGATE_CHAPEL_JSON.floor),
+    ...Object.fromEntries(([['w', '# '], ['e', ' #']] as const).map(([k, last]) => [`ngchapel_post_${k}`, (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, base: 1, grid: ['  ', '  ', last] }))(NAILGATE_CHAPEL_JSON.posts[k])])),
+    // Fairweight's Chapel of the Measure (tools/src/art/fairweight-chapel.py; chapter3.ts lays it): the altar's platform
+    fwchapel_steps: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(FAIRWEIGHT_CHAPEL_JSON.steps),
     wschapel_runner: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(REST_CHAPEL_JSON.runner),
     wschapel_rug: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(REST_CHAPEL_JSON.rug),
     wschapel_firewood: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, base: 1, grid: ['  ', '# '] }))(REST_CHAPEL_JSON.firewood),
