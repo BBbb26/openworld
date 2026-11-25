@@ -1602,6 +1602,10 @@ export class WorldScene extends Phaser.Scene {
   }
 
   /** The draw order of a thing (depth.ts); `foot` is where it stands now (a walker between two cells). */
+  /** One sat on a seat seen from behind is drawn behind it: under a thing in its cell, not over it (both orders, the frame's and the walk's). */
+  private behindSeat(v: EView): number {
+    return v.furniturePose?.behind ? 3 : 0
+  }
   private depthOf(e: EntitySnap, foot?: number): number {
     return depthOf(e, { ground: this.fixtureDef(e)?.ground, roof: this.roofs.get(`${e.x},${e.y}`), foot })
   }
@@ -1760,7 +1764,7 @@ export class WorldScene extends Phaser.Scene {
       v.body.setTexture(t.img, t.frame)
       v.body.setScale(t.actor?.scale ?? t.scale ?? 1)
     }
-    v.root.setDepth(this.depthOf(e))
+    v.root.setDepth(this.depthOf(e) - this.behindSeat(v))
     // what stands on a storey above the player over the room they are in is not drawn (one sees into
     // it); elsewhere, what hides them is see-through (findSeeThrough)
     const me = this.playerAt
@@ -1875,7 +1879,9 @@ export class WorldScene extends Phaser.Scene {
     for (const v of this.views.values()) {
       const e = v.snap
       // (built walls and floors have their own see-through; stairs, a storey-high block drawn two tiles up, fade as a statue does)
-      const over = !!me && v !== me && !e.tags.includes('agent') && (!e.type.startsWith('structure/') || e.type === 'structure/stairs') && near(e.x, e.y) && v.body.displayHeight > T && v.root.depth > mine && v.body.getBounds().contains(px, py)
+      // (the seat the player sits behind hides them as it should: it does not fade)
+      const seat = !!me?.furniturePose?.behind && e.x === me.snap.x && e.y === me.snap.y
+      const over = !!me && v !== me && !seat && !e.tags.includes('agent') && (!e.type.startsWith('structure/') || e.type === 'structure/stairs') && near(e.x, e.y) && v.body.displayHeight > T && v.root.depth > mine && v.body.getBounds().contains(px, py)
       if (over !== !!v.over) (v.over = over), v.body.setAlpha(this.alphaOf(v))
     }
   }
@@ -1968,8 +1974,7 @@ export class WorldScene extends Phaser.Scene {
       if (v.walker) this.walk(v, time)
       v.head?.setPosition(v.root.x, v.root.y).setVisible(v.root.visible).setAlpha(v.root.alpha)
       // a body between two cells is ordered by where it is drawn now (depth.ts footOf)
-      // (one sat on a seat seen from behind is drawn behind it: under a thing in its cell, not over it)
-      if (e.tags.includes('agent') && !e.boss) v.root.setDepth(this.depthOf(e, footOf(e.y, v.root.y + (e.z ?? 0) * STOREY_LIFT + this.liftOf(e))) - (v.furniturePose?.behind ? 3 : 0))
+      if (e.tags.includes('agent') && !e.boss) v.root.setDepth(this.depthOf(e, footOf(e.y, v.root.y + (e.z ?? 0) * STOREY_LIFT + this.liftOf(e))) - this.behindSeat(v))
       // a boss drawn on its own atlas (rows of poses); one drawn otherwise (the dragon in parts) moves as any creature
       if (v.actor && e.boss && (v.actor.clips || v.actor.rows >= 5)) {
         let animated = e.boss

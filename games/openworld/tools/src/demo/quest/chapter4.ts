@@ -218,6 +218,9 @@ export function buildKlaasHouse(): MapBuilder {
  */
 export function buildFenChapel(): MapBuilder {
   const { m, P } = fenHall('ngchapel', 'nailgate.chapel', 'Chapel of the Nail', '圣钉礼拜堂', 'floor_wood', { music: 'temple' })
+  // its lamplight its own, not the Fens' grey-green dusk: a warm cream barely over the game's grade, and less grey than it,
+  // so that the room's own colours read (the Fens' tint and greying over it made it all green: the user's word, 2026-11-25)
+  m.look = { tint: '#f2e2c4', tintAmount: 0.08, desat: -0.1 }
   const H = P.hut
   const ax = H.x + 6
   m.scenery('ngchapel_floor', H.x, H.y)

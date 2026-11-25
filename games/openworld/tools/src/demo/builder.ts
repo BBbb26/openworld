@@ -5,7 +5,7 @@
 // no picture without a thing, and no wall without one: what the map shows and what blocks are
 // terrain or entities (a big thing blocks its type's footprint, and only while it stands).
 
-import type { AiData, Entity, AppearDef, LightPool, MapData, Portal, PropValue, Text, Vista } from '@openworld/engine'
+import type { AiData, Entity, AppearDef, LightPool, MapData, Portal, PropValue, RegionLook, Text, Vista } from '@openworld/engine'
 import { readFileSync } from 'node:fs'
 import { CHAR_OF, FORM_BY_ID, TERRAIN_CHARS, buildOntology, makeItem, type RawChunk } from '@openworld-game/content'
 import { OntologyIndex, Rng, WAY_TAGS, baseCovers, dropLevels, splitLayers } from '@openworld/engine'
@@ -119,6 +119,8 @@ export class MapBuilder {
   vistas: Vista[] = []
   /** Coloured light on the floor (MapData.lights). */
   lights: LightPool[] = []
+  /** Its own look over its region's (MapData.look): a room lit otherwise than the land round it. */
+  look?: RegionLook
 
   constructor(
     public id: string,
@@ -748,6 +750,7 @@ export class MapBuilder {
         light: this.light,
         ...(this.vistas.length && { vistas: this.vistas }),
         ...(this.lights.length && { lights: this.lights }),
+        ...(this.look && { look: this.look }),
         fish: this.fish || undefined,
         zone: this.zone,
         site: this.site,

@@ -4,6 +4,7 @@
 
 
 import type { AffixTable } from './affixes.ts'
+import type { RegionLook } from './game.ts'
 
 export type Id = string
 /** The AI setting a learned answer was made at, and an event is answered at (quality.ts). */
@@ -1372,6 +1373,8 @@ export interface MapData {
   music?: string
   light?: 'outdoor' | 'indoor' | 'dark'
   environment?: MapEnvironment
+  /** Its own look over its region's (render hint): a room lit otherwise than the land round it. */
+  look?: RegionLook
   /**
    * Where the camera draws back and looks ahead (render hint, docs/showcase.md §3.3): standing in a vista's rect, the
    * view is `zoom` times the usual and centred `look` cells from whoever it follows — a cathedral's front seen whole from
