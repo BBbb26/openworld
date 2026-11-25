@@ -44,6 +44,38 @@ export const NAVE = (() => {
   return { TOP, parts, plan, axis: 17, door: [17, 52 + TOP] as [number, number] }
 })()
 
+/**
+ * The nave of the Most Holy Hall (holyhall.nave, 35 by 62, its axis the middle of column 17), as the user's mock-up of
+ * 2026-11-25 lays it (tools/src/art/holyhall-nave/ref.png): the apse at its head, its floor from row 11 under a face nine
+ * cells high; the choir before it, a bay either side of the sanctuary, the stalls, three steps down to the crossing;
+ * the transept's arms beside the choir, walled off from it (the walls running on to the crossing's piers), each running
+ * down an aisle to the nave; two chapels either
+ * side; the nave; the narthex at the west door. No dark over the apse: its face rises from the map's first rows.
+ */
+export const HOLY_NAVE = (() => {
+  const parts = {
+    apse: { x: 12, y: 11, w: 11, h: 6 },
+    choir: { x: 9, y: 17, w: 17, h: 14 },
+    crossing: { x: 9, y: 31, w: 17, h: 6 },
+    armW: { x: 2, y: 25, w: 6, h: 5 },
+    armE: { x: 27, y: 25, w: 6, h: 5 },
+    aisleW: { x: 7, y: 30, w: 1, h: 7 },
+    aisleE: { x: 27, y: 30, w: 1, h: 7 },
+    // (the choir's walls run on down to the crossing's piers; past them the aisles open onto the crossing)
+    aisleW2: { x: 8, y: 34, w: 1, h: 3 },
+    aisleE2: { x: 26, y: 34, w: 1, h: 3 },
+    chapelW1: { x: 4, y: 35, w: 3, h: 3 },
+    chapelW2: { x: 4, y: 45, w: 3, h: 7 },
+    chapelE1: { x: 28, y: 35, w: 3, h: 3 },
+    chapelE2: { x: 28, y: 45, w: 3, h: 7 },
+    nave: { x: 7, y: 37, w: 21, h: 20 },
+    narthex: { x: 12, y: 57, w: 11, h: 4 },
+    door: { x: 17, y: 61, w: 1, h: 1 },
+  }
+  const plan = carve(35, 62, Object.values(parts))
+  return { TOP: 0, parts, plan, axis: 17, door: [17, 61] as [number, number] }
+})()
+
 /** A hall's plan: its rects (offset by `TOP` rows of the dark its tallest face rises into), the plan, its door cells. */
 export interface HallPlan {
   TOP: number

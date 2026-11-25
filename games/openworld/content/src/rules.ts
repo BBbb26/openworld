@@ -1677,6 +1677,13 @@ const JOURNEY: Rule[] = [
     tree: IF(all(param('what', 'status'), param('remove', 'lit')), DO(remove('lit')), IF(all(param('what', 'status'), param('add', 'lit')), DO(add('lit')), 'inherit')),
   }),
   rule({
+    id: 'slab/told',
+    doc: 'The stone over a stair the story opens (notify what = status, add open: a scene\'s `status`) answers itself and lies open: the Primate lifting the slab behind the high altar.',
+    host: { type: 'fixture/sacred/slab' },
+    on: 'impulse/notify',
+    tree: IF(all(param('what', 'status'), param('add', 'open')), DO(add('open')), 'inherit'),
+  }),
+  rule({
     id: 'companion/struck',
     doc: 'A companion struck by the one it follows takes the blow as any blow, and says so: it is no silent target. A blow from anyone else is a blow.',
     host: COMPANION,

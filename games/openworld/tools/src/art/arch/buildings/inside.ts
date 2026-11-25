@@ -8,7 +8,7 @@ import type { Model, Ornament } from '../oblique.ts'
 import { archNS, backOf, box, drum, gable, octagon, recess, spire, type Solid } from '../shapes.ts'
 import { banner, cross, greatWindow, lancet, rose, sconce, statue, window, type Glass } from '../ornaments.ts'
 import { shell, type Dress, type Face } from '../shell.ts'
-import { NAVE } from '../plans.ts'
+import { HOLY_NAVE, NAVE } from '../plans.ts'
 import { S } from '../kit.ts'
 
 /** A model drawn whole as a fixture's picture, its footprint centred on its own cell (MapBuilder.fixture). */
@@ -392,8 +392,36 @@ function dressNave(f: Face): Dress {
   return {}
 }
 
+/** A pilaster of the rose-grey stone at each end of a face, a gilt capital (the Most Holy Hall's corners). */
+function corners(f: Face, h: number): Solid[] {
+  const y = (f.y + 1) * S
+  return [f.x0, f.x1 + 1].flatMap((x) => [box(x * S - 3, y - 2, 0, x * S + 3, y + 3, h - 4, 'roseStone'), box(x * S - 4, y - 2, h - 14, x * S + 4, y + 4, h - 10, 'gold')])
+}
+
+/**
+ * The Most Holy Hall's nave (holyhall.nave), the user's mock-up of 2026-11-25: its own plan (plans.ts HOLY_NAVE) in the
+ * rose-grey stone of the user's sheets, bare where their pictures are laid on it (tools/src/art/holyhall-nave.py): the
+ * apse's great window, its lancets and the blind arcade under them; the sanctuary's bays a lancet each over the arcade.
+ * The arms and the chapels bare for the user's pictures. The walls' tops a broad pale ledge; the choir's own walls, between
+ * it and the arms, low stone walls seen from above, running on to the crossing's piers.
+ */
+function dressHolyNave(f: Face): Dress {
+  const p = HOLY_NAVE.parts
+  if (f.y === p.apse.y - 1) return { h: 160, solids: corners(f, 160) }
+  if (f.y === p.choir.y - 1) return { h: 120, solids: corners(f, 120) }
+  // the transept's arms: bare, the vestry's round window and the side altar's niche the user's pictures
+  if (f.y === p.armW.y - 1) return { h: 108, solids: corners(f, 108) }
+  // the chapels: bare, their niches and altars the user's pictures
+  if (f.y === p.chapelW1.y - 1 || f.y === p.chapelW2.y - 1) {
+    const h = f.y === p.chapelW1.y - 1 ? 68 : 92
+    return { h, solids: corners(f, h) }
+  }
+  return {}
+}
+
 export const INSIDE: Record<string, () => Model> = {
   nave_shell: () => shell({ name: 'nave_shell', plan: NAVE.plan, h: 112, wall: 'stone', dress: dressNave }),
+  holynave_shell: () => shell({ name: 'holynave_shell', plan: HOLY_NAVE.plan, h: 112, wall: 'roseStone', trim: 'roseStone', rim: 6, dress: dressHolyNave, ledge: (x, y) => (x === 8 || x === 26) && y >= HOLY_NAVE.parts.choir.y && y <= 33 }),
   nave_pier: () => ({ ...pier(136), name: 'nave_pier' }),
   crypt_pillar: () => ({ ...pier(54), name: 'crypt_pillar' }),
   hall_pillar: () => ({ ...pier(110, 'granite'), name: 'hall_pillar' }),

@@ -667,6 +667,10 @@ const fixtureTypes: TypeDef[] = [
   F('fixture/sacred/saint', 'statue of a saint', '圣徒像', ['stone']),
   F('fixture/sacred/rail', 'altar rail', '圣坛栏杆', ['wooden'], { sprite: 'fixture:altar_rail' }),
   F('fixture/sacred/cross', 'processional cross', '十字杖架', ['holy', 'metal', 'conductive'], { sprite: 'fixture:standing_cross' }),
+  // the Most Holy Hall's (tools/src/art/holyhall-nave.py): the stalls of the choir, a row of seats under gilt canopies; the
+  // stone in the sanctuary's floor over the stair down, which the story opens (its status `open`, rule slab/told)
+  F('fixture/sacred/stalls', 'choir stalls', '唱诗席座椅', ['wooden'], { footprint: [6, 1], solid: true, sprite: 'fixture:choir_stalls', props: { material: 'wood', maxHp: 20, hp: 20 }, makeup: [{ type: 'item/material/plank', count: 6 }] }),
+  F('fixture/sacred/slab', 'slab over the stair', '祭坛后的石板', ['stone', 'readable'], { sprite: 'fixture:altar_slab' }),
   F('fixture/sacred/gravestone', 'gravestone', '墓碑', ['readable']),
   // a wayside shrine of the Five Sufferings: five carved wounds, the first cracked and weeping black (docs/chapter-1.md)
   F('fixture/sacred/seal_stone', 'five-wound shrine stone', '五伤路碑', ['ancient', 'runic', 'holy']),

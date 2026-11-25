@@ -28,6 +28,7 @@ import SCOURGE_CHAPEL_JSON from './scourge-chapel.json'
 import SCOURGE_UNDERCROFT_JSON from './scourge-undercroft.json'
 import FAIRWEIGHT_CHAPEL_JSON from './fairweight-chapel.json'
 import WHITEVEIL_CHURCH_JSON from './whiteveil-church.json'
+import HOLY_NAVE_JSON from './holyhall-nave.json'
 import NAILGATE_CHAPEL_JSON from './nailgate-chapel.json'
 import FIRSTLIGHT_GRAVES_JSON from './firstlight-graves.json'
 import LIGHTS_JSON from './lights.json'
@@ -368,6 +369,8 @@ export const BUILDINGS: typeof generatedBuildings = {
   ngchapel_shell: { ...generatedBuildings.ngchapel_shell, ...NAILGATE_CHAPEL_JSON.walls },
   // the Church of Whiteveil's walls with their windows, drapes and banners of the lance (tools/src/art/whiteveil-church.py)
   wvchurch_shell: { ...generatedBuildings.wvchurch_shell, ...WHITEVEIL_CHURCH_JSON.walls },
+  // the Most Holy Hall's nave's walls with the apse's great window, its lancets and arcade (tools/src/art/holyhall-nave.py)
+  holynave_shell: { ...generatedBuildings.holynave_shell, ...HOLY_NAVE_JSON.walls },
   snow_ruin_tower: {
     ...signalTower,
     img: 'lsw/Buildings/cloudtop-signal-tower.png',
@@ -533,6 +536,55 @@ export const CATALOG: Catalog = {
         at('whiteveil.lilies.7', 27, 18, 'lilies_e'),
         at('whiteveil.chest', 4, 18, 'chest'),
         at('whiteveil.candles.chapel', 2, 18, 'candles', true),
+      ])
+    })(),
+    // the Most Holy Hall's nave (tools/src/art/holyhall-nave.py; finale.ts): its things drawn where they stand, by their ids
+    ...((): Catalog['placedSprites'] => {
+      const piece = (name: string) => packPiece(HOLY_NAVE_JSON, name)
+      const at = (id: string, x: number, y: number, name: string, lit = false) => [id, { map: 'holyhall.nave', x, y, sprite: piece(name), ...(lit && { statuses: { lit: piece(name) } }), scale: HOLY_NAVE_JSON.scale }] as const
+      return Object.fromEntries([
+        at('holyhall.nave.altar', 17, 19, 'altar'),
+        at('holyhall.nave.candelabrum.w', 13, 19, 'candelabrum_w', true),
+        at('holyhall.nave.candelabrum.e', 21, 19, 'candelabrum_e', true),
+        at('holyhall.nave.cross.w', 13, 18, 'cross_w'),
+        at('holyhall.nave.cross.e', 21, 18, 'cross_e'),
+        at('holyhall.nave.statue.w', 11, 19, 'statue_w'),
+        at('holyhall.nave.statue.e', 23, 19, 'statue_e'),
+        at('holyhall.nave.candles.w', 14, 12, 'candles_w', true),
+        at('holyhall.nave.candles.e', 20, 12, 'candles_e', true),
+        // the rail's two runs, each one picture on its third cell from the gap; its other cells drawn by nothing
+        ...[0, 1, 2, 3, 4, 5].flatMap((i) => [
+          at(`holyhall.nave.rail.w.${i}`, 15 - i, 21, i === 3 ? 'rail_w' : 'nothing'),
+          at(`holyhall.nave.rail.e.${i}`, 19 + i, 21, i === 3 ? 'rail_e' : 'nothing'),
+        ]),
+        at('holyhall.nave.stalls.w1', 11, 25, 'stalls_w'),
+        at('holyhall.nave.stalls.w2', 11, 28, 'stalls_w'),
+        at('holyhall.nave.stalls.e1', 22, 25, 'stalls_chair'),
+        at('holyhall.nave.stalls.e2', 22, 28, 'stalls_e'),
+        ...[35, 41, 48, 53].flatMap((y, i) => [at(`holyhall.nave.candelabrum.aisle.w${i}`, 7, y, 'candelabrum_aisle_w', true), at(`holyhall.nave.candelabrum.aisle.e${i}`, 27, y, 'candelabrum_aisle_e', true)]),
+        // the pews, a row of them either side of the runner
+        ...[0, 1, 2, 3, 4, 5, 6, 7, 8].flatMap((i) => [at(`holyhall.nave.pew.w${i}`, 13, 39 + 2 * i, 'pew'), at(`holyhall.nave.pew.e${i}`, 21, 39 + 2 * i, 'pew')]),
+        at('holyhall.nave.font.w', 13, 58, 'font'),
+        at('holyhall.nave.font.e', 21, 58, 'font'),
+        // the west arm, the vestry: its table; the Curia's pieces in its box, stand, wardrobe, rack and chest (sets/fin.ts)
+        at('holyhall.nave.table', 5, 27, 'table'),
+        at('holyhall.nave.vestry.box', 3, 28, 'box'),
+        at('holyhall.nave.vestry.stand', 2, 27, 'stand'),
+        at('holyhall.nave.vestry.wardrobe', 3, 25, 'wardrobe'),
+        at('holyhall.nave.vestry.rack', 6, 25, 'rack'),
+        at('holyhall.nave.vestry.chest', 6, 28, 'chest'),
+        // the east arm: the side altar, its lilies, its kneeler
+        at('holyhall.nave.altar.side', 30, 25, 'side_altar'),
+        at('holyhall.nave.lilies.w', 27, 25, 'lilies_w'),
+        at('holyhall.nave.lilies.e', 32, 25, 'lilies_e'),
+        at('holyhall.nave.kneeler.side', 30, 27, 'kneeler'),
+        // the chapels' altars in their niches and their kneelers; the Second's reliquaries in the lower two
+        ...([['w1', 5, 35, 'swords'], ['w2', 5, 45, 'monstrance'], ['e1', 29, 35, 'lily'], ['e2', 29, 45, 'virgin']] as const).flatMap(([id, x, y, k]) => [
+          at(`holyhall.nave.chapel.${id}`, x, y, `chapel_${k}`),
+          at(`holyhall.nave.kneeler.${id}`, x, y + 1, `kneel_${k}`),
+        ]),
+        at('holyhall.nave.reliquary.w', 4, 47, 'reliquary'),
+        at('holyhall.nave.reliquary.e', 30, 47, 'reliquary'),
       ])
     })(),
     // Fairweight's Chapel of the Measure (tools/src/art/fairweight-chapel.py): the altar of the Measure
@@ -907,6 +959,10 @@ export const CATALOG: Catalog = {
     // the Church of Whiteveil (tools/src/art/whiteveil-church.py; chapter5.ts lays them): the green stone and the slab before
     // the altar; the arch over the stair down, standing on the stair's row, its piers solid either side of the way down
     wvchurch_floor: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(WHITEVEIL_CHURCH_JSON.floor),
+    // the Most Holy Hall's nave (tools/src/art/holyhall-nave.py; finale.ts lays it): its floors, steps, runner and the slab, over the whole map
+    holynave_floor: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(HOLY_NAVE_JSON.floor),
+    // its piers, each solid on the middle of its picture's bottom row
+    holynave_pier: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, base: th - 1, grid: [...Array<string>(th - 1).fill('   '), ' # '] }))(HOLY_NAVE_JSON.pier),
     wvchurch_stair: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, base: 3, grid: ['   ', '   ', '   ', '# #'] }))(WHITEVEIL_CHURCH_JSON.stair),
     fwchapel_steps: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(FAIRWEIGHT_CHAPEL_JSON.steps),
     wschapel_runner: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(REST_CHAPEL_JSON.runner),
@@ -999,6 +1055,10 @@ export const CATALOG: Catalog = {
     // the containers: the chest and the crate shut, open with things in, open and empty (tools/src/art/
     // interior-furniture.py); the barrel and the sack shut and open (tools/src/art/containers.py)
     'fixture:chest': { base: furniture('chest'), open: furniture('chest_open'), emptied: furniture('chest_empty'), scale: INTERIOR_FURNITURE_JSON.scale },
+    // the Most Holy Hall's (tools/src/art/holyhall-nave.py): the choir's stalls; the slab over the stair, lifted when it
+    // bears `open` (rule slab/told)
+    'fixture:choir_stalls': { base: packPiece(HOLY_NAVE_JSON, 'stalls_e'), scale: HOLY_NAVE_JSON.scale },
+    'fixture:altar_slab': { base: packPiece(HOLY_NAVE_JSON, 'slab'), open: packPiece(HOLY_NAVE_JSON, 'slab_open'), scale: HOLY_NAVE_JSON.scale },
     'fixture:barrel': { base: container('barrel'), open: container('barrel_open'), scale: CONTAINERS_SCALE },
     'fixture:crate': { base: furniture('crate'), open: furniture('crate_open'), emptied: furniture('crate_empty'), scale: INTERIOR_FURNITURE_JSON.scale },
     // (plain or painted by the map's theme: fixtureThemes)

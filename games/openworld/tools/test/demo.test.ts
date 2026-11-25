@@ -4988,8 +4988,11 @@ req('FIN', "the finale (docs/finale.md), offline: the road down to the Holy City
   expect(w.posOf(w.get('npc.severin')!)?.map).toBe('offstage')
   expect(onMap(f, 'fixture/sacred/bearer_statue', 'holyhall').length).toBe(10)
   expect([onMap(f, 'fixture/standard', 'holyhall').length, w.get('site.holyhall')!.type]).toEqual([2, 'site/place/cathedral'])
-  // the nave: the saints at the choir, the rail before it, the font at the door
+  // the nave: the saints by the altar, the rail before it, the choir's stalls, the fonts at the door; the slab behind the
+  // altar still down over the stair
   for (const t of ['fixture/sacred/saint', 'fixture/sacred/rail', 'fixture/sacred/font']) expect([t, onMap(f, t, 'holyhall.nave').length > 0]).toEqual([t, true])
+  expect(onMap(f, 'fixture/sacred/stalls', 'holyhall.nave').length).toBe(4)
+  expect(!!w.get('holyhall.nave.slab')!.statuses?.open).toBe(false)
   // the weapons pilgrims who came this far left at the Holiest's door
   expect(onMap(f, 'item/weapon/blade/sword', 'confluence').length + onMap(f, 'item/weapon/polearm/spear', 'confluence').length).toBe(2)
   go('holyhall', 25, 66)
@@ -4998,6 +5001,8 @@ req('FIN', "the finale (docs/finale.md), offline: the road down to the Holy City
   go('holyhall.nave', 17, 29)
   waitFor('primate')
   expect([w.fact(FIN.primate), q.stage('great_rite')]).toEqual([1, 30])
+  // the slab lifted off the stair down (the scene tells it; rule slab/told)
+  expect(!!w.get('holyhall.nave.slab')!.statuses?.open).toBe(true)
   expect(w.map('holyhall.nave')!.portals.find((p) => p.to === 'confluence')?.opensWhen).toBe(FIN.primate)
   // the Confluence: the channels of the five lands meeting; Severin waiting
   go('confluence', 20, 12)
