@@ -186,8 +186,7 @@ export function buildHolyNave(): MapBuilder {
   // the light: the candles' gold, the great window dark (the sun is short now)
   nave.lights.push({ x: AX, y: altar - 1, w: 9, h: 7, color: '#ffc46b', shape: 'glow', when: 'always', strength: 0.5 })
   for (const y of aisle) for (const x of [7, 27]) nave.lights.push({ x, y, w: 4, h: 4, color: '#ffb35c', shape: 'glow', when: 'always', strength: 0.4 })
-  nave.vistas.push({ at: [P.choir.x, P.apse.y, P.choir.w, steps - P.apse.y], zoom: 0.6, focus: [AX, P.apse.y - 3], share: 0.5 })
-  nave.vistas.push({ at: [2, P.armW.y, 31, P.nave.y + P.nave.h - P.armW.y], zoom: 0.75, focus: [AX, P.apse.y], share: 0.35 })
+  // (no vistas: the camera follows the walker as everywhere, the nave's plan too full of them for one to help)
   nave.anchors = { 'primate.altar': [AX, altar + 1], 'primate.choir': [AX + 6, 26] }
   nave.doors.out = [AX, HOLY_NAVE.door[1]]
   // the choir and the crossing before it: where the Primate is first seen
