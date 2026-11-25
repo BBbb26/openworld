@@ -25,6 +25,8 @@ import FIRSTLIGHT_CHAPEL_JSON from './firstlight-chapel.json'
 import CHAPEL_ALTARS_JSON from './chapel-altars.json'
 import FIRST_DAWN_JSON from './first-dawn-chapel.json'
 import REST_CHAPEL_JSON from './rest-chapel.json'
+import SCOURGE_CHAPEL_JSON from './scourge-chapel.json'
+import SCOURGE_UNDERCROFT_JSON from './scourge-undercroft.json'
 import FIRSTLIGHT_GRAVES_JSON from './firstlight-graves.json'
 import LIGHTS_JSON from './lights.json'
 import OUTDOOR_JSON from './outdoor.json'
@@ -186,7 +188,29 @@ const INTERIOR_THEMES: NonNullable<Catalog['fixtureThemes']> = (() => {
   looks['fixture:drawers'] = { chapel: chapel('nightstand') }
   // the tavern's rest is the plain room's, and so is the chapel's
   for (const byTheme of Object.values(looks)) if (byTheme.plain) (byTheme.tavern ??= byTheme.plain), (byTheme.chapel ??= byTheme.plain)
-  return { rules: [{ match: '^meadow\\.church$', theme: 'chapel' }, ...j.rules], looks }
+  // the Scourging House's Chapel of the Pillar, as the user drew it (tools/src/art/scourge-chapel.py): its gilt
+  // candlesticks, lit, its pews with the Order's cloth, the vestry chest a cupboard, Firstlight's bookshelf, the
+  // register open on the copyist's desk
+  const scourge = (piece: string) => ({ sprite: packPiece(SCOURGE_CHAPEL_JSON, piece), scale: SCOURGE_CHAPEL_JSON.scale })
+  looks['fixture:candelabrum'] = { scourge: { ...scourge('candle'), lit: scourge('candle').sprite } }
+  looks['fixture:pew'].scourge = scourge('pew')
+  looks['fixture:chest'] = { scourge: scourge('cupboard') }
+  looks['fixture:bookshelf'].scourge = scourge('bookshelf')
+  looks['fixture:desk'] = { scourge: scourge('desk') }
+  // the Scourging House's undercroft, as the user drew it (tools/src/art/scourge-undercroft.py): the bare stone altar, the
+  // grey brother's bones in his cloak, the tombstone of the scourge, the amphora, the Rest's candelabra, lit; the
+  // channels' cells drawn by the floor's picture
+  const undercroft = (piece: string) => ({ sprite: packPiece(SCOURGE_UNDERCROFT_JSON, piece), scale: SCOURGE_UNDERCROFT_JSON.scale })
+  looks['fixture:altar'] = { undercroft: undercroft('altar') }
+  looks['fixture:bones'] = { undercroft: undercroft('bones') }
+  looks['fixture:tomb'] = { undercroft: undercroft('tomb') }
+  looks['fixture:pot'].undercroft = undercroft('amphora')
+  looks['fixture:candles'].undercroft = { ...undercroft('candelabrum'), lit: undercroft('candelabrum').sprite }
+  looks['fixture:red_channel'] = { undercroft: undercroft('nothing') }
+  return {
+    rules: [{ match: '^meadow\\.church$', theme: 'chapel' }, { match: '^scourgehouse\\.hall$', theme: 'scourge' }, { match: '^scourgehouse\\.undercroft$', theme: 'undercroft' }, ...j.rules],
+    looks,
+  }
 })()
 /** UI piece: whole image, anchored top-left. */
 function ui(img: string, w: number, h: number, extra: Partial<SpriteDef> = {}): SpriteDef {
@@ -313,6 +337,12 @@ export const BUILDINGS: typeof generatedBuildings = {
   dhchapel_shell: { ...generatedBuildings.dhchapel_shell, ...FIRST_DAWN_JSON.walls },
   // the Rest's chapel of the Five's walls with their windows, banners and the five wounds (tools/src/art/rest-chapel.py)
   wschapel_shell: { ...generatedBuildings.wschapel_shell, ...REST_CHAPEL_JSON.walls },
+  // the Scourging House's Chapel of the Pillar's walls with their windows, banners and the retable of the Post
+  // (tools/src/art/scourge-chapel.py)
+  scchapel_shell: { ...generatedBuildings.scchapel_shell, ...SCOURGE_CHAPEL_JSON.walls },
+  // the Scourging House's undercroft's walls with their niches, torches and the Order's banner
+  // (tools/src/art/scourge-undercroft.py)
+  scundercroft_shell: { ...generatedBuildings.scundercroft_shell, ...SCOURGE_UNDERCROFT_JSON.walls },
   snow_ruin_tower: {
     ...signalTower,
     img: 'lsw/Buildings/cloudtop-signal-tower.png',
@@ -445,11 +475,12 @@ export const CATALOG: Catalog = {
       const altar = (piece: string) => packPiece(CHAPEL_ALTARS_JSON, piece)
       const at = (id: string, map: string, x: number, y: number, piece: string) => [id, { map, x, y, sprite: altar(piece), scale: CHAPEL_ALTARS_JSON.scale }] as const
       return Object.fromEntries([
-        at('scourgehouse.altar', 'scourgehouse.hall', 15, 11, 'pillar'),
         at('fairweight.chapel~1', 'fairweight.chapel', 7, 9, 'measure'),
         at('nailgate.chapel~1', 'nailgate.chapel', 9, 8, 'nail'),
       ])
     })(),
+    // the Scourging House's Chapel of the Pillar (tools/src/art/scourge-chapel.py): the altar of the Post
+    'scourgehouse.altar': { map: 'scourgehouse.hall', x: 14, y: 12, sprite: packPiece(SCOURGE_CHAPEL_JSON, 'altar'), scale: SCOURGE_CHAPEL_JSON.scale },
     // the Rest's chapel of the Five (tools/src/art/rest-chapel.py): the altar of the five wounds, the candelabra lit
     ...((): Catalog['placedSprites'] => {
       const rest = (piece: string) => packPiece(REST_CHAPEL_JSON, piece)
@@ -803,6 +834,13 @@ export const CATALOG: Catalog = {
     dawnchapel_bell: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, base: th - 1, grid: Array<string>(th).fill(' '.repeat(tw)) }))(FIRST_DAWN_JSON.bell),
     // the Rest's chapel of the Five (tools/src/art/rest-chapel.py; pilgrimage.ts lays them): its runner and the priest's
     // rug as ground, the wood in his cell's corner standing on the cell it fills
+    // the Scourging House's Chapel of the Pillar (tools/src/art/scourge-chapel.py; chapter2.ts lays them): the rugs under
+    // the desk and the cupboard, the stair down in its stone frame, the steps up to the raised apse
+    ...Object.fromEntries((['rug', 'rug_small', 'stair', 'steps'] as const).map((k) => [`scchapel_${k}`, (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(SCOURGE_CHAPEL_JSON[k])])),
+    // the Scourging House's undercroft (tools/src/art/scourge-undercroft.py; chapter2.ts lays them): its floor with the red
+    // channels, the drains, the blood and the bowl; the font of blood standing on its cell
+    scundercroft_floor: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(SCOURGE_UNDERCROFT_JSON.floor),
+    scundercroft_font: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, base: 1, grid: ['  ', '  ', ' #'] }))(SCOURGE_UNDERCROFT_JSON.font),
     wschapel_runner: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(REST_CHAPEL_JSON.runner),
     wschapel_rug: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(REST_CHAPEL_JSON.rug),
     wschapel_firewood: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, base: 1, grid: ['  ', '# '] }))(REST_CHAPEL_JSON.firewood),

@@ -177,6 +177,12 @@ export const HALLS = {
   dhchapel: hallPlan(21, 14, 7, { apse: [6, 1, 5, 2], nave: [3, 3, 11, 9], arch: [14, 5, 1, 1], tower: [15, 3, 3, 5], entry: [7, 12, 3, 1] }, [[8, 13]]),
   prchapel: hallPlan(21, 13, 7, { nave: [2, 2, 11, 9], cell: [14, 3, 5, 6], arch: [13, 5, 1, 1], entry: [6, 11, 3, 1] }, [[7, 12]]),
   // the Rest's chapel of the Five alone (2026-11-24): the plan of prchapel, its walls its own (tools/src/art/rest-chapel.py)
+  // the Scourging House's Chapel of the Pillar alone (2026-11-25): the chapel's plan, its side chapels a row deeper as the
+  // user's mock-up has them, its walls its own (tools/src/art/scourge-chapel.py)
+  scchapel: hallPlan(30, 19, 9, { nave: [5, 5, 20, 10], apse: [11, 2, 8, 3], chapelW: [2, 8, 3, 5], chapelE: [25, 8, 3, 5], entry: [12, 15, 6, 3] }, [[14, 18]]),
+  // the Scourging House's undercroft alone (2026-11-25): the undercroft's plan, its walls its own
+  // (tools/src/art/scourge-undercroft.py)
+  scundercroft: hallPlan(26, 18, 5, { hall: [3, 3, 20, 10], apse: [9, 1, 8, 2], landing: [11, 13, 4, 3] }, []),
   wschapel: hallPlan(21, 13, 7, { nave: [2, 2, 11, 9], cell: [14, 3, 5, 6], arch: [13, 5, 1, 1], entry: [6, 11, 3, 1] }, [[7, 12]]),
   prhostel: hallPlan(23, 12, 6, { common: [2, 2, 9, 8], dorm: [12, 2, 9, 8], arch: [11, 5, 1, 2], entry: [5, 10, 3, 1] }, [[6, 11]]),
   abhall: hallPlan(28, 13, 7, { scriptorium: [2, 4, 5, 6], hall: [8, 2, 11, 9], cell: [20, 4, 6, 6], aW: [7, 6, 1, 1], aE: [19, 6, 1, 1], entry: [12, 11, 3, 1] }, [[13, 12]]),

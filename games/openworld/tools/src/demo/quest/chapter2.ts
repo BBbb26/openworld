@@ -400,47 +400,76 @@ export function buildScourgeHouse(): MapBuilder {
   return m
 }
 
-/** The chapel of the Red Order: the altar of the Post in its apse, its pews, the register of the offering, the stair down. */
+/**
+ * The chapel of the Red Order, as the user drew it (2026-11-25, tools/src/art/scourge-chapel.py: their sheet and mock-up):
+ * the altar of the Post in its apse before the carved retable, a gilt candlestick either side; three pews either side of
+ * the runner; in the west chapel's corner the vestry cupboard (the sets' vestry chest), by the nave's west wall the
+ * bookshelf and the register open on its desk, on a rug; the stair down in the east chapel.
+ */
 export function buildScourgeHall(): MapBuilder {
-  const { m, P } = marchHall('chapel', 'scourgehouse.hall', 'Chapel of the Pillar', '刑柱礼拜堂', 'floor_stone', [], { music: 'temple', floors: [['apse', 'marble']] })
+  const { m, P } = marchHall('scchapel', 'scourgehouse.hall', 'Chapel of the Pillar', '刑柱礼拜堂', 'floor_stone', [], { music: 'temple', floors: [['apse', 'marble']] })
   const N = P.nave
   const A = P.apse
   const ax = A.x + 4
   m.rect(ax - 1, N.y, 2, N.h, 'carpet_royal')
-  m.fixture('fixture/sacred/altar', ax, A.y, {
+  // the apse raised two steps over the nave
+  m.scenery('scchapel_steps', A.x - 1, A.y)
+  // (a stone altar four cells wide, on the runner's middle: its west middle cell)
+  m.fixture('fixture/sacred/altar/stone', ax - 1, A.y + 1, {
     id: 'scourgehouse.altar',
     name: L('The altar of the Post', '刑柱祭坛'),
     tags: ['readable'],
     props: { text: 'An altar of red stone. Carved on its face, a man bound to a pillar, and round him many hands holding scourges. Below: THE FLESH REPAYS WHAT ALL OWE.', text_zh: '一座红石祭坛。正面刻着一个绑在柱子上的人，四周许多只手握着鞭子。底下刻着：以肉身偿还众人之罪。' },
   })
-  for (const x of [A.x, A.x + 7]) m.fixture('fixture/light/candelabrum', x, A.y, lit)
-  for (const y of [N.y + 2, N.y + 5, N.y + 8]) for (const x of [N.x + 3, N.x + 14]) m.fixture('fixture/furniture/bench', x, y)
-  const W = P.chapelW
-  m.fixture('fixture/furniture/bookstand', W.x + 1, W.y, {
+  for (const x of [A.x, A.x + 7]) m.fixture('fixture/light/candelabrum', x, A.y + 1, lit)
+  for (const y of [N.y + 3, N.y + 5, N.y + 7]) for (const x of [ax - 6, ax + 5]) m.fixture('fixture/furniture/pew', x, y)
+  // the register on its desk and the shelf beside it, on a rug, by the nave's west wall
+  m.scenery('scchapel_rug', N.x, N.y)
+  m.fixture('fixture/container/bookshelf', N.x, N.y, { name: L("The Order's books", '修会的书') })
+  m.fixture('fixture/furniture/desk', N.x + 3, N.y, {
     name: L('The register of the offering', '献祭簿'),
     tags: ['readable'],
     props: { text: 'A register in a red binding. Each evening has its line: the date, how many brothers stood at the posts, how many strokes. At the foot of every page, in the same hand: "Carried west." The last line is yesterday\'s.', text_zh: '一本红皮册子。每个黄昏记一行：日期，几个修士站到了柱前，挨了多少鞭。每一页最底下都是同一个人的笔迹：「已西送。」最后一行是昨天的。' },
   })
-  m.fixture('fixture/light/candles', W.x + 1, W.y + 3, lit)
-  // the stair down to the undercroft, in the east chapel
+  // the rug the vestry cupboard stands on (the cupboard is the sets' vestry chest, sets/ch2.ts)
+  const W = P.chapelW
+  m.scenery('scchapel_rug_small', W.x, W.y)
+  // the stair down to the undercroft, in the east chapel, in its stone frame
   const E = P.chapelE
   m.doors.down = [E.x + 1, E.y + 1]
-  glow(m, ax + 0.5, A.y + 1.5, 9, 4, '#ff7a5a', 0.45)
+  m.scenery('scchapel_stair', E.x, E.y)
+  glow(m, ax, A.y + 1.5, 9, 4, '#ff7a5a', 0.5)
   m.anchor('lucan.altar', ...spot(m, ax, A.y + 2, true))
   m.regions.altar = [ax - 2, A.y, 5, 4]
   return m
 }
 
-/** The undercroft: its vault on pillars, the altar at its head, and the red channels running from it west under the wall. */
+/**
+ * The undercroft, as the user drew it (2026-11-25, tools/src/art/scourge-undercroft.py: their sheet and mock-up): its
+ * vault on pillars, the bare altar at its head under the Order's banner; the red channels from the altar's foot down the
+ * hall's middle and branching west three times to the drains in the west wall (drawn by the floor's picture, their cells
+ * the channel's things); the font of blood, a bowl, an amphora, a tombstone of the scourge; by the drains, where the
+ * channels go into the wall, the grey brother's bones (sets/ch2.ts).
+ */
 export function buildUndercroft(): MapBuilder {
-  const { m, P } = marchHall('undercroft', 'scourgehouse.undercroft', 'The Undercroft', '地下室', 'floor_stone', ['hall'], { music: 'crypt', light: 'dark', outside: false })
+  const { m, P } = marchHall('scundercroft', 'scourgehouse.undercroft', 'The Undercroft', '地下室', 'floor_stone', ['hall'], { music: 'crypt', light: 'dark', outside: false })
   const H = P.hall
+  const A = P.apse
+  const ax = A.x + 4
   for (const y of [H.y + 2, H.y + 7]) for (const x of [H.x + 4, H.x + 15]) m.building('crypt_pillar', x, y)
-  m.fixture('fixture/sacred/altar', P.apse.x + 4, P.apse.y, { name: L('A bare altar', '一座光秃秃的祭坛') })
-  for (const x of [P.apse.x + 1, P.apse.x + 6]) m.fixture('fixture/light/candles', x, P.apse.y, lit)
-  // the channels: from below the altar, west to the wall and under it
-  for (const y of [H.y + 1, H.y + 4, H.y + 8]) for (let x = H.x; x <= P.apse.x + 4; x++) if (m.free(x, y)) m.fixture(RED_CHANNEL, x, y)
-  glow(m, P.apse.x + 4, P.apse.y + 1.5, 8, 4, '#ff5a4a', 0.4)
+  m.scenery('scundercroft_floor', H.x, A.y)
+  m.fixture('fixture/sacred/altar', ax, A.y, { name: L('A bare altar', '一座光秃秃的祭坛') })
+  for (const x of [A.x + 1, A.x + 6]) m.fixture('fixture/light/candles', x, A.y, lit)
+  // the channels: from the altar's foot down the hall's middle, and three branches west to the drains in the wall
+  for (let y = A.y + 1; y <= H.y + 8; y++) if (m.free(ax - 1, y)) m.fixture(RED_CHANNEL, ax - 1, y)
+  for (const y of [H.y + 1, H.y + 4, H.y + 8]) for (let x = H.x; x < ax - 1; x++) if (m.free(x, y)) m.fixture(RED_CHANNEL, x, y)
+  // the font of blood, the amphora, the tombstone of the scourge
+  m.scenery('scundercroft_font', ax + 1, H.y + 1)
+  m.fixture('fixture/container/pot', H.x + 17, H.y + 2, { name: L('An amphora', '双耳陶罐') })
+  m.fixture('fixture/sacred/tomb', ax - 2, H.y + 6, { props: { text: 'A STONE CARVED WITH A SCOURGE. THE FIRST OF THE ORDER. HE TOOK HIS STROKES.', text_zh: '一块刻着鞭子的石碑。修会的第一人。他受过了他的鞭。' } })
+  glow(m, ax, A.y + 1.5, 8, 4, '#ff5a4a', 0.45)
+  for (const x of [A.x + 1.5, A.x + 6.5]) glow(m, x, A.y + 1, 3, 3, '#ffb35c', 0.35)
+  for (const x of [6.9, 19.1]) glow(m, x, H.y - 1.5, 4, 4, '#ffb35c', 0.45)
   m.anchors = { stair: [P.landing.x + 1, P.landing.y] }
   m.regions.channels = [H.x, H.y, H.w, H.h]
   return m

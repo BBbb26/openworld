@@ -331,6 +331,15 @@ const STYLES: Record<keyof typeof HALLS, Style> = {
   // the Rest's chapel of the Five: bare stone, pilasters either side of the bay at its head; its windows, banners and the
   // carved five wounds pictures of their own laid on it (tools/src/art/rest-chapel.py)
   wschapel: { wall: 'stone', trim: 'stone', h: 120, windows: 'none', hang: ['none'], feature: 'none', pilasters: 'stone', course: 0.5, bare: true, pilastersAt: (f) => [f.x0, (f.x0 + f.x1 + 1) / 2 - 2.5, (f.x0 + f.x1 + 1) / 2 + 2.5, f.x1 + 1], heightAt: (f) => (f.x0 >= 14 ? 84 : undefined) },
+  // the Scourging House's Chapel of the Pillar: white stone as tall as the user's mock-up, pilasters of a darker stone
+  // every three cells but only at the apse's corners; its windows, banners and the retable of the Post pictures of their own laid on it
+  // (tools/src/art/scourge-chapel.py)
+  scchapel: { wall: 'whiteStone', trim: 'whiteStone', h: 136, windows: 'none', hang: ['none'], feature: 'none', pilasters: 'stone', course: 0.5, bare: true, pilastersAt: (f) => (f.x1 - f.x0 + 1 === 8 ? [f.x0, f.x1 + 1] : Array.from({ length: Math.floor((f.x1 + 1 - f.x0) / 3) + 1 }, (_, i) => Math.min(f.x0 + 3 * i, f.x1 + 1))) },
+  // the Scourging House's undercroft: dressed granite, pale pilasters every three cells, at the apse's corners and either side
+  // of its middle bay, no string course across its pictures (a plinth at its foot); its niches, torches and the Order's
+  // banner pictures of their own laid on it
+  // (tools/src/art/scourge-undercroft.py)
+  scundercroft: { wall: 'granite', trim: 'granite', h: 68, windows: 'none', hang: ['none'], feature: 'none', pilasters: 'whiteStone', course: 0, bare: true, pilastersAt: (f) => (f.x1 - f.x0 + 1 === 8 ? [f.x0, f.x0 + 2.35, f.x1 + 1 - 2.35, f.x1 + 1] : Array.from({ length: Math.floor((f.x1 + 1 - f.x0) / 3) + 1 }, (_, i) => Math.min(f.x0 + 3 * i, f.x1 + 1))) },
   prhostel: { wall: 'plaster', trim: 'timber', h: 72, windows: 'rect', hang: ['painting', 'jars', 'none'], feature: 'hearth', pilasters: 'timber' },
   abhall: { wall: 'granite', trim: 'darkwood', h: 96, windows: 'lancet', glass: 'blue', hang: ['banner', 'books', 'trophy'], feature: 'canopy', pilasters: 'granite' },
   abcrypt: { wall: 'graniteRough', trim: 'graniteRough', h: 72, windows: 'none', hang: ['niches', 'niches', 'none'], feature: 'none', pilasters: 'graniteRough' },
