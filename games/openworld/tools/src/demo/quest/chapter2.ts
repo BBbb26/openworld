@@ -353,7 +353,10 @@ export function buildScourgeHouse(): MapBuilder {
   // the court before them, flagged in its wall; the posts
   const [qx, qy, qw, qh] = HOUSE.court
   m.rect(qx + 1, qy, qw - 2, qh - 1, 'flagstone')
-  m.yard(qx, qy - 1, qw, qh + 1, 'stonewall', [[19, qy + qh - 1], [20, qy + qh - 1]])
+  // the court's north wall stands on the chapel's front row: the chapel's own front closes it there, and the cells'
+  // path goes through a gap in it
+  const front: Cell[] = Array.from({ length: 6 }, (_, i) => [cx + i, qy - 1])
+  m.yard(qx, qy - 1, qw, qh + 1, 'stonewall', [[19, qy + qh - 1], [20, qy + qh - 1], ...front, [m.doors.cells[0], qy - 1]])
   m.path([[19, qy + qh], [19, 13]], 'path', 2)
   for (const [x, y] of HOUSE.posts) m.fixture(WHIPPING_POST, x, y)
   for (const d of ['hall', 'cells']) {
