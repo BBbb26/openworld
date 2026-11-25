@@ -124,8 +124,11 @@ export function buildHolyNave(): MapBuilder {
   const nave = new MapBuilder('holyhall.nave', L('The Most Holy Hall — the Nave', '至圣大殿·中殿'), 'interior', HOLY_NAVE.plan[0].length, HOLY_NAVE.plan.length, 'void', 'temple', 'indoor', 'holy')
   nave.zone = 'peaceful'
   const inside = (r: { x: number; y: number; w: number; h: number }, t: string) => nave.rect(r.x, r.y, r.w, r.h, t)
+  // the ground under the floor's picture, of the picture's colours (the minimap draws it): grey stone in the sanctuary,
+  // the choir and the nave, pale in the crossing, the chapels and the narthex, the red tiles of the arms and aisles
   for (const r of Object.values(P)) inside(r, 'lattice')
-  for (const r of [P.apse, P.choir, P.crossing, P.chapelW1, P.chapelW2, P.chapelE1, P.chapelE2, P.narthex]) inside(r, 'marble')
+  for (const r of [P.apse, P.choir, P.nave]) inside(r, 'floor_stone')
+  for (const r of [P.crossing, P.chapelW1, P.chapelW2, P.chapelE1, P.chapelE2, P.narthex]) inside(r, 'marble')
   // the sanctuary a step over the choir (the rail on its edge), the choir two over the crossing (the steps its last rows)
   const rail = 21
   const steps = P.crossing.y - 1
