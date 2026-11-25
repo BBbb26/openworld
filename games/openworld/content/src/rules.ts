@@ -2021,10 +2021,10 @@ const GENERAL: Rule[] = [
     on: 'impulse/handle',
     tree: DO(emit('settle', 'actor', { pose: 'lean' }), log('You rest beneath {host}.', '你在{host}下歇了歇脚。')),
   }),
-  ...(['chair', 'bench'] as const).map((family) => rule({
+  ...(['chair', 'bench', 'pew'] as const).map((family) => rule({
     id: 'furniture/sit-' + family,
     label: L('Sit on {target}', '坐在{target}上'),
-    doc: 'A hand on a seat asks the actor to sit at it; the native posture checks the source cell and ends when the actor moves.',
+    doc: 'A hand on a seat (a chair, a bench, a chapel\'s pew) asks the actor to sit at it; the native posture checks the source cell and ends when the actor moves.',
     host: { type: 'fixture/furniture/' + family },
     on: 'impulse/handle',
     tree: DO(emit('settle', 'actor', { pose: 'sit' })),

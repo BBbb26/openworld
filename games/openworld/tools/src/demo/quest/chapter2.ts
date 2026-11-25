@@ -325,6 +325,14 @@ export function buildCampHospital(): MapBuilder {
 
 // =================================================================== the Scourging House
 
+/**
+ * A light laid over the scene (the floors' and walls' own pictures would hide one on the floor): a glow whose middle is
+ * at (cx, cy) in the map's cells, `w` by `h` cells, always lit.
+ */
+function aura(m: MapBuilder, cx: number, cy: number, w: number, h: number, color: string, strength: number): void {
+  m.lights.push({ x: cx - 0.5, y: cy - 0.5, w, h, color, shape: 'glow', when: 'always', strength, aboveScenery: true })
+}
+
 /** The court of the Red Order: its posts, the chapel at its head, the brothers' cells beside it, their graves. */
 const HOUSE = { chapel: [17, 1] as Cell, cells: [25, 3] as Cell, court: [9, 9, 22, 5] as const, posts: [[12, 11], [14, 11], [16, 11], [23, 11], [25, 11], [27, 11]] as Cell[] }
 
@@ -438,7 +446,10 @@ export function buildScourgeHall(): MapBuilder {
   const E = P.chapelE
   m.doors.down = [E.x + 1, E.y + 1]
   m.scenery('scchapel_stair', E.x, E.y)
-  glow(m, ax, A.y + 1.5, 9, 4, '#ff7a5a', 0.5)
+  // the altar of the Post in a red light, the retable's foot and the altar's face the brightest; the candlesticks' flames
+  aura(m, ax, A.y + 0.6, 10, 8, '#ff3a2a', 0.34)
+  aura(m, ax, A.y + 1.3, 6, 3.5, '#ff5a40', 0.22)
+  for (const x of [A.x + 0.5, A.x + 7.5]) aura(m, x, A.y - 0.55, 2, 2, '#ffc46b', 0.5)
   m.anchor('lucan.altar', ...spot(m, ax, A.y + 2, true))
   m.regions.altar = [ax - 2, A.y, 5, 4]
   return m
@@ -467,9 +478,15 @@ export function buildUndercroft(): MapBuilder {
   m.scenery('scundercroft_font', ax + 1, H.y + 1)
   m.fixture('fixture/container/pot', H.x + 17, H.y + 2, { name: L('An amphora', '双耳陶罐') })
   m.fixture('fixture/sacred/tomb', ax - 2, H.y + 6, { props: { text: 'A STONE CARVED WITH A SCOURGE. THE FIRST OF THE ORDER. HE TOOK HIS STROKES.', text_zh: '一块刻着鞭子的石碑。修会的第一人。他受过了他的鞭。' } })
-  glow(m, ax, A.y + 1.5, 8, 4, '#ff5a4a', 0.45)
-  for (const x of [A.x + 1.5, A.x + 6.5]) glow(m, x, A.y + 1, 3, 3, '#ffb35c', 0.35)
-  for (const x of [6.9, 19.1]) glow(m, x, H.y - 1.5, 4, 4, '#ffb35c', 0.45)
+  // the bare altar in a red light; the candelabra's flames; the torches on the hall's wall, each flame and the wall and
+  // floor round it
+  aura(m, ax, A.y + 0.6, 8, 6, '#ff3a2a', 0.5)
+  aura(m, ax, A.y + 0.9, 4, 3, '#ff5a40', 0.45)
+  for (const x of [A.x + 1.5, A.x + 6.5]) aura(m, x, A.y - 0.6, 2.5, 2.5, '#ffb35c', 0.45)
+  for (const x of [6.88, 19.12]) {
+    aura(m, x, H.y - 2.55, 3, 3, '#ffb04a', 0.7)
+    aura(m, x, H.y - 1.8, 6, 5, '#ff9a3c', 0.28)
+  }
   m.anchors = { stair: [P.landing.x + 1, P.landing.y] }
   m.regions.channels = [H.x, H.y, H.w, H.h]
   return m
