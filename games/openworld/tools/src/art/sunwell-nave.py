@@ -27,7 +27,8 @@ them, the high altar with its tabernacle, the candelabra down the nave and the p
   user's apse wall (`dress`), and on them: the apse's wall from end to end; the choir's bays the chapels' sheet's niche
   with its window, whole, violet to the west, blue to the east, hung over the saint who stands before it; each arm its
   door, a tall one, under its rose (larger, as the user asked of 2026-11-26), rose-red to the west, blue to the east, the
-  Most Holy Hall's banner east of the west one (holyhall-nave/vestry.png); each chapel's wall the user's carved rose
+  Most Holy Hall's banner on the side of each toward the choir (holyhall-nave/vestry.png; the east one turned about,
+  so the two answer each other); each chapel's wall the user's carved rose
   (sunwell-nave/medallion.png) in the middle over its saint's niche. The crossing's piers between the choir and the arms
   (`nave_pier`, Buildings/SunwellNavePier.png, `wallPier`) in the same dressed stone.
 
@@ -139,7 +140,7 @@ NICHE_W = 2.7 * T                  # the chapels' sheet's niche on a choir bay's
 NICHE_Z = 30                       # hung over the saint who stands before it, its window clear of his head
 DOOR_W = 2.4 * T                   # an arm's door under its rose, as tall as the candelabra either side of it
 ROSE_W = 3.5 * T                   # an arm's rose, between the door's head and the coping (the user's word: larger)
-BANNER_W = 1.25 * T                # the Most Holy Hall's banner, hung east of the west rose
+BANNER_W = 1.25 * T                # the Most Holy Hall's banner, hung by each rose on the side toward the choir
 MEDAL_W = 1.8 * T                  # the carved rose of the user's picture, on each chapel's wall over its saint's niche
 TOMB_W = 1.2 * T                   # a founder's tomb, three to an arm two cells apart
 GROW = 1.3                         # the Most Holy Hall's high altar and candelabra, this much larger here (the user's word)
@@ -186,6 +187,9 @@ PIECE = {
     'lectern': taken(RAIL, (565, 817, 744, 1095), 1.7 * T),
     'pulpit': taken(RAIL, (904, 766, 1157, 1121), 1.9 * T),
 }
+
+# the east arm's banner turned about, to answer the west one's
+PIECE['banner_e'] = PIECE['banner'].transpose(Image.FLIP_LEFT_RIGHT)
 
 # the things: the picture, how far its middle stands east of its cell's, how far its foot stands above its cell's bottom
 # (game pixels), as the mock-up stands them. The rail's runs each from the choir's wall to the way up: the west one from
@@ -520,8 +524,9 @@ APSE_FACE = PARTS['apse'][1] * T
 BAY_FACE = PARTS['choir'][1] * T
 ARM_FACE = PARTS['transept'][1] * T
 COPING = 6                         # the coping under the ceiling's dark and its shade, kept clear
-# the arms' roses: each in the middle of the wall between its door's head and the coping, the banner east of the west
-# one, its middle with the rose's, halfway from the rose's edge to the arm's east end (the face's last column)
+# the arms' roses: each in the middle of the wall between its door's head and the coping, a banner by each on the side
+# toward the choir, its middle with the rose's, halfway from the rose's edge to the arm's end (the west arm's face ends
+# with its column 8, the east one mirrored)
 door_top = PIECE['door'].height / K
 rose_z = (door_top + rise(5.5, ARM_FACE) - COPING - ROSE_W) / 2
 arm_end = 9.0
@@ -538,10 +543,10 @@ HUNG = [
     # the choir's bays: the chapels' sheet's niche each, whole, violet to the west, blue to the east, over the saint who
     # stands before it on the floor (abbey.ts)
     ('niche_violet', BAY_FACE, 10.5, NICHE_Z), ('niche_blue', BAY_FACE, 24.5, NICHE_Z),
-    # the transept's arms: a tall door under a rose; the west one's banner
+    # the transept's arms: a tall door under a rose, a banner by it toward the choir
     ('door', ARM_FACE, 5.5, 0), ('door', ARM_FACE, 29.5, 0),
     ('rose_red', ARM_FACE, 5.5, rose_z), ('rose_blue', ARM_FACE, 29.5, rose_z),
-    ('banner', ARM_FACE, banner_x, banner_z),
+    ('banner', ARM_FACE, banner_x, banner_z), ('banner_e', ARM_FACE, 2 * AX - banner_x, banner_z),
     # the chapels' walls
     *[('medallion', face, mid, (niche_z + rise(mid, face) - COPING - MEDAL_W) / 2) for mid, face in CHAPELS],
 ]
