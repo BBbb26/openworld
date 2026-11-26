@@ -171,7 +171,7 @@ export function buildMillCellar(): MapBuilder {
  * (buildHillMine). Pines on the flanks, woods round the foot.
  */
 export function buildDawnHill(): MapBuilder {
-  const m = new MapBuilder('dawnhill', L('Dawn Hill', '晨光丘'), 'wild', 40, 30, 'grass', 'field', 'outdoor', 'frostfang')
+  const m = new MapBuilder('dawnhill', L('Dawn Hill', '晨光丘'), 'wild', 40, 30, 'grass', 'dawnhill_route', 'outdoor', 'frostfang')
   m.gearLevel = 2
   m.paint('dawnhill')
   m.lift('dawnhill.heights')

@@ -2,7 +2,7 @@
 // ledger and its cells, trade and coin, following, the talk panel. Each runs in its host's outcome.
 
 import { NO_EXPIRY, TICKS_PER_HOUR, chooseLine, gearLevel, gearProps, type Effect, type EffectRunner, type Entity, type GameEvent, type Pos, type RoleName, rollAffixes } from '@openworld/engine'
-import { bountyKey, lawId, pardonKey } from './social.ts'
+import { bountyKey, lawId, pardonKey, residentSchedule } from './social.ts'
 import { socialOf } from './state.ts'
 
 type SocialEffect = Effect
@@ -75,10 +75,8 @@ export function socialEffect(fx: EffectRunner, eff: SocialEffect, ev: GameEvent)
       host.npc.resident = {
         map: r.map,
         slot: bed.anchor,
-        schedule: r.days.map((d) => {
-          const [x, y] = d.at === 'bed' ? bed.at : bed.day
-          return { from: d.from, to: d.to, map: r.map, x, y, activity: d.activity }
-        }),
+        // (its meals tend what a meal tends: social.ts residentSchedule, docs/logs/0011)
+        schedule: residentSchedule(w, r, bed),
       }
       host.npc.home = { map: r.map, x: bed.at[0], y: bed.at[1] }
       host.npc.override = undefined

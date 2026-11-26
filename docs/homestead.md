@@ -43,8 +43,18 @@ same benefit at their own pace. The `stage` clock measures growth, `watered` sup
 `irrigated` holds the next stage's water. The last stage spends all water before a perennial is harvested.
 Older saves' finite `watered` clocks become `stage` clocks with exactly the same deadline (`GameDef.upgradeSave`).
 
-With the thirty-coin welcome, five turnip seeds and an empty bucket cost fourteen. The pond fills the bucket;
-five turnips picked by hand sell for twenty, leaving thirty-six coins, the bucket, and five returned seeds.
+**The bucket's draughts** (2026-11-24): a bucket of water holds ten draughts (`draughts` 10; its own `fill` counts
+what is left, the form's `fill` 10 when it has none). Each watering, splash or drink spends one (rules.ts `draught`);
+the tenth leaves an empty bucket, and the engine's `transform` drops the count with the water, so an emptied bucket
+stacks with any other and one filled again is full. A bucket part spent, used on water, is topped up (`use/water`'s
+"Top up"). The HUD shows what is left in the icon's lower left ("9/10", `ClientGame.itemIconBadge`); an empty bucket
+shows nothing. A vessel with no `fill` (a flask, a waterskin, a bucket of oil or of milk) is still spent whole. The
+filled buckets' Chinese names say what they hold after the bucket — 木桶（水）, 木桶（牛奶）, 木桶（油） — so a masterwork
+one reads 大师木桶（水）. Set down, a bucket shows what it holds (its form's picture) and keeps its count.
+
+With the thirty-coin welcome, five turnip seeds and an empty bucket cost fourteen. The pond fills the bucket once;
+its ten draughts water the five turnips at both stages. Five turnips picked by hand sell for twenty, leaving
+thirty-six coins, the bucket, and five returned seeds.
 The fishing alternative is a rod (25) and five bait (5); one bait supplies five casts. Neither path needs extra funds.
 
 **The crops** (content `crops.ts` VEGETABLE_CROPS; 2026-10-07 the ten after carrot, turnip, tomato and pumpkin, after
@@ -66,7 +76,8 @@ illustrated crops' sprout and young plant of their habit (leafy, sprawling, clim
 - **Feed** given to a beast (`home/feed`): it is fed for a day (`fed`, `home/fed`), content.
 - **Milk**: an empty bucket used on a cow that is fed and not yet milked today gives a bucket of milk (the
   bucket becomes it; the cow is told and is `milked` for the day). Unfed, or milked already, it will not
-  (`home/milk`).
+  (`home/milk`). A milking fills the bucket: a bucket of milk is one portion, drunk, made into cheese or sold whole,
+  so it carries no draught count; a bucket that still holds water does not milk (empty it first).
 - **Eggs**: hens lay every three hours (their stage), fed or not.
 - **Beasts in crates** (`item/misc/crate_hen`, `crate_calf`): set down (G), the beast walks out (`home/crate`).
   The Held Ground keeps no beasts of its own (since 2026-10-11): they are bought, crated, at the stall.
@@ -75,6 +86,36 @@ illustrated crops' sprout and young plant of their habit (leafy, sprawling, clim
   the fed of its kind within three cells; one that hears it, fed and not resting, bears a **calf** or a **chick**
   beside it, and both parents rest a day (`bred`). The young (`actor/creature/animal/calf`, `chick`: their parents'
   sprites, smaller) grow up in two days (a stage) and are not milked, do not lay and do not breed meanwhile.
+
+## Water, machines and the orchard (2026-11-24, docs/logs/0005, 0006)
+
+What the ground's own buildings let one make and set up (each made from the bag, then set up with a right click on a cell;
+a tool knocks it loose again):
+
+- **Dug well** (`fixture/water/well/dug`; the workshop): a well where it is wanted, water that never runs out.
+- **Rain barrel** (`fixture/farm/rain_barrel`; the workshop; content `water.ts`): out under the sky it catches a
+  bucketful in each hour of rain or storm (the `rain` period, only while one is on its map), up to three. An empty
+  bucket is filled from it and a part-spent one topped up; each takes a bucketful (`draw`). Dry, it gives nothing.
+- **Sprinkler** (`fixture/farm/sprinkler`; Workshop II): a bucket poured into it gives it that many mornings of
+  water, up to ten (what does not fit runs off). Each morning (the `morning` period, kept) it waters the growing crops
+  two steps round it that still want water this stage, and spends a day. A crop watered only by it grows a stage a day.
+- **A bucket's quality is its draughts**: a bucket is made to hold its quality's factor of ten (crude 8, fine 13,
+  masterwork 15; engine `madeOf`), and fills to that.
+- **Millstone** (`fixture/machine/millstone`, a station `mill`; the workshop; content `processing.ts`): five wheat
+  ground into two flour (`mill/flour`). Flour cooked over a lit fire is bread (`use/cook`, its `cookedType`), so a
+  loaf is still worth six.
+- **Cask** (`fixture/machine/cask`; the storehouse): apples or berries put in one at a time (one kind, up to twelve),
+  a hand seals it (`brewing`, two days), and then one cider (apples) or fruit wine (berries) for each comes out beside
+  it. Priced from what it takes (`prices.ts` ruleWays).
+- **Apple orchard** (content `orchard.ts`): an apple seedling (the stall, 12) planted on open diggable ground is an
+  apple sapling; in two days an apple tree, which comes into fruit every day. A hand picks three apples (a Fruit
+  Farmer two more) and it is bare again. No watering, no seeds; felled, logs and sticks.
+- **Sheep** (`actor/creature/animal/sheep`; the stall's crated sheep, 80): fed, a sickle swung at it shears two wool
+  without a wound, every two days (`home/shear`, `shorn`); two fed sheep breed a lamb as cows do. Wool weaves into
+  cloth one to one (`weave/wool`, the weaving shed). The stall buys wool, flour, cider and fruit wine.
+
+Deferred (docs/logs/0005, 0006): an irrigation ditch and a waterwheel (an engine condition for what lies next to a
+thing), soil fertility (a quality on what `spawn` makes), preservation (the world has no spoilage yet).
 
 ## Fishing
 
@@ -157,7 +198,13 @@ and the exact crop cells the resident may work; no cell is selected automaticall
 authorized cell later is included, while crops on other cells remain untouched.
 
 The first job is a **hand harvester**. It uses the existing hand-pick rule: one crop plus the resident's own `pick`
-bonus, and one returned seed. It does not use sickles, sow, water, fertilize, milk, or sell. Its output goes into the
+bonus, and one returned seed. It does not use sickles, sow, fertilize, milk, or sell. Since 2026-11-24 it also
+**tends** its cells (docs/logs/0010): when nothing authorized is ripe and something is dry, the resident takes a bucket
+from the order's warehouse (task cargo, the player's), fills it at the ground's own water (a water cell or a well),
+waters the dry crops through the bucket's own rules, refills when it runs dry, and puts it back when nothing is dry or
+something ripens. Only a vessel that holds draughts is a bucket to it: a flask, a waterskin or holy water is left
+where it is. No bucket in the warehouse, or no water on the ground and no bucket with water in it already, and it says so
+and fetches nothing (docs/logs/0015). Its output goes into the
 resident's physical cargo and then the selected physical warehouse; it does not spend the Held Ground's upgrade
 stock or take anything from a private bag. Full storage stops the next harvest, including at the 999-item stack
 limit.

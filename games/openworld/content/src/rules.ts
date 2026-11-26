@@ -6,6 +6,11 @@
 // undefined is the Mod port's.
 
 import { HOMESTEAD_RULES } from './homestead.ts'
+import { BUCKET_DRAUGHTS } from './items.ts'
+import { WATER_RULES } from './water.ts'
+import { PROCESSING_RULES } from './processing.ts'
+import { ORCHARD_RULES } from './orchard.ts'
+import { MARKET_RULES } from './market.ts'
 import { LIFE_RULES } from './life.ts'
 import { CROP_GROWTH_RULE, waterCrop } from './farming.ts'
 import { ELITE_RULES, KIT_RULES, WEB_RULES } from './kits.ts'
@@ -46,6 +51,39 @@ const tag = (role: RoleName, t: string): Cond => ({ has: { role, tag: t } })
 const not = (c: Cond): Cond => ({ not: c })
 const all = (...c: Cond[]): Cond => ({ all: c })
 const any = (...c: Cond[]): Cond => ({ any: c })
+/**
+ * What a vessel holds in draughts (a bucket of water: its `fill` of its form's `draughts`, ten): one poured or drunk
+ * leaves the rest (`fill` one less), the last leaves the vessel empty (its `emptyType`; the engine's transform drops the
+ * count). A vessel with no `fill` (a flask, a waterskin) holds one draught: it is emptied whole. `leaf` makes the answer
+ * with the effect that spends it.
+ */
+const draught = (leaf: (spend: Effect) => Tree): Tree =>
+  IF({ prop: { role: 'host', key: 'fill', cmp: { gt: 1 } } }, leaf({ op: 'addProp', key: 'fill', delta: -1, min: 0 }), leaf({ op: 'transform', into: '@prop:emptyType' }))
+/** A vessel of draughts with room for more (a bucket of water some of which is spent). */
+const NOT_FULL: Cond = { prop: { role: 'host', key: 'fill', bounds: { lt: { prop: 'draughts', of: 'host' } } } }
+/**
+ * Water drawn into a vessel: `into` makes it its full form (an empty vessel's own `waterType`; to top one up, emptied and
+ * filled again, which the engine's transform leaves full), and one better made than common holds as many draughts as its
+ * own `draughts` say (a master's bucket fifteen, made so: engine madeOf), not its kind's ten (docs/logs/0004). `after`:
+ * the rest of the answer.
+ */
+const filled = (label: Text | undefined, into: Effect[], ...after: Effect[]): Tree => {
+  const say = (leaf: Tree): Tree => (label ? AS(label, leaf) : leaf)
+  return IF(
+    // (only a vessel that holds draughts at all: a flask, a waterskin is filled whole and keeps no `fill` — docs/logs/0015)
+    { prop: { role: 'host', key: 'draughts', cmp: { gt: 0, ne: BUCKET_DRAUGHTS } } },
+    say(DO(...into, { op: 'addProp', key: 'fill', delta: { prop: 'draughts', of: 'host' }, max: { prop: 'draughts', of: 'host' } }, ...after)),
+    say(DO(...into, ...after)),
+  )
+}
+const FILL_UP: Effect[] = [{ op: 'transform', into: '@prop:waterType' }]
+const TOP_UP: Effect[] = [{ op: 'transform', into: '@prop:emptyType' }, { op: 'transform', into: '@prop:waterType' }]
+/** A rain barrel with rain in it (water.ts): a bucket is filled from it, and it is told it gave one (`draw`). */
+const RAIN_WATER: Selector = { tags: ['cistern'], props: { stored: { gt: 0 } } }
+const DRAWN: Effect = { op: 'emit', impulse: 'notify', to: 'target', params: { what: 'draw' } }
+/** What takes water poured into it (a sprinkler, water.ts): it is told how many draughts came (`pour`, n). */
+const RESERVOIR: Selector = { tags: ['reservoir'] }
+const POUR = L('Pour {instrument} into {target}', '把{instrument}倒进{target}')
 /** What a cell or a thing takes is taken into it; set up there (the right click's `build`), a built thing stands, else it lies loose (design.md §5.2). */
 const taken = (into: 'hand' | 'contents' | 'tile'): Effect => emit('taken', 'item', { into, build: { param: 'build' } }, { other: 'host' })
 const POWER: Amount = { param: 'power' }
@@ -379,7 +417,7 @@ const BODIES: Rule[] = [
       ),
       IF(
         param('element', 'water'),
-        IF(tag('host', 'fiery'), IF({ param: { key: 'power', cmp: { gt: 0 } } }, DO({ op: 'hurt', amount: { param: 'power' } }, add('wet'), vfx('steam')), DO(add('wet'), vfx('steam'))), 'inherit'),
+        IF(tag('host', 'fiery'), IF({ param: { key: 'power', cmp: { gt: 0 } } }, IF(tag('host', 'elemental-affinity'), DO({ op: 'hurt', amount: { param: 'power' } }, add('wet'), vfx('steam')), DO({ op: 'hurt', amount: { param: 'power', mul: 1.2 } }, add('wet'), vfx('steam'))), DO(add('wet'), vfx('steam'))), 'inherit'),
         IF(
           param('element', 'ice'),
           IF(tag('host', 'icy'), DO({ op: 'heal', amount: 2 }, vfx('frost')), 'inherit'),
@@ -388,7 +426,7 @@ const BODIES: Rule[] = [
             IF(
               has('host', 'wet'),
               DO(remove('wet'), add('electrified'), { op: 'hurt', amount: { param: 'power', mul: 0.8 } }, emit('element', { area: { radius: 2 } }, { element: 'lightning', power: 4 }, { chance: 0.9, filter: { status: ['wet'] } }), vfx('sparks')),
-              IF(tag('host', 'charged'), NOTHING, IF(tag('host', 'construct'), DO({ op: 'hurt', amount: { param: 'power' } }, vfx('sparks')), DO(add('electrified'), vfx('sparks')))),
+              IF(tag('host', 'charged'), NOTHING, IF(tag('host', 'construct'), IF(tag('host', 'elemental-affinity'), DO({ op: 'hurt', amount: { param: 'power' } }, vfx('sparks')), DO({ op: 'hurt', amount: { param: 'power', mul: 0.5 } }, vfx('sparks'))), DO(add('electrified'), vfx('sparks')))),
             ),
             IF(param('element', 'wind'), DO({ op: 'step', away: 'source', tiles: 2 }, vfx('gust')), 'inherit'),
           ),
@@ -654,7 +692,12 @@ const INSTRUMENTS: Rule[] = [
     on: 'act/use',
     tree: IF(
       { same: ['actor', 'target'] },
-      AS(L('Eat {instrument}', '吃掉{instrument}'), ASK(L('Eat {instrument}?', '要吃掉{instrument}吗？'), emit('restore', 'actor', { which: 'hunger', amount: { prop: 'food', of: 'host' } }), emit('notify', 'story', { what: 'meal' }), log('You eat {host}.', '你吃掉了{host}。'), { op: 'destroy' })),
+      // a resident of a home ground who eats there is told so (social.ts PERSON_NEWS `table`: glad of it, docs/logs/0011)
+      IF(
+        { prop: { role: 'actor', key: 'resident' } },
+        AS(L('Eat {instrument}', '吃掉{instrument}'), ASK(L('Eat {instrument}?', '要吃掉{instrument}吗？'), emit('restore', 'actor', { which: 'hunger', amount: { prop: 'food', of: 'host' } }), emit('notify', 'story', { what: 'meal' }), emit('notify', 'actor', { what: 'table' }), log('You eat {host}.', '你吃掉了{host}。'), { op: 'destroy' })),
+        AS(L('Eat {instrument}', '吃掉{instrument}'), ASK(L('Eat {instrument}?', '要吃掉{instrument}吗？'), emit('restore', 'actor', { which: 'hunger', amount: { prop: 'food', of: 'host' } }), emit('notify', 'story', { what: 'meal' }), log('You eat {host}.', '你吃掉了{host}。'), { op: 'destroy' })),
+      ),
       IF(is('target', FEEDS), AS(L('Feed {instrument} to {target}', '给{target}吃{instrument}'), DO(emit('restore', 'target', { which: 'hunger', amount: { prop: 'food', of: 'host' } }), log('You feed {target} {host}.', '你喂{target}吃了{host}。'), { op: 'destroy' })), 'inherit'),
     ),
   }),
@@ -698,13 +741,30 @@ const INSTRUMENTS: Rule[] = [
   }),
   rule({
     id: 'use/water',
-    doc: 'Water poured on something (or drunk, if it is oneself): water reaches it, and the vessel is empty. Putting a vessel down only sets it down.',
+    doc: 'Water poured on something (or drunk, if it is oneself): water reaches it, and a draught of it is spent — a vessel that holds several (a bucket: ten) keeps the rest, the last leaves it empty. Poured into what keeps water (a sprinkler), all of it goes in. A vessel not full held to water, or to a rain barrel with rain in it, is topped up. Putting a vessel down only sets it down.',
     host: { tags: ['liquid:water'] },
     on: 'act/use',
     tree: IF(
       { same: ['actor', 'target'] },
-      AS(L('Drink {instrument}', '喝掉{instrument}'), ASK(L('Drink {instrument}?', '要喝掉{instrument}吗？'), emit('restore', 'actor', { which: 'hp', amount: 2 }), { op: 'transform', into: '@prop:emptyType' }, log('Refreshing.', '清凉解渴。'))),
-      IF(is('target', { tags: ['water'] }), 'inherit', AS(L('Splash {target}', '泼向{target}'), DO(emit('element', 'target', { element: 'water', power: 1 }), { op: 'transform', into: '@prop:emptyType' }, log('You pour water on {target}.', '你把水泼在了{target}上。')))),
+      draught((spend) => AS(L('Drink {instrument}', '喝掉{instrument}'), ASK(L('Drink {instrument}?', '要喝掉{instrument}吗？'), emit('restore', 'actor', { which: 'hp', amount: 2 }), spend, log('Refreshing.', '清凉解渴。')))),
+      IF(
+        is('target', RESERVOIR),
+        // what is left in it goes in (a flask's one draught); the vessel is empty
+        IF(
+          { prop: { role: 'host', key: 'fill' } },
+          AS(POUR, DO(emit('notify', 'target', { what: 'pour', n: { prop: 'fill', of: 'host' } }), { op: 'transform', into: '@prop:emptyType' }, vfx('splash', 'target'), log('You pour the water into {target}.', '你把水倒进了{target}。'))),
+          AS(POUR, DO(emit('notify', 'target', { what: 'pour', n: 1 }), { op: 'transform', into: '@prop:emptyType' }, vfx('splash', 'target'), log('You pour the water into {target}.', '你把水倒进了{target}。'))),
+        ),
+        IF(
+          all(is('target', { tags: ['water-source'] }), NOT_FULL),
+          filled(L('Top up {instrument}', '把{instrument}装满'), TOP_UP, vfx('splash', 'target'), log('Filled with water.', '你装满了水。')),
+          IF(
+            all(is('target', RAIN_WATER), NOT_FULL),
+            filled(L('Top up {instrument} from {target}', '从{target}里把{instrument}装满'), TOP_UP, DRAWN, vfx('splash', 'target'), log('You fill {instrument} from {target}.', '你从{target}里舀满了{instrument}。')),
+            IF(is('target', { tags: ['water'] }), 'inherit', draught((spend) => AS(L('Splash {target}', '泼向{target}'), DO(emit('element', 'target', { element: 'water', power: 1 }), spend, log('You pour water on {target}.', '你把水泼在了{target}上。'))))),
+          ),
+        ),
+      ),
     ),
   }),
   rule({
@@ -718,10 +778,18 @@ const INSTRUMENTS: Rule[] = [
   rule({
     id: 'use/fill',
     label: L('Fill {instrument}', '装满{instrument}'),
-    doc: 'An empty vessel at water (a well, a fountain, a lake) fills.',
+    doc: 'An empty vessel at water (a well, a fountain, a lake) fills: as many draughts as it holds (a master\'s bucket more). A rain barrel with rain in it fills it too, and has a bucketful less; an empty one gives nothing.',
     host: { tags: ['empty-vessel'] },
     on: 'act/use',
-    tree: IF(is('target', { tags: ['water-source'] }), DO({ op: 'transform', into: '@prop:waterType' }, vfx('splash', 'target'), log('Filled with water.', '你装满了水。'))),
+    tree: IF(
+      is('target', { tags: ['water-source'] }),
+      filled(undefined, FILL_UP, vfx('splash', 'target'), log('Filled with water.', '你装满了水。')),
+      IF(
+        is('target', RAIN_WATER),
+        filled(undefined, FILL_UP, DRAWN, vfx('splash', 'target'), log('You fill {instrument} from {target}.', '你从{target}里舀满了{instrument}。')),
+        IF(is('target', { tags: ['cistern'] }), AS(L('Look into {target}', '看看{target}里面'), DO(log('{target} is dry. Rain will fill it.', '{target}里是干的。下雨会把它接满。')))),
+      ),
+    ),
   }),
   rule({
     id: 'use/fire',
@@ -2108,4 +2176,4 @@ const GENERAL: Rule[] = [
   }),
 ]
 
-export const BASE_RULES: Rule[] = [...ROOTS, ...BODIES, ...PEOPLE, ...SOCIAL_RULES, ...FAITH_RULES, ...INSTRUMENTS, ...PLACING, ...GROUND, ...FIRE, ...BUILD, ...FARM, ...WORLD_RULES, ...JOURNEY, ...SITES, ...TENTS, ...BUILDING, ...HOMESTEAD_RULES, ...GENERAL, ...LIFE_RULES, ...AFFLICTION_RULES, ...KIT_RULES, ...ELITE_RULES, ...WEB_RULES, ...DROP_RULES, ...BOSS_KIT_RULES, ...ADVANCEMENT_RULES, ...VILLAGE_SHOP_RULES, ...FISHING_RULES, ...DRESSER_RULES]
+export const BASE_RULES: Rule[] = [...ROOTS, ...BODIES, ...PEOPLE, ...SOCIAL_RULES, ...FAITH_RULES, ...INSTRUMENTS, ...PLACING, ...GROUND, ...FIRE, ...BUILD, ...FARM, ...WORLD_RULES, ...JOURNEY, ...SITES, ...TENTS, ...BUILDING, ...HOMESTEAD_RULES, ...WATER_RULES, ...PROCESSING_RULES, ...ORCHARD_RULES, ...MARKET_RULES, ...GENERAL, ...LIFE_RULES, ...AFFLICTION_RULES, ...KIT_RULES, ...ELITE_RULES, ...WEB_RULES, ...DROP_RULES, ...BOSS_KIT_RULES, ...ADVANCEMENT_RULES, ...VILLAGE_SHOP_RULES, ...FISHING_RULES, ...DRESSER_RULES]

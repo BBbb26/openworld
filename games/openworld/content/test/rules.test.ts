@@ -200,7 +200,39 @@ describe('acts and the impulses they send', () => {
     expect(rules).toContain('core/element')
     expect(eng.world.hasStatus(cellOf(eng, 1, 1), 'burning')).toBe(false)
     expect(eng.world.hasStatus(cellOf(eng, 1, 1), 'wet')).toBe(true)
-    expect(eng.world.get('bucket')!.type).toBe('item/vessel/bucket/empty')
+    // a bucket holds ten draughts: one poured, nine left
+    expect(eng.world.get('bucket')!.type).toBe('item/vessel/bucket/water')
+    expect(eng.world.num(eng.world.get('bucket')!, 'fill')).toBe(9)
+  })
+
+  it('a bucket of water holds ten draughts: each pour spends one, the last leaves it empty, and part spent it is topped up at water', () => {
+    const eng = sandbox({
+      terrain: field(['.~.', '...', '...']),
+      entities: [
+        { key: 'actor', type: 'actor/person/player', x: 1, y: 1 },
+        { key: 'bucket', type: 'item/vessel/bucket/water', x: 1, y: 1, heldBy: 'actor' },
+      ],
+      event: {},
+    })
+    const w = eng.world
+    const bucket = () => w.get('bucket')!
+    expect(w.num(bucket(), 'fill')).toBe(10)
+    for (let left = 9; left >= 1; left--) {
+      expect(eng.act('use', 'actor', cellOf(eng, 2, 1)).rule?.id).toBe('use/water')
+      expect(bucket().type).toBe('item/vessel/bucket/water')
+      expect(w.num(bucket(), 'fill')).toBe(left)
+    }
+    // part spent, held to water: full again, and one with every full bucket (no count of its own left)
+    expect(eng.act('use', 'actor', cellOf(eng, 1, 0)).rule?.id).toBe('use/water')
+    expect(bucket().type).toBe('item/vessel/bucket/water')
+    expect(bucket().props?.fill).toBeUndefined()
+    expect(w.num(bucket(), 'fill')).toBe(10)
+    for (let i = 0; i < 9; i++) eng.act('use', 'actor', cellOf(eng, 2, 1))
+    expect(w.num(bucket(), 'fill')).toBe(1)
+    // the tenth: empty, the count gone with the water (it stacks with any empty bucket)
+    eng.act('use', 'actor', cellOf(eng, 2, 1))
+    expect(bucket().type).toBe('item/vessel/bucket/empty')
+    expect(bucket().props?.fill).toBeUndefined()
   })
 
   it('fills an empty flask at a well', () => {

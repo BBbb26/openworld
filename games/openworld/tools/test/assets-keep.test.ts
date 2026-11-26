@@ -25,6 +25,10 @@ function committed(dir: string): string[] {
 }
 
 describe('the copied pack subset', () => {
+  it('only requests pack files from the pack', () => {
+    expect(catalogPaths().filter((p) => /^(lsw|own)\//.test(p))).toEqual([])
+  })
+
   it("keeps every committed file: the catalogue plus the tools' own keep-list cover them all", () => {
     const want = new Set([...catalogPaths(), ...KEEP])
     const files = committed(OUT)

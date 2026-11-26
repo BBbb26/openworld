@@ -1,6 +1,6 @@
 // What every part of the DOM UI shares: the locale, the strings, small DOM helpers.
 
-import type { Text } from '@openworld/engine'
+import type { ItemInfo, Text } from '@openworld/engine'
 import { gameIfAny, hasModule } from '../game.ts'
 import { bindingLabel, fillKeys, keys, moveKeys, slotKeys, type Action } from '../keymap.ts'
 import { textOf } from '../render/scene.ts'
@@ -544,6 +544,12 @@ export function controlsTable(dev: boolean): string {
   ]
   if (dev) rows.push(['`', 'Mod Console (dev)', '模组控制台（开发）'])
   return `<table>${rows.filter(([k]) => k).map(([k, en, z]) => `<tr><td>${k.split(' · ').map((x) => `<kbd>${esc(x)}</kbd>`).join(' ')}</td><td>${zh ? z : en}</td></tr>`).join('')}</table>`
+}
+
+/** The game's badge in an item slot's lower left (`ClientGame.itemIconBadge`: a vessel's "9/10"), or nothing. */
+export function itemBadgeHtml(it: ItemInfo | undefined): string {
+  const badge = it && gameIfAny()?.itemIconBadge?.(it)
+  return badge ? `<span class="item-badge">${esc(badge)}</span>` : ''
 }
 
 /**

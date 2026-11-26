@@ -222,6 +222,7 @@ export class WorldScene extends Phaser.Scene {
   /** The creatures winding up a skill this frame (the kits module), and how far along: they flash white near its end. */
   private windup = new Map<string, { progress: number; pose?: WindupPose }>()
   private dying = new Set<EView>()
+  private dyingMotes = new Set<Phaser.GameObjects.Rectangle>()
   private bossPreview?: { id: string; mode: Exclude<BossPreviewMode, 'live'>; startedAt?: number }
   private darkness = 0
   /** The look of the region the map lies in (RegionMeta.look), and the look shown, eased toward it as one goes from region to region. */
@@ -235,7 +236,7 @@ export class WorldScene extends Phaser.Scene {
   /** The title's music, asked for before the scene was made (the cover shows first). */
   private titleMusic = false
   /** When the ambience was last told what is near (performance.now ms). */
-  private ambienceAt = 0
+  private ambienceAt = -Infinity
   muted = false
 
   constructor() {
@@ -389,6 +390,11 @@ export class WorldScene extends Phaser.Scene {
     this.views.clear()
     for (const v of this.dying) (this.tweens.killTweensOf([v.body, ...(v.shadow ? [v.shadow] : [])]), this.destroyView(v))
     this.dying.clear()
+    for (const mote of this.dyingMotes) {
+      this.tweens.killTweensOf(mote)
+      mote.destroy()
+    }
+    this.dyingMotes.clear()
     for (const t of this.tileFx.values()) t.sprites.forEach((s) => s.destroy())
     this.tileFx.clear()
     for (const f of this.fishShadows) (this.tweens.killTweensOf(f), f.destroy())
@@ -470,7 +476,7 @@ export class WorldScene extends Phaser.Scene {
     if (this.free) this.setEditorDim(this.dim)
     this.fitBounds()
     // (the music hears of the map with its first frame, when the hour and the weather there are known too)
-    this.ambienceAt = 0
+    this.ambienceAt = -Infinity
     this.hooks.onMap?.(map)
   }
 
@@ -1811,7 +1817,8 @@ export class WorldScene extends Phaser.Scene {
       const r = 8 + Math.random() * 6
       const x = v.root.x, y = v.root.y - 6
       const mote = this.add.rectangle(x, y, 2, 2, i % 2 ? 0xffffff : tone, 1).setDepth(v.root.depth + 1)
-      this.tweens.add({ targets: mote, x: x + Math.cos(a) * r, y: y + Math.sin(a) * r * 0.7 - 4, alpha: 0, duration: 300 + Math.random() * 140, ease: 'Quad.easeOut', onComplete: () => mote.destroy() })
+      this.dyingMotes.add(mote)
+      this.tweens.add({ targets: mote, x: x + Math.cos(a) * r, y: y + Math.sin(a) * r * 0.7 - 4, alpha: 0, duration: 300 + Math.random() * 140, ease: 'Quad.easeOut', onComplete: () => { this.dyingMotes.delete(mote); mote.destroy() } })
     }
   }
 
@@ -2236,11 +2243,14 @@ export class WorldScene extends Phaser.Scene {
     if (!a || !this.base) return
     const map = this.base
     const light = (map.light ?? 'outdoor') as 'outdoor' | 'indoor' | 'dark'
-    // the hour and the weather first: a new map's music is chosen for them, not for the map before
-    // Music follows the world's weather even under a roof: a shop sharing its square's cue keeps playing it.
-    // The ambience and rain drawn on screen still use this.weather (clear indoors).
-    a.music.setMoment({ hour: f.hour, dusk: f.night.dusk, dawn: f.night.dawn, weather: f.calendar.weather })
-    a.music.setPlace(map.music, light)
+    // Resolve the destination and its moment together so a shared cue can keep playing across a map change.
+    // Weather-based cues follow the world's weather indoors as well. Ambience uses the local weather.
+    a.music.setPlace(
+      map.music,
+      light,
+      { hour: f.hour, dusk: f.night.dusk, dawn: f.night.dawn, weather: f.calendar.weather },
+      !catalog().noBattleMusic?.includes(map.id),
+    )
     a.music.setFight(!!f.player.fighting)
     a.music.setScene(f.scene?.music)
     const now = performance.now()
@@ -2266,7 +2276,13 @@ export class WorldScene extends Phaser.Scene {
     let fire = 0
     for (const e of f.entities)
       if (e.statuses.includes('lit') || e.statuses.includes('burning')) fire = Math.max(fire, 1 - Math.hypot(e.x - cx, e.y - cy) / 7)
-    a.ambience.update({ light, hour: f.hour, dusk: f.night.dusk, dawn: f.night.dawn, weather: this.weather, water: Math.max(Math.min(1, water / 30), waterfallLevel(f.entities, cx, cy)), cold: cells ? Math.min(1, (cold / cells) * 1.6) : 0, fire: Math.max(0, fire) })
+    a.ambience.update({
+      light, hour: f.hour, dusk: f.night.dusk, dawn: f.night.dawn, weather: this.weather,
+      muteCrickets: catalog().noCrickets?.includes(map.id),
+      water: Math.max(Math.min(1, water / 30), waterfallLevel(f.entities, cx, cy)),
+      cold: cells ? Math.min(1, (cold / cells) * 1.6) : 0,
+      fire: Math.max(0, fire),
+    })
   }
   private terrainTags = new Map<string, Set<string>>()
 

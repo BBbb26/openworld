@@ -120,11 +120,12 @@ describe('the Held Ground production cycle', () => {
       act('use', x, 21)
       expect(w.placedAt('haven', x, 21).some((e) => e.type === 'fixture/crop/turnip/sprout')).toBe(true)
     }
+    // one bucket filled once waters ten times: the five plots at both stages, and it is empty at the end
+    walk(bank.bx, bank.by)
+    hold('item/vessel/bucket/empty')
+    act('use', bank.x, bank.y)
     for (let stage = 0; stage < 2; stage++) {
       for (const x of plots) {
-        walk(bank.bx, bank.by)
-        hold('item/vessel/bucket/empty')
-        act('use', bank.x, bank.y)
         walk(x, 22)
         hold('item/vessel/bucket/water')
         act('use', x, 21)

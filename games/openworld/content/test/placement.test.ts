@@ -123,7 +123,10 @@ describe('vegetable garden', () => {
   })
   it.each(VEGETABLE_CROPS)('$id: till, sow, water twice, harvest food and seeds', (c) => {
     const e = fresh()
-    kit(e, 'till'); kit(e, `sow-${c.id}`); kit(e, 'water'); kit(e, 'harvest')
+    kit(e, 'till'); kit(e, `sow-${c.id}`); kit(e, 'harvest')
+    // a bucket on its last draught: one watering empties it, and the refill below fills it again
+    const [pail] = kit(e, 'water')
+    e.world.author(() => e.world.setProp(pail, 'fill', 1))
     expect(place(e, 'till').ok).toBe(true)
     expect(e.world.terrainAt(at.map, at.x, at.y)).toBe('farmland')
     expect(place(e, `sow-${c.id}`).ok).toBe(true)
@@ -157,6 +160,8 @@ describe('vegetable garden', () => {
     e.world.author(() => e.world.setTerrain(at.map, at.x, at.y, 'farmland'))
     kit(e, 'sow-carrot')
     const [bucket] = kit(e, 'water')
+    // its last draught: the watering empties it (it becomes another thing, and stays in its slot)
+    e.world.author(() => e.world.setProp(bucket, 'fill', 1))
     e.controls.sync()
     e.controls.select(e.world.get('actor')!.slots!.indexOf(e.controls.key(bucket)))
     expect(place(e, 'sow-carrot').ok).toBe(true)

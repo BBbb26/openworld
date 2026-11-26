@@ -26,13 +26,14 @@ const SPAWN_MAX = 64
 export const PRIMITIVES: Record<Exclude<Effect['op'], ModuleOp>, string> = {
   spawn: 'spawn {type, at: role ref, into?: tile|contents|hand, count?, still?, owner?: role, ownerFrom?: role} — create new things at a role\'s place (its tile, contents or hand); owner makes the spawned thing belong to that role, while ownerFrom copies only an existing string owner prop from that role; type may be "@prop:<role>.<key>" (a crop\'s yieldType); count may read a prop or a param; items on the ground pop out for the magnet unless still (then they are picked up with E); what cannot be carried (not portable) is made on the holder\'s tile, never in a hand or bag',
   destroy: 'destroy {} — the host is gone (with what it holds); the essential (people) never are: they go down instead',
-  transform: 'transform {into} — the host becomes another type ("@prop:key" reads the type from its own prop, e.g. emptyType). A cell is made of things (tile/<terrain>: the floor, what roots in the soil, what fills the volume): water becoming ice is the water transforming; becoming a type whose space in its cell another thing holds (rock into gravel, where a floor is), the host is gone instead; a carried host become a thing that cannot be carried is set down at its holder\'s feet',
+  transform: 'transform {into} — the host becomes another type ("@prop:key" reads the type from its own prop, e.g. emptyType). A cell is made of things (tile/<terrain>: the floor, what roots in the soil, what fills the volume): water becoming ice is the water transforming; becoming a type whose space in its cell another thing holds (rock into gravel, where a floor is), the host is gone instead; a carried host become a thing that cannot be carried is set down at its holder\'s feet; what a vessel held in draughts (its own `fill`) goes with its old form: it holds what its new form holds (none, or full)',
   move: 'move {to: role ref, into?: tile|contents|hand} — the host moves itself to a role\'s tile, contents or hand; a built thing (a fixture, a structure) that comes to rest on a tile lies loose there (packed as item/misc/bundle/loose, which a hand picks up) unless the event says it is set up (param build: the right click\'s, the build palette\'s)',
   loosen: 'loosen {} — the host, a built thing that can be carried standing on its cell (a bed, a wall), comes loose there whole (a tool knocking it loose): what it holds spills out, and it lies packed as an item for the magnet and the hand; a floor that bears something stays',
+  aloft: 'aloft {} — the host, a thing someone carries, leaves them for the air (thrown): it is nowhere until a move sets it down',
   step: 'step {dir?} — the host steps one tile (dir, or the act\'s `dir` param): walls and the solid stop it (a bump), portals carry it',
   addStatus: 'addStatus {status, duration?} — the host gains a status (a threshold/gain event follows)',
   removeStatus: 'removeStatus {status} — the host loses a status (threshold/lose)',
-  setProp: 'setProp {key, value}',
+  setProp: 'setProp {key, value} — value null takes the key away',
   addProp: 'addProp {key, delta, min?, max?} — delta and max are Amounts',
   addTag: 'addTag {tag}',
   removeTag: 'removeTag {tag}',
@@ -56,7 +57,7 @@ export const PRIMITIVES: Record<Exclude<Effect['op'], ModuleOp>, string> = {
   lightning: 'lightning {power} — the world\'s: a bolt seeks what stands tall near the player and emits element lightning to it',
   ashore: 'ashore {} — the host gets out of where it cannot be, to the nearest free tile',
   fallback: 'fallback {} — the story\'s: run the broken invariant\'s authored fallback',
-  emit: 'emit {impulse, to, params?, item?, other?, chance?, filter?} — send an impulse (strike, element, coat, restore, push, taken, receive, offered, handle, notify, settle) to a role, "story", "world", {named: id}, {area: {at?, radius}}, {line: {from?, away, length, over?}} or {map: true}; params are values, Amounts, {typeOf: role} (what kind of thing a role is, kept even after it is gone) or {idOf: role} (which thing it is); filter and chance pick who receives it; the receiver answers for itself',
+  emit: 'emit {impulse, to, params?, actor?, item?, other?, chance?, filter?} — send an impulse (strike, element, coat, restore, push, taken, receive, offered, handle, notify, settle) to a role, "story", "world", {named: id}, {area: {at?, radius}}, {line: {from?, away, length, over?}} or {map: true}; params are values, Amounts, {typeOf: role} (what kind of thing a role is, kept even after it is gone) or {idOf: role} (which thing it is); actor optionally names the acting role (host for a counterattack), otherwise the original actor is preserved; filter and chance pick who receives it; the receiver answers for itself',
   vfx: 'vfx {at?, fx} — play a visual effect (at the host unless at names a role)',
   say: 'say {text, who?} — the host says a line ("@line": one of its own lines for the moment; "@given": its line for the item it was given; "@chat": one of its chat lines, or what it likes best); text fills {host} {actor} {target} {instrument} {other} {item} and {role.key}',
   remark: 'remark {text, again?, alone?, every?} — a line for whoever set the event going (the cause; else its other): its companion beside it says it in a bubble, as a leader\'s companion speaks the story\'s beats — `text` the first time this host says it, `again` (default text) after; `every` (ticks): not again within that long (a way walked into on and on). No companion at hand: `alone` (default text) in the message line, as log writes it. Writes nothing',
@@ -320,6 +321,9 @@ export class EffectRunner {
         else delete host.name
         // a thing become another is whole as what it is now (a felled tree's stump, a regrown tree)
         if (host.props?.hp !== undefined && w.onto.resolve(into).props.maxHp !== undefined) w.setProp(host, 'hp', undefined)
+        // what a vessel held in draughts (`fill` of its form's `draughts`: a bucket of water) was its old form's:
+        // emptied or filled again, it holds what its new form holds — none, or full (its form's own `fill`)
+        if (host.props?.fill !== undefined) w.setProp(host, 'fill', undefined)
         eng.touch({ e: host.id })
         return
       }
@@ -349,6 +353,12 @@ export class EffectRunner {
         const setter = ev.cause ? w.get(ev.cause) : undefined
         if (place.on === 'tile' && w.hasTag(host, 'turns') && setter?.facing) host.facing = setter.facing
         eng.touch({ e: host.id })
+        return
+      }
+      case 'aloft': {
+        if (!host || (host.place.on !== 'inside' && host.place.on !== 'hand')) return
+        eng.touch({ e: host.id })
+        w.place(host, { on: 'none' })
         return
       }
       case 'loosen': {
@@ -407,7 +417,8 @@ export class EffectRunner {
       case 'setProp': {
         if (!host) return
         const v = typeof eff.value === 'object' && eff.value !== null ? ev.params?.[eff.value.param] : eff.value
-        if (v !== undefined) eng.setProp(host, eff.key, v, ev)
+        if (v === null) w.setProp(host, eff.key, undefined)
+        else if (v !== undefined) eng.setProp(host, eff.key, v, ev)
         return
       }
       case 'addProp': {
@@ -979,7 +990,7 @@ export class EffectRunner {
         host: to,
         roles: {
           source: ev.host,
-          actor: ev.roles.actor ?? (ev.cause ? { e: ev.cause } : undefined),
+          actor: eff.actor ? this.roleRef(ev, eff.actor) : ev.roles.actor ?? (ev.cause ? { e: ev.cause } : undefined),
           instrument: ev.roles.instrument,
           item,
           other,
