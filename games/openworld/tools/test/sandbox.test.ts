@@ -106,6 +106,28 @@ describe('whose things are (docs/npc-sandbox.md §2.1)', () => {
     expect(W(s).prop(step, 'owner')).toBe('household:cook')
     expect(so.isAnothers(step, P(s))).toBe(true)
   })
+
+  it("one's own thing set down in another's house stays one's own: taken up again, it is no theft", () => {
+    const s = fresh()
+    clear(s, [])
+    const so = socialOf(s.eng)
+    put(s, 'player', 8, 8, 'up', HOME)
+    const loaf = make(s, 'item/food/bread', { on: 'inside', holder: 'player' })
+    s.eng.controls.sync()
+    const slot = P(s).slotItems!.findIndex((m) => m?.includes(loaf.id))
+    s.eng.controls.drop(slot)
+    expect(loaf.place).toMatchObject({ on: 'tile', map: HOME })
+    expect(so.ownerOf(loaf)).toBe('player')
+    expect(so.isAnothers(loaf, P(s))).toBe(false)
+    const at = loaf.place.on === 'tile' ? loaf.place : undefined
+    put(s, 'player', at!.x, at!.y + 1, 'up', HOME)
+    const plan = s.eng.controls.plan('take', { x: at!.x, y: at!.y })
+    expect(plan?.label).toEqual({ en: 'Take Bread', zh: expect.any(String) })
+    expect(plan?.steal).toBeFalsy()
+    // what lay there before is still the household's
+    const theirs = make(s, 'item/food/bread', { on: 'tile', map: HOME, x: 9, y: 7 })
+    expect(so.isAnothers(theirs, P(s))).toBe(true)
+  })
 })
 
 describe('deeds seen, remembered, told to the watch (§2.2–2.7)', () => {

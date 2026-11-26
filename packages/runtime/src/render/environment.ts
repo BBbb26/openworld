@@ -5,7 +5,8 @@ import type Phaser from 'phaser'
 const TILE = 16
 const WATER = new Set(['water', 'deepwater', 'spring'])
 export const VERDANT_LOOK: RegionLook = { tint: '#b6ce80', tintAmount: 0.1, desat: -0.06, shade: 0.015 }
-export const environmentLook = (map: MapData): RegionLook | undefined => map.environment?.palette === 'verdant' ? VERDANT_LOOK : undefined
+/** A map's own look (MapData.look), else its environment's, over its region's. */
+export const environmentLook = (map: MapData): RegionLook | undefined => map.look ?? (map.environment?.palette === 'verdant' ? VERDANT_LOOK : undefined)
 const noise = (x: number, y: number) => ((x * 157 + y * 311 + 17) % 997) / 997
 export interface EnvironmentPoint { x: number; y: number; alpha: number }
 
