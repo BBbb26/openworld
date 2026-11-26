@@ -185,6 +185,19 @@ describe('creature kits', () => {
     expect(w.num(p, 'hp')).toBe(mine)
   })
 
+  it('a clerk counterattack does not start a loop with the Thorn vow', () => {
+    const { eng, w, p, spawn, run } = arena()
+    const clerk = spawn('actor/creature/undead/clerk', 1)
+    const seal = eng.author(() => w.create('item/valuable/order_seal', { on: 'inside', holder: p.id }))
+    eng.controls.wear(seal.id)
+    expect(w.worn(p).map((e) => e.id)).toContain(seal.id)
+    expect(run(200, () => !!clerk.statuses?.weighing)).toBe(true)
+    w.fx.length = 0
+    eng.playerAttack({ e: clerk.id })
+    expect(w.fx.filter((fx) => fx.t === 'damage' && fx.who === p.id)).toHaveLength(1)
+    expect(w.num(p, 'hp')).toBeGreaterThan(0)
+  })
+
   it('a bog wisp beckons one down its row to its side and burns the cells round it', () => {
     const { w, p, spawn, run } = arena()
     const wisp = spawn('actor/creature/wisp/bog_wisp', 5)

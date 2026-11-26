@@ -161,6 +161,15 @@ describe("only the story's own rules write its protected facts, whoever started 
 })
 
 describe('an effect refused in the replay fails validation (V2)', () => {
+  it('accepts an explicit emitted actor role and rejects an unknown role', () => {
+    const { eng, req } = ask()
+    const check = (actor: string) => validatePatch(placePatch(draft('patch/counter', {
+      do: [{ op: 'emit', impulse: 'handle', to: 'target', actor } as Effect],
+    }), req).patch, { ontology: onto, library: eng.lib })
+    expect(check('host').errors).toEqual([])
+    expect(check('not-a-role').errors.join()).toContain('.actor')
+  })
+
   it('a spawn past the most, or an amount past what a number holds, is a replay error; the line stays a developer\'s', () => {
     for (const eff of [{ op: 'spawn', type: STONE, at: 'actor', into: 'tile', count: 1000 }, { op: 'addProp', key: 'charge', delta: { prop: 'hp', of: 'actor', mul: 1e308 } }] as Effect[]) {
       const { eng, req } = ask()
