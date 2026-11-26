@@ -644,3 +644,83 @@ describe('resident harvest work', () => {
     expect(eng.world.num(worker, 'karma')).toBeLessThan(karmaBefore)
   })
 })
+
+describe('resident harvest work tends its cells: what is dry is watered (docs/logs/0010)', () => {
+  /** The farm with water at its south-west corner (unless `withWater` is false), an authorized sprout at (5,4), an unauthorized one at (8,6). */
+  function garden(withBucket: boolean, withWater = true): Engine {
+    const eng = farm()
+    const w = eng.world
+    eng.author(() => {
+      if (withWater) for (const [x, y] of [[0, 7], [1, 7], [0, 6]] as const) w.setTerrain(SANDBOX_MAP, x, y, 'water')
+      w.add({ id: 'sprout', type: 'fixture/crop/turnip/sprout', place: { on: 'tile', map: SANDBOX_MAP, x: 5, y: 4 } })
+      w.add({ id: 'other', type: 'fixture/crop/turnip/sprout', place: { on: 'tile', map: SANDBOX_MAP, x: 8, y: 6 } })
+    })
+    if (withBucket) putInside(eng, 'pail', 'item/vessel/bucket/empty')
+    return eng
+  }
+
+  it('takes the bucket, fills it at the water, waters the authorized dry crop, leaves the other, and puts the bucket back', () => {
+    const eng = garden(true)
+    const w = eng.world
+    assign(eng, 'worker', [{ x: 5, y: 4 }])
+    // (300 ticks: within the sprout's stage, so it is watered once; past its 600 it would grow and be watered again)
+    runTicks(eng, 300)
+    expect(w.hasStatus({ e: 'sprout' }, 'watered')).toBe(true)
+    expect(w.hasStatus({ e: 'other' }, 'watered')).toBe(false)
+    // back in the warehouse, the player's, with nine draughts left
+    expect(w.get('pail')?.place).toEqual({ on: 'inside', holder: 'store' })
+    expect(w.get('pail')?.type).toBe('item/vessel/bucket/water')
+    expect(w.num(w.get('pail')!, 'fill')).toBe(9)
+    expect(w.prop(w.get('pail')!, 'owner')).toBe(w.state.player)
+    expect(w.get('worker')?.residentWork?.cargoIds).toEqual([])
+  })
+
+  it('says so when there is no bucket in the warehouse, and waters nothing', () => {
+    const eng = garden(false)
+    assign(eng, 'worker', [{ x: 5, y: 4 }])
+    runTicks(eng, 300)
+    expect(eng.world.hasStatus({ e: 'sprout' }, 'watered')).toBe(false)
+    expect(locale(eng.world.get('worker')?.residentWork?.blockedReason, 'en')).toMatch(/no bucket/)
+  })
+
+  it('never takes a flask, a waterskin or holy water for a bucket: they hold no draughts', () => {
+    const eng = garden(false)
+    putInside(eng, 'flask', 'item/vessel/flask/water')
+    putInside(eng, 'holy', 'item/vessel/flask/holy_water')
+    putInside(eng, 'skin', 'item/vessel/waterskin/empty')
+    putInside(eng, 'vial', 'item/vessel/flask/empty')
+    assign(eng, 'worker', [{ x: 5, y: 4 }])
+    runTicks(eng, 300)
+    for (const id of ['flask', 'holy', 'skin', 'vial']) expect([id, eng.world.get(id)?.place]).toEqual([id, { on: 'inside', holder: 'store' }])
+    expect(eng.world.hasStatus({ e: 'sprout' }, 'watered')).toBe(false)
+    expect(locale(eng.world.get('worker')?.residentWork?.blockedReason, 'en')).toMatch(/no bucket/)
+  })
+
+  it('with no water on the ground and none drawn in the warehouse, says so and never fetches the bucket', () => {
+    const eng = garden(true, false)
+    const w = eng.world
+    assign(eng, 'worker', [{ x: 5, y: 4 }])
+    w.state.tick = 600
+    const away: number[] = []
+    for (let i = 0; i < 300; i++) {
+      eng.tick()
+      const at = w.get('pail')?.place
+      if (at?.on !== 'inside' || at.holder !== 'store') away.push(i)
+    }
+    expect(away).toEqual([])
+    expect(w.hasStatus({ e: 'sprout' }, 'watered')).toBe(false)
+    expect(locale(w.get('worker')?.residentWork?.blockedReason, 'en')).toMatch(/no water/)
+  })
+
+  it('with no water on the ground, a bucket already drawn is still used, and put back', () => {
+    const eng = garden(false, false)
+    putInside(eng, 'pail', 'item/vessel/bucket/water')
+    const w = eng.world
+    assign(eng, 'worker', [{ x: 5, y: 4 }])
+    runTicks(eng, 300)
+    expect(w.hasStatus({ e: 'sprout' }, 'watered')).toBe(true)
+    expect(w.get('pail')?.place).toEqual({ on: 'inside', holder: 'store' })
+    expect(w.num(w.get('pail')!, 'fill')).toBe(9)
+  })
+})
+

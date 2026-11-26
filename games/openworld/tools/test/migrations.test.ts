@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest'
 import { Game, MAINHAND, OFFHAND, RuleLibrary, type Entity } from '@openworld/engine'
 import { socialOf } from '@openworld/modules'
-import { BASE_RULES, GAME, PLOTS_LAYOUT, PROFESSIONS_LAYOUT, RANGER_LAYOUT, SET_DEFS, STOCK_LAYOUT, STORY_RULES, buildOntology, decodeChunk, migratePlots, migrateProfessions, migrateStock } from '@openworld-game/content'
+import { BASE_RULES, GAME, PLOTS_LAYOUT, PROFESSIONS_LAYOUT, RANGER_LAYOUT, SET_DEFS, SOCIAL, STOCK_LAYOUT, STORY_RULES, buildOntology, decodeChunk, migratePlots, migrateProfessions, migrateStock } from '@openworld-game/content'
 import { buildFord } from '../src/demo/world.ts'
 
 const onto = buildOntology()
@@ -216,3 +216,51 @@ describe('the ranger\'s paths remade, in an older save (2026-11-12)', () => {
   })
 })
 
+describe('residents who came to live on the Held Ground before it had a table, in an older save (docs/logs/0011)', () => {
+  /** Vigo asked to live on the Held Ground, then his day put back as such a save kept it: asleep in bed, the rest at his day place, no meal. */
+  function oldResident() {
+    const f = game()
+    const { eng, w } = f
+    const p = w.player
+    const vigo = w.get('npc.vigo')!
+    eng.author(() => {
+      w.setFact('sins.defeated.alberic', 1)
+      socialOf(eng).changeRegard(vigo, p.id, 1000)
+      const at = w.posOf(vigo)!
+      eng.travel(p, { map: at.map, x: at.x, y: at.y + 1 })
+    })
+    eng.controls.sync()
+    eng.controls.talk(vigo.id, 'invite')
+    eng.tick()
+    const r = w.get(vigo.id)!.npc!.resident!
+    expect(r.map).toBe(SOCIAL.residence!.map)
+    const now = structuredClone(r.schedule)
+    const bed = now.find((s) => s.activity === 'sleep')!
+    const day = now.find((s) => s.activity === 'live')!
+    eng.author(() => void (r.schedule = [{ ...bed }, { ...day, from: 7, to: 21 }]))
+    expect(r.schedule.some((s) => s.activity === 'eat')).toBe(false)
+    return { ...f, id: vigo.id, now, bed, day }
+  }
+
+  it('a day without meals becomes the residence\'s as it is now — two meals tending hunger, the day place the map\'s anchor by the hearth — and only once', () => {
+    const { eng, w, id, now, bed, day } = oldResident()
+    const r = () => w.get(id)!.npc!.resident!
+    // (the day place where an older map had it: elsewhere — here, at the bed)
+    eng.author(() => void (r().schedule = [{ ...bed }, { ...day, x: bed.x, y: bed.y, from: 7, to: 21 }]))
+    eng.author(() => GAME.upgradeSave!(eng))
+    expect(r().schedule).toEqual(now)
+    for (const s of r().schedule.filter((s) => s.activity === 'eat')) expect(s.tends).toContain('hungry')
+    // a day that has its meals already is left as it is
+    eng.author(() => GAME.upgradeSave!(eng))
+    expect(r().schedule).toEqual(now)
+  })
+
+  it('loaded from a save: the bed and the day place kept, the residence\'s day round them', () => {
+    const { g, index, id, bed, day } = oldResident()
+    const loaded = Game.load(structuredClone(g.save()), index, onto, lib(), GAME.upgradeSave)
+    const r = loaded.engine.world.get(id)!.npc!.resident!
+    expect(r.schedule.map((s) => [s.from, s.to, s.activity])).toEqual(SOCIAL.residence!.days.map((d) => [d.from, d.to, d.activity]))
+    for (const s of r.schedule) expect([s.activity, s.x, s.y]).toEqual(s.activity === 'sleep' ? ['sleep', bed.x, bed.y] : [s.activity, day.x, day.y])
+    for (const s of r.schedule.filter((s) => s.activity === 'eat')) expect(s.tends).toContain('hungry')
+  })
+})

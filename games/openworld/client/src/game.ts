@@ -4,7 +4,7 @@
 
 import type { ClientGame } from '@openworld/runtime/src/game.ts'
 import { prepareCreator } from './creator.ts'
-import { describeItem, fishingBaitContextAction, fishingRodIconDecoration } from './itemTips.ts'
+import { describeItem, fishingBaitContextAction, fishingRodIconDecoration, vesselIconBadge } from './itemTips.ts'
 import {
   BOON_BY_ID,
   ALBERIC_CAMPAIGN,
@@ -110,6 +110,7 @@ export const CLIENT_GAME: ClientGame = {
   creationMechanisms: async (engines) => (await import('./creationMechanisms.ts')).loadCreationMechanisms(engines),
   describeItem,
   itemIconDecoration: (item) => fishingRodIconDecoration(item, FORM_BY_ID),
+  itemIconBadge: vesselIconBadge,
   itemContextAction: fishingBaitContextAction,
   ...GAME,
   catalog: CATALOG,

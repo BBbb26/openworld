@@ -165,11 +165,14 @@ describe('no endless yield (world-model.md §8.4)', () => {
     expect(errs({ props: { material: 'crystal' }, makeup: [{ type: 'item/gem', count: 1 }] })).not.toMatch(/material|makeup/)
   })
 
-  it('the base library: every act any input makes, on anything the player can face, stops yielding when repeated', () => {
-    const endless: string[] = []
-    let yielding = 0
+  // The base library swept: every act each input makes with each held form, on every target (docs/logs/0015). Minutes in
+  // all, so one case a target — each a second or so, well inside the per-test timeout under a full parallel run, and a
+  // failure names its target — and the count of what yields checked once they have all run (the cases run in order).
+  describe('the base library: every act any input makes, on anything the player can face, stops yielding when repeated', () => {
     const library = lib()
-    for (const target of targets(onto)) {
+    let yielding = 0
+    it.each(targets(onto).map((t) => [t.id, t] as const))('%s', (_, target) => {
+      const endless: string[] = []
       const sc: Scenario = {
         terrain: Array.from({ length: 3 }, () => Array(3).fill('grass')),
         entities: [{ key: 'actor', type: 'actor/person/player', ...ORIGIN }, ...HELD.map((f, i) => ({ key: `hand${i}`, type: f.id, ...ORIGIN, inside: 'actor' }))],
@@ -196,11 +199,13 @@ describe('no endless yield (world-model.md §8.4)', () => {
       expect(preview.mock.calls.filter((args) => args.length === 1).length).toBe(candidates)
       expect(JSON.stringify(base.world.state)).toBe(unchanged)
       preview.mockRestore()
-    }
-    // (it does reach what yields: felling, mining, harvesting, splitting, fishing …)
-    expect(yielding).toBeGreaterThan(20)
-    expect(endless).toEqual([])
-  }, 600_000)
+      expect(endless).toEqual([])
+    })
+
+    it('reaches what yields: felling, mining, harvesting, splitting, fishing …', () => {
+      expect(yielding).toBeGreaterThan(20)
+    })
+  })
 })
 
 describe('the repeat check, exact (world-model.md §8.4)', () => {

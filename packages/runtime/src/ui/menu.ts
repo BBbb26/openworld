@@ -24,7 +24,7 @@ import { QuestLog } from './questlog.ts'
 import { SkillPanel } from './skillpanel.ts'
 import { AiOptions } from './quality.ts'
 import { ContextMenu } from './context-menu.ts'
-import { $, SLOT_KEYS, controlsTable, esc, kbd, locale, prefs, t, tx, gearFrame, volumeRows, wireVolumes } from './common.ts'
+import { $, SLOT_KEYS, controlsTable, esc, kbd, locale, prefs, t, tx, gearFrame, itemBadgeHtml, volumeRows, wireVolumes } from './common.ts'
 import type { Panel } from './paneltabs.ts'
 import { KeysPage } from './keyspage.ts'
 import type { Action } from '../keymap.ts'
@@ -439,7 +439,7 @@ export class Menu {
     const sig = `${item.id}|${picked.count}|${itemIconSignature([item])}`
     if (this.carried.dataset.item === sig) return
     this.carried.dataset.item = sig
-    this.carried.innerHTML = `<div class="icon" data-icon="${item.id}"></div>${picked.count > 1 ? `<span class="count">${picked.count}</span>` : ''}`
+    this.carried.innerHTML = `<div class="icon" data-icon="${item.id}"></div>${itemBadgeHtml(item)}${picked.count > 1 ? `<span class="count">${picked.count}</span>` : ''}`
     this.paintIcons?.([item])
   }
 
@@ -715,7 +715,7 @@ export class Menu {
 
   private slotHtml(s: Frame['player']['slots'][number], i: number, extra = ''): string {
     const key = i < ROW ? `<span class="key" data-kbd="slot${i + 1}">${kbd(`slot${i + 1}` as Action)}</span>` : ''
-    return itemSlotHtml({ label: s ? tx(s.item.name) : `${t('csPack')} ${i + 1}`, className: extra + gearFrame(s?.item), attributes: { 'data-i': i, 'data-item': s?.item.id }, content: key + (s ? `<div class="icon" data-icon="${esc(s.item.id)}"></div>${s.count > 1 ? `<span class="count">${s.count}</span>` : ''}${s.worn ? '<span class="worn"></span>' : ''}` : '') })
+    return itemSlotHtml({ label: s ? tx(s.item.name) : `${t('csPack')} ${i + 1}`, className: extra + gearFrame(s?.item), attributes: { 'data-i': i, 'data-item': s?.item.id }, content: key + (s ? `<div class="icon" data-icon="${esc(s.item.id)}"></div>${itemBadgeHtml(s.item)}${s.count > 1 ? `<span class="count">${s.count}</span>` : ''}${s.worn ? '<span class="worn"></span>' : ''}` : '') })
   }
 
   private inventoryHtml(f?: Frame): string {
@@ -1128,7 +1128,7 @@ export class Menu {
     const cap = Math.max(c.capacity ?? 12, stacks.length)
     const chestCells = Array.from({ length: Math.ceil(cap / ROW) * ROW }, (_, i) => {
       const s = stacks[i]
-      return `<div class="slot${i >= cap ? ' off' : ''}" ${s ? `data-c="${s[0].id}" data-item="${s[0].id}"` : ''}>${s ? `<div class="icon" data-icon="${s[0].id}"></div>${s.length > 1 ? `<span class="count">${s.length}</span>` : ''}` : ''}</div>`
+      return `<div class="slot${i >= cap ? ' off' : ''}" ${s ? `data-c="${s[0].id}" data-item="${s[0].id}"` : ''}>${s ? `<div class="icon" data-icon="${s[0].id}"></div>${itemBadgeHtml(s[0])}${s.length > 1 ? `<span class="count">${s.length}</span>` : ''}` : ''}</div>`
     })
     const bag = f.player.slots
     const zh = locale.value === 'zh'
@@ -1141,7 +1141,7 @@ export class Menu {
       <div class="tab-body chest-body"><div class="inv chest-grid">${chunk(chestCells, ROW).map((r) => `<div class="grid-row">${r.join('')}</div>`).join('')}</div>
       <div class="inv-foot"><button id="cFill" ${moving ? 'disabled' : ''}>⇣ ${t('fillStacks')}</button><button id="cOrg" ${moving ? 'disabled' : ''}>⇅ ${t('organize')}</button><span class="muted small" ${moving ? 'role="status"' : ''}>${hint}</span></div>
       <div class="inv bag-grid">${chunk(
-        bag.map((s, j) => (s ? `<div class="slot" data-b="${s.item.id}" data-item="${s.item.id}"><div class="icon" data-icon="${s.item.id}"></div>${s.count > 1 ? `<span class="count">${s.count}</span>` : ''}</div>` : `<div class="slot" data-i="${j}"></div>`)),
+        bag.map((s, j) => (s ? `<div class="slot" data-b="${s.item.id}" data-item="${s.item.id}"><div class="icon" data-icon="${s.item.id}"></div>${itemBadgeHtml(s.item)}${s.count > 1 ? `<span class="count">${s.count}</span>` : ''}</div>` : `<div class="slot" data-i="${j}"></div>`)),
         ROW,
       )
         .map((r, k) => `<div class="grid-row${k === 0 ? ' toolbar-row' : ''}">${r.join('')}</div>`)

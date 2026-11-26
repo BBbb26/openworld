@@ -853,27 +853,36 @@ describe('two forms of a built thing: set up, or lying loose (Minecraft\'s block
 
 describe('slots and the magnet', () => {
   it('new kinds take free slots; the hand holds the selected stack; a held item an outcome changed keeps its slot', () => {
-    const eng = world('item/vessel/bucket/water', [
+    const eng = world('item/vessel/flask/water', [
       { key: 'b2', type: 'item/food/bread', x: 0, y: 0, inside: 'actor' },
       { key: 'b3', type: 'item/food/bread', x: 0, y: 0, inside: 'actor' },
     ])
     const p = eng.world.player
     expect(p.slots!.filter(Boolean)).toHaveLength(2)
-    const bucketSlot = p.selected!
-    // pouring the water out: the bucket (the act's host) becomes an empty one, in the hand
+    const flaskSlot = p.selected!
+    // pouring the water out: the flask (the act's host, one draught) becomes an empty one, in the hand
     eng.controls.run(eng.controls.plan('use')!)
-    expect(eng.world.get('held')!.type).toBe('item/vessel/bucket/empty')
-    expect(p.selected).toBe(bucketSlot)
-    expect(eng.world.get(p.held)!.type).toBe('item/vessel/bucket/empty')
-    const breadSlot = p.slots!.findIndex((k, i) => k && i !== bucketSlot)
+    expect(eng.world.get('held')!.type).toBe('item/vessel/flask/empty')
+    expect(p.selected).toBe(flaskSlot)
+    expect(eng.world.get(p.held)!.type).toBe('item/vessel/flask/empty')
+    const breadSlot = p.slots!.findIndex((k, i) => k && i !== flaskSlot)
     eng.controls.select(breadSlot)
     expect(eng.world.get(p.held)!.type).toBe('item/food/bread')
     const empty = p.slots!.findIndex((k, i) => !k && i < 10)
     eng.controls.select(empty)
     expect(p.held).toBeUndefined()
-    expect(p.slots![bucketSlot]).toBeTruthy()
-    eng.controls.select(bucketSlot)
-    expect(eng.world.get(p.held)!.type).toBe('item/vessel/bucket/empty')
+    expect(p.slots![flaskSlot]).toBeTruthy()
+    eng.controls.select(flaskSlot)
+    expect(eng.world.get(p.held)!.type).toBe('item/vessel/flask/empty')
+    // a bucket poured keeps its slot too: nine draughts left, its stack key changed with them
+    const pail = eng.author(() => eng.world.create('item/vessel/bucket/water', { on: 'inside', holder: p.id }))
+    eng.controls.sync()
+    const pailSlot = p.slots!.indexOf(eng.controls.key(pail))
+    eng.controls.select(pailSlot)
+    eng.controls.run(eng.controls.plan('use')!)
+    expect(eng.world.num(eng.world.get(pail.id)!, 'fill')).toBe(9)
+    expect(p.selected).toBe(pailSlot)
+    expect(p.held).toBe(pail.id)
   })
 
   it('a carried thing that becomes another without an input (cooked in the hand, spoiled in the bag) keeps its slot from the next tick', () => {

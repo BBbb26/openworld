@@ -111,10 +111,16 @@ export const SOCIAL: SocialParams = {
       { anchor: 'home.lodge3.a', when: 'haven.build.lodge3' },
       { anchor: 'home.lodge3.b', when: 'haven.build.lodge3' },
     ],
-    // asleep in their bed from nine at night to seven, the day by the fire (a bed's `.day` anchor)
+    // asleep in their bed from nine at night to seven, the day by the fire (a bed's `.day` anchor: round the kitchen
+    // hearth and the storehouse, tools/src/demo/quest/haven.ts), and two meals there at the table, morning and evening
+    // (activity `eat`: the society module's RESIDENT_MEAL, a meal that tends hunger; they eat what is shared in the
+    // storehouse — docs/logs/0011)
     days: [
       { from: 21, to: 7, at: 'bed', activity: 'sleep' },
-      { from: 7, to: 21, at: 'day', activity: 'live' },
+      { from: 7, to: 8, at: 'day', activity: 'eat' },
+      { from: 8, to: 19, at: 'day', activity: 'live' },
+      { from: 19, to: 20, at: 'day', activity: 'eat' },
+      { from: 20, to: 21, at: 'day', activity: 'live' },
     ],
     yes: L("...Live there? With you? — Yes. Give me a moment to pack. I'll see you in the Held Ground.", '……搬去那儿住？和你一起？——好。让我收拾一下东西。我们誓守之地见。'),
     full: L("I'd like that. But you've no bed for me there yet — ask Alberic to raise another tent.", '我很想去。可你那儿还没有我的床位——去找阿尔贝里克再搭一顶营帐吧。'),
@@ -124,6 +130,8 @@ export const SOCIAL: SocialParams = {
 // ------------------------------------------------------------------ statuses
 
 const HOUR = TICKS_PER_DAY / 24
+/** How long a resident is glad of a meal at the home ground's table (half a day: once a meal, two a day). */
+const TABLE_GLAD = TICKS_PER_DAY / 2
 
 export const SOCIAL_STATUSES: StatusDef[] = [
   // the input's posture: walking soft (slower), a blade out (any actor may have them)
@@ -147,6 +155,8 @@ export const SOCIAL_STATUSES: StatusDef[] = [
   { id: 'doubted', name: L('heard the unbeliever', '听过无神论了'), duration: TICKS_PER_DAY },
   // given the thing they like best today (its special warmth comes once a day)
   { id: 'cheered', name: L('delighted', '欢喜'), duration: TICKS_PER_DAY },
+  // a resident who has eaten at the home ground's table, glad of it for half a day (PERSON_NEWS `table`, docs/logs/0011)
+  { id: 'kept_table', name: L('fed at the table', '饭桌上吃饱了'), duration: TABLE_GLAD },
   // in the cells
   { id: 'jailed', name: L('jailed', '关押中'), immobilize: true, pose: 'lie' },
 ]
@@ -464,9 +474,14 @@ export const PERSON_NEWS = (rest: Tree): Tree =>
   IF(what('chat'), DO({ op: 'tell', to: 'other' }),
   IF(what('news'), DO({ op: 'hear' }),
   IF(what('calm'), DO({ op: 'calm' }),
+  // a resident who has eaten at the home ground's table (rules.ts use/eat, docs/logs/0011): glad of it, once in a half day,
+  // and now and then says so — kindness said plainly by the one who feels it (docs/writing.md)
+  IF(all(what('table'), not(has('host', 'kept_table'))), IF({ chance: 0.5 },
+    DO(add('kept_table', TABLE_GLAD), emote('happy'), say('Bread at a table, with people round it. I had nearly forgotten what that was like.', '桌上有面包，桌边有人。我差点忘了这是什么滋味。')),
+    DO(add('kept_table', TABLE_GLAD), emote('happy'), say('Nobody here goes to sleep hungry. I will not forget that.', '在这儿，没人饿着肚子睡觉。这个我不会忘。'))),
   // a cry for help: one who fights (a guard, the smith) takes the attacker as its foe; the rest keep away from them
   IF(what('help'), IF(any({ prop: { role: 'host', key: 'fights', cmp: true } }, tag('host', 'watchman')), DO({ op: 'foe' }), DO({ op: 'fear' })),
-  rest)))))))))))))
+  rest))))))))))))))
 
 export const SOCIAL_RULES: Rule[] = [
   rule({

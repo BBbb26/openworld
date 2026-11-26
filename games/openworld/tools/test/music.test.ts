@@ -20,19 +20,16 @@ const MOMENTS: Moment[] = [
 ]
 
 describe('music', () => {
-  it('plays Firstlight’s own daytime theme and keeps its old evening, night and rainy music', () => {
+  it('plays Firstlight’s own daytime theme in all weather and keeps its evening cue', () => {
     const { chunks } = buildFord()
     const village = chunks.find((c) => c.map.id === 'meadow')!.map
     const day = { hour: 12, dusk: 19, dawn: 6, weather: 'sun' }
     const theme = 'lsw/Audio/Musics/che-shui-ma-long.ogg'
-    expect(resolveCue(cues, village.music!, day)?.cue.tracks).toEqual([theme])
-    for (const moment of [
-      { ...day, hour: 18 },
-      { ...day, hour: 23 },
-      { ...day, weather: 'rain' },
-      { ...day, hour: 23, weather: 'rain' },
-      { ...day, weather: 'storm' },
-    ]) expect(resolveCue(cues, village.music!, moment)).toEqual(resolveCue(cues, 'village', moment))
+    for (const weather of ['sun', 'cloud', 'rain', 'storm', 'fog']) {
+      expect(resolveCue(cues, village.music!, { ...day, hour: 6.17, weather })?.cue.tracks).toEqual([theme])
+      expect(resolveCue(cues, village.music!, { ...day, weather })?.cue.tracks).toEqual([theme])
+      expect(resolveCue(cues, village.music!, { ...day, hour: 18, weather })?.name).toBe('village_dusk')
+    }
     const store = chunks.find((c) => c.map.id === 'meadow.store')!.map
     // The same mood keeps the playing strand (or its rest) when entering and leaving the shop.
     expect(store.music).toBe(village.music)
@@ -47,6 +44,65 @@ describe('music', () => {
       expect(cue?.tracks).toEqual([theme])
       expect(cue?.rest).toEqual([5, 5])
     }
+  })
+
+  it('chooses the original dry-weather daytime cues and the selected night themes in every weather', () => {
+    const { chunks } = buildFord()
+    const themes = [
+      {
+        maps: { ford: 'ford', meadow: 'firstlight', 'meadow.store': 'firstlight', dawnhill: 'field', foot: 'field', summit: 'cloudtop' },
+        track: 'own/Audio/Musics/depersonalization-22.ogg',
+      },
+      { maps: { pasture: 'field', forest: 'forest', hollow: 'hollow' }, track: 'own/Audio/Musics/depersonalization-23.ogg' },
+    ]
+    for (const { maps, track } of themes) {
+      for (const [id, originalCue] of Object.entries(maps)) {
+        const map = chunks.find((c) => c.map.id === id)!.map
+        for (const weather of ['sun', 'cloud', 'rain', 'storm', 'snow', 'fog']) {
+          const moment = { dusk: 19, dawn: 6, weather }
+          for (const hour of [19, 23, 0, 5.99]) {
+            const cue = resolveCue(cues, map.music!, { ...moment, hour })?.cue
+            expect(cue?.tracks, id).toEqual([track])
+            expect(cue?.rest, id).toBeUndefined()
+            expect(cue?.enterImmediately, id).toBe(true)
+          }
+          for (const hour of [6, 12, 18.99]) {
+            expect(resolveCue(cues, map.music!, { ...moment, hour }), id).toEqual(resolveCue(cues, originalCue, { ...moment, hour, weather: 'sun' }))
+          }
+        }
+      }
+    }
+  })
+
+  it('keeps the mill’s weather music outside the selected areas', () => {
+    const { chunks } = buildFord()
+    const mill = chunks.find((c) => c.map.id === 'mill')!.map
+    const noon = { hour: 12, dusk: 19, dawn: 6, weather: 'rain' }
+    expect(resolveCue(cues, mill.music!, noon)?.name).toBe('village_rain')
+  })
+
+  it('shares a looping track 26 across all three barrow floors', () => {
+    const { chunks } = buildFord()
+    const floor = (id: string) => chunks.find((c) => c.map.id === id)!.map
+    const entrance = floor('barrow')
+    const ossuary = floor('ossuary')
+    const sanctum = floor('sanctum')
+    expect(entrance.music).toBe(ossuary.music)
+    for (const moment of MOMENTS) {
+      const resolved = resolveCue(cues, entrance.music!, moment)
+      expect(resolved?.cue.tracks).toEqual(['own/Audio/Musics/depersonalization-26.ogg'])
+      expect(resolved?.cue.rest).toBeUndefined()
+      expect(resolveCue(cues, ossuary.music!, moment)?.name).toBe(resolved?.name)
+      expect(resolveCue(cues, sanctum.music!, moment)?.name).toBe(resolved?.name)
+    }
+  })
+
+  it('suppresses crickets only on the three maps with track 23', () => {
+    expect(CATALOG.noCrickets).toEqual(['pasture', 'forest', 'hollow'])
+  })
+
+  it('suppresses ordinary fight music only in the selected areas', () => {
+    expect(CATALOG.noBattleMusic).toEqual(['ford', 'meadow', 'meadow.store', 'dawnhill', 'foot', 'summit', 'pasture', 'forest', 'hollow', 'barrow', 'ossuary'])
   })
 
   it('gives the dragon Battle Thrill without replacing the other bosses or ordinary fights', () => {
