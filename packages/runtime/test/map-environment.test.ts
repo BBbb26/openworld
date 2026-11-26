@@ -4,6 +4,12 @@ import { MapEnvironmentView, environmentLook, fireflyFrame, streamFrame, waterfa
 
 const map: MapData = { id: 'forest', name: 'Forest', kind: 'workshop', width: 3, height: 3, terrain: ['grass', 'water', 'grass', 'grass', 'bridge', 'grass', 'flowers', 'water', 'grass'], portals: [], environment: { palette: 'verdant', water: 'stream', fireflies: true } }
 describe('native map environment consumer', () => {
+  it('uses an explicit map look before the environment palette', () => {
+    const look = { tint: '#f2e2c4', tintAmount: 0.08, desat: -0.1 }
+    expect(environmentLook({ ...map, look })).toEqual(look)
+    expect(environmentLook({ ...map, look, environment: undefined })).toEqual(look)
+  })
+
   it('animates water and fireflies by presentation time without changing the map', () => {
     const before = JSON.stringify(map)
     expect(streamFrame(map, 0)).toHaveLength(2)
