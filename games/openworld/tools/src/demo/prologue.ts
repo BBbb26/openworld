@@ -52,10 +52,12 @@ export function buildSummit(): MapBuilder {
   m.building('ct_shelter', 6, 3)
   // Extend the interior flags under the inner face of the south-east wall.
   m.scenery('ct_shelter_floor_edge', 14, 7)
-  // what the watchman left: his cot, his chair at the table his log lies on (chapter1.ts), a barrel of stores long empty
+  // what the watchman left: his cot, his chair at the west end of the table his log lies on (chapter1.ts), a barrel of
+  // stores long empty — the rooms' own furniture and containers (the art packs', by the map's theme), the chair turned
+  // to the table
   m.fixture('fixture/furniture/bed', 8, 6)
   const chair = WATCH_SHELTER.chair
-  m.fixture('fixture/furniture/chair', chair.x, chair.y, { facing: 'up' })
+  m.fixture('fixture/furniture/chair', chair.x, chair.y)
   const barrel = WATCH_SHELTER.barrel
   m.fixture('fixture/container/barrel', barrel.x, barrel.y)
   // The lookout seat on the rim faces the valley.

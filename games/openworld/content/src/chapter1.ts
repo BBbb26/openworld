@@ -10,8 +10,8 @@ import type { Cond, Rule } from '@openworld/engine'
 export const WATCH_SHELTER = {
   map: 'summit',
   cloak: { id: 'summit~ij', hook: 'summit.cloak-hook', x: 9, y: 4, lookColor: 'forest' },
-  chair: { id: 'summit~2', x: 12, y: 5 },
-  barrel: { id: 'summit~3', x: 13, y: 7 },
+  chair: { id: 'summit~2', x: 11, y: 4 },
+  barrel: { id: 'summit~3', x: 13, y: 6 },
   log: { id: 'summit.log', x: 12, y: 4 },
 } as const
 
