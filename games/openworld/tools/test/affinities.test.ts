@@ -88,4 +88,10 @@ describe('elemental affinities', () => {
     const worn = (k: string) => k.split('/').flatMap((_, i, parts) => onto.types[parts.slice(0, i + 1).join('/')]?.tags ?? [])
     for (const tag of Object.keys(TAG_AFFINITY)) expect(Object.keys(CREATURE_ROLES).some((k) => worn(k).includes(tag)), tag).toBe(true)
   })
+
+  it('preserves the dragon\'s existing water reaction outside the minor affinity table', () => {
+    expect(onto.types[`${C}/dragon`].tags).not.toContain('elemental-affinity')
+    const plain = strike(`${C}/dragon`).lost
+    expect(strike(`${C}/dragon`, 'water').lost).toBe(plain + Math.round(plain * 1.2))
+  })
 })

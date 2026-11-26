@@ -790,7 +790,7 @@ export function buildOntology(): Ontology {
   // each minor kind's level and numbers, from one curve through its role (levels.ts)
   for (const [kind, stats] of Object.entries(CREATURE_STATS)) types[kind] = { ...types[kind], props: { ...types[kind].props, ...stats } }
   // what each minor kind makes of the elements, from its element and its nature (affinities.ts)
-  for (const kind of Object.keys(CREATURE_ROLES)) types[kind] = { ...types[kind], props: { ...types[kind].props, ...affinityOf(types, kind) } }
+  for (const kind of Object.keys(CREATURE_ROLES)) types[kind] = { ...types[kind], tags: [...(types[kind].tags ?? []), 'elemental-affinity'], props: { ...types[kind].props, ...affinityOf(types, kind) } }
   // how each moves in a fight: keeping back, fleeing hurt, a pack's flank (kits.ts CREATURE_TACTICS)
   for (const [kind, t] of Object.entries(CREATURE_TACTICS))
     types[kind] = { ...types[kind], ...(t.pack && { tags: [...(types[kind].tags ?? []), 'pack'] }), props: { ...types[kind].props, ...(t.keepAway && { keepAway: t.keepAway }), ...(t.fleeBelow && { fleeBelow: t.fleeBelow }) } }
