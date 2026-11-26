@@ -475,6 +475,7 @@ export const CATALOG: Catalog = {
     'fixture:bed': { pose: 'lie', x: 0, y: -21, reveal: 0.48, scale: 0.8, facing: 'down' },
     // a pew faces the altar: one sits on it facing north, drawn behind its back, only the head and shoulders over it
     'fixture:pew': { pose: 'sit', x: 0, y: -10, facing: 'up', behind: true },
+    [WATCH_SHELTER.chair.id]: { pose: 'sit', x: -8, y: -8 },
   },
   placedSprites: {
     'foot.hut~4': { map: 'foot.hut', x: 6, y: 11, sprite: px('lsw/Fixtures/HunterInterior.png', 0, 0, 32, 48, 16, 37) },
@@ -492,6 +493,9 @@ export const CATALOG: Catalog = {
       sprite: px('lsw/Fixtures/WatchShelter.png', 64, 0, 32, 24, 16, 44),
       filled: px('lsw/Fixtures/WatchShelter.png', 0, 0, 32, 24, 16, 44),
     },
+    // the watchman's chair and the table his log lies open on, the shelter's own (the barrel the containers' pack's)
+    [WATCH_SHELTER.chair.id]: { map: WATCH_SHELTER.map, x: WATCH_SHELTER.chair.x, y: WATCH_SHELTER.chair.y, sprite: px('lsw/Fixtures/WatchShelter.png', 96, 0, 32, 24, 24, 23) },
+    [WATCH_SHELTER.log.id]: { map: WATCH_SHELTER.map, x: WATCH_SHELTER.log.x, y: WATCH_SHELTER.log.y, sprite: px('lsw/Fixtures/WatchShelter.png', 32, 0, 32, 24, 19, 23) },
     // the ferrykeeper's camp at the Ford, each thing drawn with its piece of the camp pack (content ford.ts FORD_CAMP,
     // named as its piece is; the lantern by the pond with the lantern post's); the fire is drawn cold, and the game's
     // flame burns over it while it is lit; the old axe is drawn in the block while it lies there
