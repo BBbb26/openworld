@@ -222,6 +222,7 @@ export class WorldScene extends Phaser.Scene {
   /** The creatures winding up a skill this frame (the kits module), and how far along: they flash white near its end. */
   private windup = new Map<string, { progress: number; pose?: WindupPose }>()
   private dying = new Set<EView>()
+  private dyingMotes = new Set<Phaser.GameObjects.Rectangle>()
   private bossPreview?: { id: string; mode: Exclude<BossPreviewMode, 'live'>; startedAt?: number }
   private darkness = 0
   /** The look of the region the map lies in (RegionMeta.look), and the look shown, eased toward it as one goes from region to region. */
@@ -389,6 +390,11 @@ export class WorldScene extends Phaser.Scene {
     this.views.clear()
     for (const v of this.dying) (this.tweens.killTweensOf([v.body, ...(v.shadow ? [v.shadow] : [])]), this.destroyView(v))
     this.dying.clear()
+    for (const mote of this.dyingMotes) {
+      this.tweens.killTweensOf(mote)
+      mote.destroy()
+    }
+    this.dyingMotes.clear()
     for (const t of this.tileFx.values()) t.sprites.forEach((s) => s.destroy())
     this.tileFx.clear()
     for (const f of this.fishShadows) (this.tweens.killTweensOf(f), f.destroy())
@@ -1811,7 +1817,8 @@ export class WorldScene extends Phaser.Scene {
       const r = 8 + Math.random() * 6
       const x = v.root.x, y = v.root.y - 6
       const mote = this.add.rectangle(x, y, 2, 2, i % 2 ? 0xffffff : tone, 1).setDepth(v.root.depth + 1)
-      this.tweens.add({ targets: mote, x: x + Math.cos(a) * r, y: y + Math.sin(a) * r * 0.7 - 4, alpha: 0, duration: 300 + Math.random() * 140, ease: 'Quad.easeOut', onComplete: () => mote.destroy() })
+      this.dyingMotes.add(mote)
+      this.tweens.add({ targets: mote, x: x + Math.cos(a) * r, y: y + Math.sin(a) * r * 0.7 - 4, alpha: 0, duration: 300 + Math.random() * 140, ease: 'Quad.easeOut', onComplete: () => { this.dyingMotes.delete(mote); mote.destroy() } })
     }
   }
 
