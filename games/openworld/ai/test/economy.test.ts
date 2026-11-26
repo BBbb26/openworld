@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { LOOSE, OntologyIndex, RuleLibrary, buildSandbox, performPlacement, buildRequest, holeKey, scenarioEvent, type Effect, type Rule, type Tree, type Ontology, type Patch, type Scenario } from '@openworld/engine'
-import { BASE_RULES, BUILDINGS, HAVEN_UPGRADES, RECIPES, RECOVERY, STORY_RULES, TERRAINS, WILD_GROUNDS, buildOntology, decodeChunk, wildChunk } from '@openworld-game/content'
+import { BASE_RULES, BUILDINGS, HAVEN_UPGRADES, PROCESSES, RECIPES, RECOVERY, STORY_RULES, TERRAINS, WILD_GROUNDS, buildOntology, decodeChunk, wildChunk } from '@openworld-game/content'
 import { economySteps, freeLunch, prices, ruleSteps, simplexMax, WorldLibrary, type Step as LpStep } from '@openworld/ai'
 import { buildFord } from '../../tools/src/demo/world.ts'
 import { onto } from './fixtures.ts'
@@ -138,8 +138,13 @@ describe('the economy (world-model.md §10.2)', () => {
     for (const n of world.npcs) for (const it of (n as { _items?: { type: string }[] })._items ?? []) have.add(it.type)
     // what the Held Ground's plots become once the steward builds them (haven.ts, a story rule): the arcane workbench among them
     for (const u of HAVEN_UPGRADES) if (u.becomes) present.add(u.becomes)
-    const stations = new Set([...present].flatMap((t) => index.resolve(t).tags.filter((x) => x.startsWith('station:')).map((x) => x.slice(8))))
-    stations.add('hands')
+    // the stations: those standing in the world, and those made and set up (a millstone made in the bag, set down at home)
+    const stations = new Set(['hands'])
+    const stationsNow = () => {
+      for (const t of [...present, ...[...have].filter((x) => x.startsWith('fixture/'))])
+        for (const x of index.resolve(t).tags) if (x.startsWith('station:')) stations.add(x.slice(8))
+    }
+    stationsNow()
     // what breaks gives its makeup; what a rule on a present thing spawns, it gives
     // (a spawn or a transform naming the host's own prop — a crop's yieldType, a seed's cropType — is read from the type)
     const named = (type: string, ref: string): string[] => {
@@ -161,6 +166,9 @@ describe('the economy (world-model.md §10.2)', () => {
         if (into) (into.startsWith('item/') ? have : present).add(into)
       }
       for (const r of RECIPES) if (stations.has(r.station ?? 'hands') && r.needs.every((n) => have.has(n.type))) have.add(r.make.type)
+      // what a machine that works by itself makes of what is put in it (a cask: cider of apples), once it stands
+      for (const p of PROCESSES) if ((present.has(p.machine) || have.has(p.machine)) && have.has(p.takes)) have.add(p.makes)
+      stationsNow()
     }
     const missing: string[] = []
     for (const r of RECIPES) {
@@ -211,6 +219,8 @@ describe('the economy (world-model.md §10.2)', () => {
       }
     }
     for (const r of RECIPES) for (const n of r.needs) link(n.type, r.make.type)
+    // a machine that works by itself turns what is put in it into what it makes (processing.ts PROCESSES: apples → cider)
+    for (const p of PROCESSES) link(p.takes, p.makes)
     const reach = (from: string): Set<string> => {
       const seen = new Set([from])
       const todo = [from]

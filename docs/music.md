@@ -32,19 +32,23 @@ One director decides what plays, first to last:
 3. **a boss fight**: while the camera holds over the arena, `boss:<kind>:<phase>`, `boss:<kind>`, `boss` (the kind's last
    segment also: `boss:alberic:2`);
 4. **a fight**: `battle` (its `night` version by night) from the frame's `player.fighting` (the engine's `fightTick`,
-   FIGHT_TICKS) and held 7 s past it, faded in in 0.6 s, out in 3 s;
+   FIGHT_TICKS) and held 7 s past it, faded in in 0.6 s, out in 3 s. Maps in the catalogue's `noBattleMusic` list
+   skip this cue and clear the fight's music hold on entry;
 5. **the place**: the map's mood (`MapData.music`; a map naming none: `outdoor`, `indoor`, `dark` by its light) in the
    version for the moment.
 
 The place's piece is **held** while anything plays over it and taken up again where it was. A change of the hour or
-the weather **waits for the end of the piece playing** (a one-piece loop changes at once); a change of map crossfades.
+the weather **waits for the end of the piece playing** unless the current piece loops or the new cue is marked
+`enterImmediately`. Changing maps crossfades if the destination resolves to a different cue. Maps sharing a cue
+keep the same playback position or rest.
 Death silences it all. The moment is the frame's: the hour and `night.dusk/dawn`, which move as the story's night
 lengthens, so dusk music comes earlier as the seals fall.
 
 **Cues** (`assets/types.ts` `MusicCue`): pieces (`tracks`, played in a shuffled round never repeating one), `rest`
 (silence between pieces, `[least, most]` seconds: the wilds), `volume`, `like` (the same as another cue), `at` (the
 versions: `dawn`, `day`, `dusk`, `night`, `rain`, `storm`, `snow`, `fog`; the weather's first). A plain string is a cue of
-one piece, as before. `audio/cues.ts` resolves them (pure, used by the tests).
+one piece, as before. A cue can select a matching version before falling back to its `like` cue.
+A cue with `ignoreWeather` uses time-of-day versions throughout this lookup. Weather still affects ambience.
 
 **Loudness**: every file's integrated loudness is measured (`npm run loudness`, ffmpeg EBU R128 → `loudness.json`) and
 every piece is played at −16 LUFS (boosted by at most 9 dB). Pieces stream through `<audio>` elements into the music
@@ -72,14 +76,25 @@ a fire up close −35.5, a cave −41.8 — the ambience sits under the music, l
 
 Firstlight's outdoor daytime cue (`firstlight`) uses the user-selected `车水马龙.wav`, encoded as
 `public/assets/lsw/Audio/Musics/che-shui-ma-long.ogg` (Vorbis quality 6, 44.1 kHz stereo, about 92 seconds).
-It keeps the village's 15–40 second rests and its existing dusk, night and rain cues. The Held Ground (`haven`)
+It keeps the village's 15–40 second daytime rests and its existing dusk cue. Rain and storms change the ambience,
+while the song still follows the hour. The Held Ground (`haven`)
 uses the same theme throughout the day and weather, with a fixed five-second rest after each play. Firstlight's
-general store also uses `firstlight`: entering or leaving keeps the current piece and its position (or its rest),
-including the square's dusk, night and rain versions. Music uses the world's weather indoors too; the ambience
-still follows the roof. Other towns and interiors keep their existing tables. The dragon uses `战斗爽.wav`,
+general store uses the same cue as the village: entering or leaving keeps the current piece and its position (or its rest),
+including the square's dusk and night versions. Weather-based cues use the world's weather indoors too, and the
+ambience follows the roof. Other towns and interiors keep their existing tables. The dragon uses `战斗爽.wav`,
 encoded as `public/assets/lsw/Audio/Musics/battle-thrill.ogg` (about 61.5 seconds), looping without a rest;
-ordinary fights and the White Knight keep their music. Rebuild the world after changing a map's cue; loaded saves fetch
+the White Knight and other bosses keep their music. Rebuild the world after changing a map's cue; loaded saves fetch
 the map data again, so the new cue also applies to existing characters.
+
+At night, Vesper Ford, Firstlight, Dawn Hill, Woundstone Foot and Cloudtop play Depersonalization track 22.
+Dusklea, Hushwood and Thornwood Hollow play track 23. These eight maps and Firstlight's general store select music
+by time alone at all hours. Both tracks crossfade in at nightfall and loop without a rest.
+Ordinary fights leave the place music playing in those locations. Scenes and bosses keep their priority.
+Cricket chirps are disabled in Dusklea, Hushwood and Thornwood Hollow through the catalogue's `noCrickets` map list.
+
+All three floors of Longsleep Barrow share Depersonalization track 26. It loops at all hours and continues across
+the stairs. Ordinary fights on the first two floors keep it playing. In the Warden's Sanctum, normal fight music
+takes over during combat and track 26 resumes afterward.
 
 Moods: `cloudtop`, `field` (dawn, dusk, night, rain versions), `village` (dusk by the fire, an almost silent night,
 rain), `millbrook`, `river` (the Reed Bend), `ford`, `forest` / `dark_forest`, `hollow`, `dell`, `ruins`, `kneelfield`,

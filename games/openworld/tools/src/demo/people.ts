@@ -4,6 +4,7 @@
 import type { PersonDef } from './person.ts'
 import { hesper } from './people/hesper.ts'
 import { tobin } from './people/tobin.ts'
+import { gisela } from './people/gisela.ts'
 import { garrick } from './people/garrick.ts'
 import { mara } from './people/mara.ts'
 import { wren } from './people/wren.ts'
@@ -75,7 +76,8 @@ import { wardenE, wardenW } from './people/wardens.ts'
 // Chapter 4's (docs/chapter-4.md §7): Nailgate's ferryman, its living and its kept dead, its sexton;
 // Chapter 5's (docs/chapter-5.md §7): Whiteveil's abbot, robe-sewer and novice, the hermit of the stair;
 // the finale's (docs/finale.md §5): the Primate and the Hall's wardens
-export const PEOPLE: PersonDef[] = [hesper, tobin, mara, garrick, wren, bram, rowan, marta, mia, holt, gus, lina, oskar, ilse, joss, pell, nessa, fennick, edda, brin, tam, alberic, severin, courier, cass, vigo, haldor, greta, anselm, caius, ezra, maud, wynn, orrin, hilde, odette, odran, brannoc, vera, wil, lucan, ivo, kell, dunn, roderick, osric, haskel, berthe, elsie, corwin, edith, ottilie, godwin, klaas, hedda, piet, liese, sanne, jory, barnaby, benedek, agathe, tomas, ysolde, primate, wardenW, wardenE]
+// the Held Ground's (docs/logs/0009): Gisela, the pilgrim pedlar who comes every third day
+export const PEOPLE: PersonDef[] = [hesper, tobin, gisela, mara, garrick, wren, bram, rowan, marta, mia, holt, gus, lina, oskar, ilse, joss, pell, nessa, fennick, edda, brin, tam, alberic, severin, courier, cass, vigo, haldor, greta, anselm, caius, ezra, maud, wynn, orrin, hilde, odette, odran, brannoc, vera, wil, lucan, ivo, kell, dunn, roderick, osric, haskel, berthe, elsie, corwin, edith, ottilie, godwin, klaas, hedda, piet, liese, sanne, jory, barnaby, benedek, agathe, tomas, ysolde, primate, wardenW, wardenE]
 
 /**
  * Who keeps house together (docs/npc-sandbox.md §2.1): what one of them owns, all of them do; a theft from one

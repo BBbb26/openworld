@@ -27,4 +27,12 @@ describe('item icon cache identity', () => {
     rod.props.bait = 0
     expect(key()).not.toBe(masterwork)
   })
+
+  it('invalidates it when the game\'s badge changes (a vessel\'s draughts counted down)', () => {
+    const pail: ItemInfo = { id: 'pail', type: 'item/test/pail', name: 'Pail', sprite: 'item:pail', tags: ['liquid'], statuses: [], props: { fill: 10, draughts: 10 }, stackKey: 'pail' }
+    useGame({ id: 'test', itemIconBadge: (item: ItemInfo) => `${item.props.fill}/${item.props.draughts}` } as unknown as ClientGame)
+    const full = itemIconSignature([pail])
+    pail.props.fill = 9
+    expect(itemIconSignature([pail])).not.toBe(full)
+  })
 })

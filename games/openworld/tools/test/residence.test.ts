@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Game, RuleLibrary, TICKS_PER_DAY, type Entity } from '@openworld/engine'
+import { Game, RuleLibrary, TICKS_PER_DAY, tickAt, type Entity } from '@openworld/engine'
 import { socialOf } from '@openworld/modules'
 import { BASE_RULES, HAVEN, SOCIAL, STORY_RULES, buildOntology, decodeChunk } from '@openworld-game/content'
 import { buildFord } from '../src/demo/world.ts'
@@ -175,3 +175,38 @@ describe('asked to come and live in the Held Ground', () => {
     expect(s.residenceBeds()).toHaveLength(7)
   })
 })
+
+describe('the Held Ground\'s table: residents share meals (docs/logs/0011)', () => {
+  it('a resident\'s day has two meals by the hearth, each tending hunger; at one, they eat what is shared in the store, and are glad of it', () => {
+    const { eng, w, p, beside, fullRegard } = game()
+    eng.author(() => w.setFact('sins.defeated.alberic', 1))
+    // (Vigo carries no food of his own — Tam would eat the bread he sells — so what he eats can only be the store's)
+    const vigo = w.get('npc.vigo')!
+    fullRegard(vigo)
+    beside(vigo.id)
+    eng.controls.talk(vigo.id, 'invite')
+    eng.tick()
+    const meals = vigo.npc!.resident!.schedule.filter((e) => e.activity === 'eat')
+    expect(meals.map((e) => [e.from, e.to])).toEqual([[7, 8], [19, 20]])
+    for (const m of meals) expect(m.tends).toContain('hungry')
+    // a store by the day place with bread nobody owns; Vigo hungry at the morning meal, the player on the ground
+    const day = vigo.npc!.resident!.schedule.find((e) => e.activity === 'live')!
+    const BREAD = ['test.bread.0', 'test.bread.1', 'test.bread.2']
+    eng.author(() => {
+      w.add({ id: 'test.store', type: 'fixture/container/storehouse', place: { on: 'tile', map: HAVEN.map, x: day.x + 1, y: day.y + 1 }, statuses: { open: -1 } })
+      for (const id of BREAD) w.add({ id, type: 'item/food/bread', place: { on: 'inside', holder: 'test.store' } })
+      w.setProp(vigo, 'hunger', 4)
+      eng.travel(p, { map: HAVEN.map, x: day.x - 2, y: day.y })
+      eng.travel(vigo, { map: HAVEN.map, x: day.x, y: day.y })
+      w.state.tick = tickAt(w.calendar().day + 1, 7.05)
+    })
+    /** The loaves still in the store (one taken into a pocket is not counted as left). */
+    const left = () => BREAD.filter((id) => { const at = w.get(id)?.place; return at?.on === 'inside' && at.holder === 'test.store' }).length
+    // (a scene on the Held Ground — the Oath-Thorn's — holds everyone still until it is read through, as the player would)
+    for (let i = 0; i < 600 && !w.hasStatus({ e: vigo.id }, 'kept_table'); i++) (eng.story.advance(), eng.tick())
+    expect(left()).toBeLessThan(3)
+    expect(w.num(vigo, 'hunger')).toBeGreaterThan(4)
+    expect(w.hasStatus({ e: vigo.id }, 'kept_table')).toBe(true)
+  })
+})
+

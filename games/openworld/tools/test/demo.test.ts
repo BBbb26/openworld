@@ -4956,6 +4956,57 @@ req('H6', "the Held Ground's people: one in full regard (ten hearts), not bound 
   expect(s.residenceBeds().map((b) => [b.anchor, b.who ?? null])).toEqual([['home.camp', 'npc.tam'], ['home.lodge1.a', null], ['home.lodge1.b', null]])
 })
 
+req('H7', "the Held Ground's commission board: once the ground is one's own, Firstlight's people ask for what it grows — bread for those who keep the vigil, wool for the children, apples for the sick — and the board by the stall shows it; a commission turned down costs nothing, and one left too long ends kindly (docs/logs/0004 P1, 0008)", [], () => {
+  const f = fresh()
+  const w = W(f)
+  const q = f.eng.quests
+  const ids = ['vigil-bread', 'warm-wool', 'sick-apples']
+  const offered = () => ids.flatMap((id) => q.of(id)).filter((x) => q.stateOf(x) === 'offered')
+  // before the knight falls there is no ground to ask of
+  for (let i = 0; i < 20; i++) (q.news({ kind: 'morning' }), ticks(f, 2))
+  expect(offered()).toEqual([])
+  author(f, () => w.setFact('sins.defeated.alberic', 1))
+  for (let i = 0; i < 40 && !offered().length; i++) (q.news({ kind: 'morning' }), ticks(f, 2))
+  expect(offered().length).toBeGreaterThan(0)
+  expect(q.board().some((o) => offered().some((x) => x.id === o.ref))).toBe(true)
+  // the board stands by the stall, and a hand on it opens it
+  expect(w.get('haven.board')!.type).toBe('fixture/sign/questboard')
+  stand(f, HAVEN.heart[0] + 2, HAVEN.heart[1] + 4, 'up', 'haven')
+  // (coming onto the Held Ground plays the Oath-Thorn's scene first, which holds every act until it is read through)
+  expect(ticks(f, 900, () => !!w.fact('seen.oath_thorn') && !w.scene)).toBe(true)
+  stand(f, HAVEN.heart[0] + 2, HAVEN.heart[1] + 4, 'up', 'haven')
+  w.fx.length = 0
+  // (a bare hand: without `instrument: null` whatever the player holds would be used on it)
+  f.eng.act('hands', 'player', { e: 'haven.board' }, { instrument: null })
+  expect(w.fx.some((x) => x.t === 'panel' && x.panel === 'board')).toBe(true)
+})
+
+req('H8', "the Held Ground's market day: every third day, once the ground is one's own, Gisela, a pedlar of the pilgrim roads, comes through the thorn's way and keeps her pack open by the stall from seven to seven — salt, honey and fleece from the roads, apple seedlings — and buys what the ground grows; between market days she is on the roads (docs/logs/0009)", ['npc.gisela'], () => {
+  const f = fresh()
+  const w = W(f)
+  const def = PEOPLE.find((p) => p.id === 'npc.gisela')!
+  expect(def.schedules.default).toEqual([[0, 24, 'offstage:gisela.road', 'walk the pilgrim roads']])
+  expect(def.schedules['fact:haven.market']).toContainEqual([7, 19, 'haven:market', 'keep her pack open'])
+  expect(def.trade!.stock.map(([t]) => t)).toContain('item/seed/apple')
+  expect(def.trade!.fence).toBeUndefined()
+  const gisela = w.get('npc.gisela')!
+  expect(w.hasTag(gisela, 'merchant')).toBe(true)
+  // the story counts the days: nothing before the knight falls; then every third midnight is a market day
+  const midnight = () => f.eng.queue({ kind: 'time/period', host: { e: 'story' }, roles: {}, params: { name: 'market' }, origin: 'world' })
+  midnight()
+  expect(w.fact('haven.market') ?? 0).toBe(0)
+  author(f, () => w.setFact('sins.defeated.alberic', 1))
+  const days: number[] = []
+  for (let i = 0; i < 6; i++) (midnight(), days.push(Number(w.fact('haven.market') ?? 0)))
+  expect(days).toEqual([0, 0, 1, 0, 0, 1])
+  // a market day's morning on the Held Ground: she is there, by the stall
+  author(f, () => w.setFact('haven.market', 1))
+  setHour(f, w.calendar().day + 1, 7.5)
+  stand(f, HAVEN.heart[0] + 3, HAVEN.heart[1] + 3, 'up', 'haven')
+  ticks(f, 1300, () => w.posOf(gisela)?.map === 'haven')
+  expect(w.posOf(gisela)?.map).toBe('haven')
+})
+
 req('H2', "the homestead: Alberic's stall sells seeds, fertilizer, feed, beasts in crates and bait for Dawnmarks and buys back what one grows, raises and catches; a fed cow gives milk to a bucket once a day; a crated hen set down walks out; a rod made at hand, baited, fishes the pond", [
   'fixture/furniture/stall/trade',
 ], () => {
