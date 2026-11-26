@@ -29,6 +29,7 @@ import SCOURGE_UNDERCROFT_JSON from './scourge-undercroft.json'
 import FAIRWEIGHT_CHAPEL_JSON from './fairweight-chapel.json'
 import WHITEVEIL_CHURCH_JSON from './whiteveil-church.json'
 import HOLY_NAVE_JSON from './holyhall-nave.json'
+import SUNWELL_NAVE_JSON from './sunwell-nave.json'
 import NAILGATE_CHAPEL_JSON from './nailgate-chapel.json'
 import FIRSTLIGHT_GRAVES_JSON from './firstlight-graves.json'
 import LIGHTS_JSON from './lights.json'
@@ -226,8 +227,18 @@ const INTERIOR_THEMES: NonNullable<Catalog['fixtureThemes']> = (() => {
   // the Church of Whiteveil (tools/src/art/whiteveil-church.py): the Chapel of the Pillar's pews, as the user asked; the
   // rest of its things drawn where they stand (placedSprites)
   looks['fixture:pew'].whiteveil = scourge('pew')
+  // Sunwell Abbey's nave: the Most Holy Hall's things where they fit (tools/src/art/holyhall-nave.py) — its candelabra,
+  // saints, crosses, fonts; its rail, stalls and chapels' altars drawn by their ids (placedSprites)
+  const holy = (piece: string) => ({ sprite: packPiece(HOLY_NAVE_JSON, piece), scale: HOLY_NAVE_JSON.scale })
+  looks['fixture:candelabrum'].sunwell = { ...holy('candelabrum_tall'), lit: holy('candelabrum_tall').sprite }
+  for (const [key, piece] of [['saint', 'statue_c'], ['standing_cross', 'cross_c'], ['font', 'font']] as const) (looks[`fixture:${key}`] ??= {}).sunwell = holy(piece)
+  // and its own (tools/src/art/sunwell-nave.py, the user's sheets of 2026-11-26): the organ, the high altar with its
+  // tabernacle and the pews (the Most Holy Hall's, larger), the lectern, the pulpit, the lilies in their urns; the
+  // reliquary by nothing (the altar's tabernacle its picture)
+  for (const [key, piece] of [['organ', 'organ'], ['high_altar', 'high_altar'], ['pew', 'pew'], ['lectern', 'lectern'], ['pulpit', 'pulpit'], ['plant', 'lilies'], ['reliquary', 'nothing']] as const)
+    (looks[`fixture:${key}`] ??= {}).sunwell = { sprite: packPiece(SUNWELL_NAVE_JSON, piece), scale: SUNWELL_NAVE_JSON.scale }
   return {
-    rules: [{ match: '^meadow\\.church$', theme: 'chapel' }, { match: '^scourgehouse\\.hall$', theme: 'scourge' }, { match: '^scourgehouse\\.undercroft$', theme: 'undercroft' }, { match: '^fairweight\\.chapel$', theme: 'fairweight' }, { match: '^whiteveil\\.church$', theme: 'whiteveil' }, { match: '^fairweight\\.(poorhouse|miller|home-\\d+)$', theme: 'poor' }, { match: '^holy\\.quarter-5\\.home-\\d+$', theme: 'poor' }, ...j.rules],
+    rules: [{ match: '^meadow\\.church$', theme: 'chapel' }, { match: '^scourgehouse\\.hall$', theme: 'scourge' }, { match: '^scourgehouse\\.undercroft$', theme: 'undercroft' }, { match: '^fairweight\\.chapel$', theme: 'fairweight' }, { match: '^whiteveil\\.church$', theme: 'whiteveil' }, { match: '^holy\\.sunwell-abbey\\.nave$', theme: 'sunwell' }, { match: '^fairweight\\.(poorhouse|miller|home-\\d+)$', theme: 'poor' }, { match: '^holy\\.quarter-5\\.home-\\d+$', theme: 'poor' }, ...j.rules],
     looks,
   }
 })()
@@ -371,6 +382,10 @@ export const BUILDINGS: typeof generatedBuildings = {
   wvchurch_shell: { ...generatedBuildings.wvchurch_shell, ...WHITEVEIL_CHURCH_JSON.walls },
   // the Most Holy Hall's nave's walls with the apse's great window, its lancets and arcade (tools/src/art/holyhall-nave.py)
   holynave_shell: { ...generatedBuildings.holynave_shell, ...HOLY_NAVE_JSON.walls },
+  // Sunwell Abbey's nave's walls with the great window, the lancets and the roses (tools/src/art/sunwell-nave.py)
+  nave_shell: { ...generatedBuildings.nave_shell, ...SUNWELL_NAVE_JSON.walls },
+  // and its crossing's piers between the choir and the arms, in the same dressed stone
+  nave_pier: { ...generatedBuildings.nave_pier, ...SUNWELL_NAVE_JSON.wallPier },
   snow_ruin_tower: {
     ...signalTower,
     img: 'lsw/Buildings/cloudtop-signal-tower.png',
@@ -585,6 +600,24 @@ export const CATALOG: Catalog = {
         ]),
         at('holyhall.nave.reliquary.w', 4, 47, 'reliquary'),
         at('holyhall.nave.reliquary.e', 30, 47, 'reliquary'),
+      ])
+    })(),
+    // Sunwell Abbey's nave (catalog.ts its theme `sunwell`): its rail's runs, its tombs, the candelabra down the nave, the
+    // larger ones (tools/src/art/sunwell-nave.py); its stalls and its chapels' altars and kneelers (the Most Holy Hall's,
+    // the saint in her niche, as the user asked)
+    ...((): Catalog['placedSprites'] => {
+      const N = 'holy.sunwell-abbey.nave'
+      const piece = (name: string) => packPiece(HOLY_NAVE_JSON, name)
+      const at = (id: string, x: number, y: number, name: string) => [`${N}.${id}`, { map: N, x, y, sprite: piece(name), scale: HOLY_NAVE_JSON.scale }] as const
+      const own = (id: string, x: number, y: number, name: string) => [`${N}.${id}`, { map: N, x, y, sprite: packPiece(SUNWELL_NAVE_JSON, name), scale: SUNWELL_NAVE_JSON.scale }] as const
+      return Object.fromEntries([
+        ...[9, 10, 11, 12, 13, 14].map((x) => own(`rail.${x}`, x, 23, x === 11 ? 'rail_w' : 'nothing')),
+        ...[20, 21, 22, 23, 24, 25].map((x) => own(`rail.${x}`, x, 23, x === 23 ? 'rail_e' : 'nothing')),
+        at('stalls.w', 11, 22, 'stalls_w'),
+        at('stalls.e', 22, 22, 'stalls_chair'),
+        ...([['w1', 5, 39], ['w2', 5, 48], ['e1', 29, 39], ['e2', 29, 48]] as const).flatMap(([id, x, y]) => [at(`chapel.${id}`, x, y, 'chapel_virgin'), at(`kneeler.${id}`, x, y + 1, 'kneel_virgin')]),
+        ...([['w', 5], ['e', 29]] as const).flatMap(([side, cx]) => [1, 2, 3].map((i) => own(`tomb.${side}${i}`, cx + (i - 2) * 2, 30, 'tomb'))),
+        ...([['w', 8], ['e', 26]] as const).flatMap(([side, x]) => [37, 46, 55].map((y, i) => own(`candelabrum.aisle.${side}${i}`, x, y, 'candelabrum'))),
       ])
     })(),
     // Fairweight's Chapel of the Measure (tools/src/art/fairweight-chapel.py): the altar of the Measure
@@ -963,6 +996,11 @@ export const CATALOG: Catalog = {
     holynave_floor: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(HOLY_NAVE_JSON.floor),
     // its piers, each solid on the middle of its picture's bottom row
     holynave_pier: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, base: th - 1, grid: [...Array<string>(th - 1).fill('   '), ' # '] }))(HOLY_NAVE_JSON.pier),
+    // Sunwell Abbey's nave (tools/src/art/sunwell-nave.py; abbey.ts lays them): its floor over the whole map, the labyrinth
+    // squared by its spandrels, the choir's steps, the slab under the high altar, the stair down, as ground; its piers,
+    // each solid on the middle of its bottom row
+    ...Object.fromEntries((['floor', 'labyrinth', 'steps', 'slab', 'stair'] as const).map((k) => [`sunnave_${k}`, (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(SUNWELL_NAVE_JSON.ground[k])])),
+    sunnave_pier: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, base: th - 1, grid: [...Array<string>(th - 1).fill('   '), ' # '] }))(SUNWELL_NAVE_JSON.pier),
     wvchurch_stair: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, base: 3, grid: ['   ', '   ', '   ', '# #'] }))(WHITEVEIL_CHURCH_JSON.stair),
     fwchapel_steps: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(FAIRWEIGHT_CHAPEL_JSON.steps),
     wschapel_runner: (({ img, tw, th, pixelsPerTile }) => ({ img, x: 0, y: 0, tw, th, pixelsPerTile, grid: Array<string>(th).fill(' '.repeat(tw)), ground: true }))(REST_CHAPEL_JSON.runner),

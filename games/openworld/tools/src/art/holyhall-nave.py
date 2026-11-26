@@ -203,6 +203,8 @@ THINGS = {
     'font': ('font', 0, 0),
     'slab': ('slab', 1, -13), 'slab_open': ('slab_open', 1, -13),
     'nothing': ('nothing', 0, 0),
+    # the same, standing square on their cells, for other churches (Sunwell Abbey's nave, catalog.ts its theme)
+    'candelabrum_tall': ('candelabrum5', 0, 0), 'statue_c': ('statue', 0, 0), 'cross_c': ('cross', 0, 0),
     'pew': ('pew', 0, 1),
     # the transept's arms: the vestry's things (the Curia's pieces in all but the table), the side altar and its company
     'wardrobe': ('wardrobe', 5, 3), 'rack': ('rack', 0, 3), 'stand': ('stand', 0, 0), 'table': ('table', -4, 6),
