@@ -528,3 +528,31 @@ describe('commissions: what the Held Ground grows, asked for someone else\'s goo
   })
 })
 
+describe('the older favour 捎封信: a letter carried between neighbours (docs/logs/0015 §5)', () => {
+  it('is offered at all, by someone in Firstlight who is not a watchman, and never addressed to its own sender', () => {
+    const { eng } = world()
+    const w = eng.world
+    const q = eng.quests
+    const offers = () => q.of('parcel').filter((x) => q.stateOf(x) === 'offered')
+    const seen: [string, string][] = []
+    for (let i = 0; i < 200 && seen.length < 5; i++) {
+      q.news({ kind: 'morning' })
+      ticks(eng, 2)
+      const offer = offers()[0]
+      if (!offer) continue
+      const sender = w.get(q.alias(offer, 'sender') ?? '')!
+      const recipient = w.get(q.alias(offer, 'recipient') ?? '')!
+      expect(sender.id).not.toBe(recipient.id)
+      expect(w.posOf(sender)?.map).toBe('meadow')
+      expect(w.posOf(recipient)?.map).toBe('meadow')
+      // everyone in Firstlight trades, so a merchant is a sender now; a watchman still is not
+      expect(w.hasTag(sender, 'merchant')).toBe(true)
+      expect(w.hasTag(sender, 'watchman')).toBe(false)
+      seen.push([sender.id, recipient.id])
+      // withdraw it as its own deadline would, so the next morning can make another
+      eng.author(() => w.destroy(offer))
+    }
+    expect(seen.length).toBe(5)
+  })
+})
+
