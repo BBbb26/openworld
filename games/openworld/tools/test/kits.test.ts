@@ -193,7 +193,8 @@ describe('creature kits', () => {
     expect(w.worn(p).map((e) => e.id)).toContain(seal.id)
     expect(run(200, () => !!clerk.statuses?.weighing)).toBe(true)
     w.fx.length = 0
-    eng.playerAttack({ e: clerk.id })
+    eng.queue({ kind: 'impulse/strike', host: { e: clerk.id }, roles: { actor: { e: p.id } }, params: { power: 10, edge: 'blunt' }, cause: p.id, origin: 'player' })
+    eng.tick()
     expect(w.fx.filter((fx) => fx.t === 'damage' && fx.who === p.id)).toHaveLength(1)
     expect(w.num(p, 'hp')).toBeGreaterThan(0)
   })
