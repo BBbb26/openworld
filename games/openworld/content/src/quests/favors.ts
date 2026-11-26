@@ -59,7 +59,7 @@ export const FAVORS: QuestDef[] = [
     title: L('A Letter to Carry', '捎封信'),
     summary: L('{sender} has a letter for {recipient}. Carry it over ({key:put} hands it to them).', '{sender}有一封信要给{recipient}。帮忙送过去（按 {key:put} 递给对方）。'),
     aliases: {
-      sender: { find: { ...PERSON, map: 'meadow', person: true, pick: 'random', notTags: ['merchant', 'watchman'] } },
+      sender: { find: { ...PERSON, map: 'meadow', person: true, pick: 'random', notTags: ['watchman'] } },
       recipient: { find: { ...PERSON, map: 'meadow', person: true, pick: 'random' } },
       letter: { make: { type: 'item/document/letter', in: 'player', name: L("{sender}'s letter to {recipient}", '{sender}给{recipient}的信') }, keep: true },
     },
@@ -70,7 +70,7 @@ export const FAVORS: QuestDef[] = [
       { n: 200, on: { gone: 'recipient' }, failed: true, log: L('{recipient} is gone.', '{recipient}已经不在了。') },
       { n: 210, on: { gone: 'letter' }, failed: true, log: L('The letter is lost.', '信丢了。') },
     ],
-    start: { news: 'morning', offer: 'sender', most: 1, chance: 0.6 },
+    start: { news: 'morning', offer: 'sender', most: 1, chance: 0.2 },
     deadline: 12,
     offer: L('Would you carry a letter to {recipient} for me? My legs are not what they were.', '能帮我给{recipient}捎封信吗？我的腿脚不如从前了。'),
     accepted: L('Here. Mind you do not read it.', '给。可别偷看。'),
