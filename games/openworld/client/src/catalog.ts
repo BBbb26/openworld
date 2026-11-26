@@ -797,6 +797,16 @@ export const CATALOG: Catalog = {
     'fixture:berry_ripe': { base: t(NATURE, 4, 14) },
     'fixture:oak': { base: t(NATURE, 5, 9) },
     'fixture:oak_sapling': { base: t(NATURE, 5, 9) },
+    // the Held Ground's water and machines (docs/logs/0005, 0006): the pack's tub for a rain barrel and its tall barrel for a
+    // cask; the mill's own millstones (tools/src/art/mill.ts); a sprinkler and an apple tree drawn for them (the tree is the
+    // pack's small tree, in fruit with apples on it)
+    'fixture:rain_barrel': { base: t(ELEM, 6, 1) },
+    'fixture:sprinkler': { base: px('lsw/Fixtures/Sprinkler.png', 0, 0, 16, 16, 8, 15) },
+    'fixture:millstone': { base: px('lsw/Fixtures/Millstones.png', 0, 0, 32, 32, 16, 31) },
+    'fixture:cask': { base: t(ELEM, 9, 1) },
+    'fixture:apple_sapling': { base: t(NATURE, 5, 9) },
+    'fixture:apple_tree': { base: px('lsw/Fixtures/AppleTree.png', 0, 0, 32, 32, 16, 31) },
+    'fixture:apple_fruiting': { base: px('lsw/Fixtures/AppleTree.png', 32, 0, 32, 32, 16, 31) },
     ...CROP_FIXTURES,
     ...FLOWER_FIXTURES,
     'fixture:garden_pavilion': { base: px('composite:garden_pavilion', 0, 0, 48, 96, 24, 96) },
@@ -894,6 +904,12 @@ export const CATALOG: Catalog = {
     'item:pie': t(HOUSE, 14, 17),
     'item:honey': icon('Items/Food/Honey.png', 16, 16),
     'item:wine': t(CAMP, 12, 7),
+    // the cask's (docs/logs/0006): the camp's bottle, its glass recoloured amber for cider, red for fruit wine
+    'item:cider': icon('lsw/Items/Cider.png', 16, 16),
+    'item:fruit_wine': icon('lsw/Items/FruitWine.png', 16, 16),
+    // the millstone's: the pack's sack of grain
+    'item:flour': t(ELEM, 1, 1),
+    'item:apple_seedling': t(NATURE, 5, 9),
     'item:ale': icon('Items/Resource/Water.png', 14, 14),
     'item:potion_red': icon('Items/Potion/LifePot.png', 9, 11),
     'item:potion_green': t(HOUSE, 21, 14),
@@ -1095,6 +1111,9 @@ export const CATALOG: Catalog = {
     // the young (homestead.ts): their parents, smaller
     'creature:calf': { dir: 'lsw/Animal/Cow', sheet: 'SpriteSheet.png', cols: 4, rows: 4, scale: 0.7 },
     'creature:chick': { dir: 'lsw/Animal/Chicken', sheet: 'SpriteSheet.png', cols: 4, rows: 4, scale: 0.65 },
+    // the Held Ground's sheep (docs/logs/0006): the cow's sheet in wool with a dark face — a placeholder until one is drawn
+    'creature:sheep': { dir: 'lsw/Animal/Sheep', sheet: 'SpriteSheet.png', cols: 4, rows: 4 },
+    'creature:lamb': { dir: 'lsw/Animal/Sheep', sheet: 'SpriteSheet.png', cols: 4, rows: 4, scale: 0.7 },
     // the companion, Lumi the fairy: the project's own art (tools/src/art/fairy.ts), a four-frame wingbeat, no directions
     'creature:fairy': { dir: 'lsw/Companion/Fairy', sheet: 'SpriteSheet.png', faceset: 'Faceset.png', cols: 4, rows: 1 },
     // Boss sheets are single-row strips: cols = animation frames (62x52 each), no directions.

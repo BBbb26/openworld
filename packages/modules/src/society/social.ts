@@ -7,8 +7,25 @@
 //
 // Nothing here asks whether one is the player (CLAUDE.md): anyone can steal, see, tell, be wanted.
 
-import { DIRS, TICKS_PER_DAY, evalCond, textOf, favouriteOf, isA, levelFactor, toldFavourite, weaponOf, type DeedDef, type DeedMemory, type Engine, type Entity, type GameEvent, type Id, type LawDef, type Look, type NpcMemory, type Pos, type PropValue, type Ref, type Roles, type SocialParams, type TalkOption, type TalkVerb, type Text } from '@openworld/engine'
+import { DIRS, TICKS_PER_DAY, evalCond, textOf, favouriteOf, isA, levelFactor, toldFavourite, weaponOf, type DeedDef, type DeedMemory, type Engine, type Entity, type GameEvent, type Id, type LawDef, type Look, type NpcMemory, type Pos, type PropValue, type Ref, type ResidenceDef, type Roles, type ScheduleEntry, type SocialParams, type TalkOption, type TalkVerb, type Text, type World } from '@openworld/engine'
 import { authorizedResidentWorkTake } from './resident-work.ts'
+
+/** The activity a residence's day spends at a meal (docs/logs/0011): a span of `days` spent at it tends the world's meal wants. */
+export const RESIDENT_MEAL = 'eat'
+
+/**
+ * A resident's day on its home ground (moveIn, and an older save's residents brought up to date): each span of the
+ * residence's `days` at its bed or its bed's day place. A span spent at the activity `eat` is a meal: it tends what the
+ * world's clocks say a meal tends (each period's `tendedBy`: the hunger's `hungry`), so the resident eats what is shared
+ * within reach of their day place (wellbeing: the stores about that are theirs, their household's or nobody's).
+ */
+export function residentSchedule(w: World, r: ResidenceDef, bed: { at: [number, number]; day: [number, number] }): ScheduleEntry[] {
+  const wants = [...new Set((w.onto.data.periods ?? []).flatMap((p) => (p.tendedBy ? [p.tendedBy] : [])))]
+  return r.days.map((d): ScheduleEntry => {
+    const [x, y] = d.at === 'bed' ? bed.at : bed.day
+    return { from: d.from, to: d.to, map: r.map, x, y, activity: d.activity, ...(d.activity === RESIDENT_MEAL && wants.length && { tends: wants }) }
+  })
+}
 
 /** The social numbers when the world gives none (the content gives its own). */
 export const SOCIAL_DEFAULTS: SocialParams = {

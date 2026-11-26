@@ -194,6 +194,8 @@ body.ui-modal-open { overflow: hidden; }
 :where(.slot.sel,.ui-slot.sel,.sp-slot.target) { outline: 2px solid var(--ui-green); outline-offset: 1px; box-shadow: inset 0 0 0 2px var(--ui-paper-light); }
 :where(.slot,.ui-slot) :where(canvas,img) { width: 32px; height: 32px; image-rendering: pixelated; filter: none; }
 :where(.slot,.ui-slot) .count { position: absolute; right: 2px; bottom: 0; padding: 0 2px; font: 400 12px/1.25 var(--ui-font); color: var(--ui-paper-light); background: var(--ui-frame); text-shadow: none; }
+/* the game's badge in the lower left (ClientGame.itemIconBadge: what is left in a vessel, "9/10") */
+:where(.slot,.ui-slot) .item-badge { position: absolute; left: 2px; bottom: 0; padding: 0 2px; font: 400 10px/1.25 var(--ui-font); color: var(--ui-paper-light); background: #2f5f8f; text-shadow: none; pointer-events: none; }
 :where(.slot,.ui-slot) .key { font: 400 12px/1 var(--ui-font); color: var(--ui-muted); }
 .slot.gear { border-color: var(--qc,var(--ui-gold)); background: color-mix(in srgb,var(--qc,var(--ui-gold)) 12%,var(--ui-inset)); box-shadow: inset 0 0 0 1px var(--ui-frame-dark); }
 .slot.gear.sel { outline-color: var(--ui-paper-light); box-shadow: inset 0 0 0 2px var(--ui-green); }

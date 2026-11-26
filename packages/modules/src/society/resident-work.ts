@@ -1,6 +1,6 @@
 // Explicit, saved residence work orders. Physical items stay real entities; the order stores only their ids.
 
-import { astar, wayTo, hoursAt, itemInfo, matchSelector, slotsOf, stackKey, type Engine, type Entity, type GameEvent, type Id, type Pos, type Ref, type ResidentWorkOrder, type ResidenceWorkDef, type Roles, type Scene, type Text, type View, type World } from '@openworld/engine'
+import { astar, wayTo, hoursAt, itemInfo, matchSelector, slotsOf, stackKey, type Engine, type Entity, type GameEvent, type Id, type Pos, type Ref, type ResidentWorkOrder, type ResidenceWorkDef, type Roles, type Scene, type Selector, type Text, type View, type World } from '@openworld/engine'
 import type { EffectRunner } from '@openworld/engine'
 import { socialOf } from './state.ts'
 
@@ -378,6 +378,8 @@ function localizedReason(reason: string): Text {
     'harvest-failed': L('Harvest output differed from the expected hand-pick result. Check task cargo and the authorized plot before resuming.', '手工采收结果与预期不同；请检查在途物资和授权田块后再继续。'),
     'recovery': L('The order was revoked. Task cargo is ready to be put down for recovery.', '岗位已撤销，可放下任务物资供取回。'),
     'recovery-away': L('The worker is away from the residence. Task cargo can only be put down when the worker is back on this ground.', '居民已离开领地；须待其回到此处后才能放下岗位物资。'),
+    'no-bucket': L('Crops need water, but there is no bucket in the selected warehouse.', '作物需要浇水，但指定仓库里没有水桶。'),
+    'no-water': L('Crops need water, but there is no water on this ground to fill a bucket.', '作物需要浇水，但这片地上没有可以装水的地方。'),
   }
   return reasons[reason] ?? L(reason, reason)
 }
@@ -1036,6 +1038,152 @@ function chooseCrop(eng: Engine, worker: Entity, crops: Entity[]): Entity | unde
   })[0]
 }
 
+// ---------------------------------------------------------------- tending: the harvest order waters what is dry too
+//
+// A harvester tends the cells they were given (docs/logs/0010): when nothing there is ripe and something is dry (the
+// residence's `growing`), they take a bucket from the order's warehouse, fill it at the ground's own water, water the dry
+// crops one by one through the bucket's own rules (the same acts as the player's: a draught each), refill when it is
+// empty, and put it back when nothing is dry or something is ripe. The bucket is task cargo: the player's, recorded, and
+// recoverable like any other. The vessel vocabulary is the standard library's (the engine's ModSpec names the same
+// tags): an empty vessel `empty-vessel`, one with water in it `liquid:water`, a place to fill it `water-source`.
+
+const EMPTY_VESSEL = 'empty-vessel'
+const WATER_VESSEL = 'liquid:water'
+const WATER_SOURCE = 'water-source'
+
+function cropWith(eng: Engine, map: string, x: number, y: number, selector: Selector | undefined): Entity | undefined {
+  const w = eng.world
+  if (!selector) return undefined
+  return w.placedAt(map, x, y).find((e) => e.place.on === 'tile' && e.place.map === map && e.place.x === x && e.place.y === y && !!w.view({ e: e.id }) && matchSelector(selector, w.view({ e: e.id })!))
+}
+
+/** The order's cells that hold a growing crop still waiting for water this stage. */
+function authorizedDry(eng: Engine, order: Extract<ResidentWorkOrder, { kind: 'harvest' }>): Entity[] {
+  const def = workDef(eng)
+  const crops: Entity[] = []
+  for (const cell of order.cells) {
+    const crop = cropWith(eng, order.map, cell.x, cell.y, def?.growing)
+    if (crop && !crops.some((x) => x.id === crop.id)) crops.push(crop)
+  }
+  return crops
+}
+
+/**
+ * A vessel that waters: empty or with water in it, and holding draughts (`draughts`, a bucket's ten). A flask, a
+ * waterskin or holy water is spent whole and holds no draughts: never taken for the garden.
+ */
+const isVessel = (w: World, e: Entity) => (w.hasTag(e, EMPTY_VESSEL) || w.hasTag(e, WATER_VESSEL)) && w.num(e, 'draughts') > 0
+
+/** The bucket the worker carries as task cargo, if any. */
+function carriedVessel(eng: Engine, worker: Entity): Entity | undefined {
+  return workCargo(eng, worker).find((e) => isVessel(eng.world, e))
+}
+
+/** A bucket in the warehouse the worker may take for the player (one with water in it first). */
+function vesselInWarehouse(eng: Engine, box: Entity): Entity | undefined {
+  const w = eng.world
+  const vessels = (box.contents ?? []).map((id) => w.get(id)).filter((item): item is Entity =>
+    !!item && item.place.on === 'inside' && item.place.holder === box.id && !item.frozenBy && isVessel(w, item) && eng.society.relation(eng.society.ownerOf(item), w.player) !== 'another')
+  return vessels.sort((a, b) => Number(w.hasTag(b, WATER_VESSEL)) - Number(w.hasTag(a, WATER_VESSEL)) || a.id.localeCompare(b.id))[0]
+}
+
+/** The nearest water on the ground to fill a bucket at: a cell of water, or a thing that is a source (a well). */
+function waterNear(eng: Engine, worker: Entity): { pos: Pos; ref: Ref } | undefined {
+  const w = eng.world
+  const at = w.posOf(worker)
+  const map = at && w.map(at.map)
+  if (!at || !map) return undefined
+  for (let r = 1; r < Math.max(map.width, map.height); r++)
+    for (let y = at.y - r; y <= at.y + r; y++)
+      for (let x = at.x - r; x <= at.x + r; x++) {
+        if (Math.max(Math.abs(x - at.x), Math.abs(y - at.y)) !== r || !w.inBounds(at.map, x, y)) continue
+        const pos = { map: at.map, x, y, z: at.z ?? 0 }
+        if (w.onto.terrain(w.terrainAt(at.map, x, y))?.tags?.includes(WATER_SOURCE)) return { pos, ref: w.cellRef(at.map, x, y) }
+        const source = w.placedAt(at.map, x, y).find((e) => e.place.on === 'tile' && w.hasTag(e, WATER_SOURCE))
+        if (source) return { pos, ref: { e: source.id } }
+      }
+  return undefined
+}
+
+/**
+ * The watering part of a harvest order: undefined when it has nothing to do (the harvest goes on as before), else whether
+ * the worker acted (or is on its way).
+ */
+function tend(eng: Engine, worker: Entity, order: Extract<ResidentWorkOrder, { kind: 'harvest' }>, box: Entity): boolean | undefined {
+  const w = eng.world
+  const vessel = carriedVessel(eng, worker)
+  const ripe = authorizedRipe(eng, order)
+  const dry = authorizedDry(eng, order)
+  const at = w.posOf(worker)
+  if (!at) return undefined
+  if (!vessel) {
+    // the harvest first (a ripe crop does not wait), and nothing else in hand
+    if (ripe.length || !dry.length || order.cargoIds.length) return undefined
+    // no water on the ground to fill a bucket at, and none already drawn in the warehouse: there is nothing to fetch a
+    // bucket for (else they would take it, find no water and put it back, over and over)
+    const stored = vesselInWarehouse(eng, box)
+    if (!(stored && w.hasTag(stored, WATER_VESSEL)) && !waterNear(eng, worker)) {
+      setReason(eng, worker, 'no-water')
+      return false
+    }
+    const bp = w.posOf(box)!
+    if (Math.max(Math.abs(at.x - bp.x), Math.abs(at.y - bp.y)) > 1) {
+      routeAdjacent(eng, worker, bp, `warehouse:${box.id}`)
+      return true
+    }
+    if (!openWarehouse(eng, worker, box)) {
+      setReason(eng, worker, 'warehouse-closed')
+      return false
+    }
+    const bucket = vesselInWarehouse(eng, box)
+    if (!bucket) {
+      setReason(eng, worker, 'no-bucket')
+      return false
+    }
+    reserve(eng, worker, bucket, () => eng.act('take', worker.id, { e: bucket.id }, { instrument: null, params: { into: 'contents' } }))
+    if (directOrNestedIn(w, bucket.id, worker.id)) {
+      queueWorker(eng, worker, 'resident-work-internal', { action: 'record', cargo: JSON.stringify([bucket.id]) })
+      setReason(eng, worker)
+    } else setReason(eng, worker, 'no-bucket')
+    eng.setCooldown(worker.id, TICK_STEP * 2)
+    return true
+  }
+  // nothing dry, or a harvest waiting: the bucket goes back
+  if (!dry.length || ripe.length || order.cargoIds.length !== 1) {
+    deposit(eng, worker, order, box)
+    return true
+  }
+  // empty: filled at the ground's own water
+  if (w.hasTag(vessel, EMPTY_VESSEL)) {
+    const water = waterNear(eng, worker)
+    if (!water) {
+      setReason(eng, worker, 'no-water')
+      deposit(eng, worker, order, box)
+      return true
+    }
+    if (Math.max(Math.abs(at.x - water.pos.x), Math.abs(at.y - water.pos.y)) > 1) {
+      routeAdjacent(eng, worker, water.pos, `water:${water.pos.x},${water.pos.y}`)
+      return true
+    }
+    if (!eng.ready(worker.id) || eng.busy(worker)) return true
+    eng.act('use', worker.id, water.ref, { instrument: { e: vessel.id } })
+    eng.setCooldown(worker.id, TICK_STEP * 2)
+    return true
+  }
+  // with water in it: the nearest dry crop
+  const crop = chooseCrop(eng, worker, dry)!
+  const pos = w.posOf(crop)!
+  if (Math.max(Math.abs(at.x - pos.x), Math.abs(at.y - pos.y)) > 1) {
+    routeAdjacent(eng, worker, pos, `crop:${crop.id}`)
+    return true
+  }
+  if (!eng.ready(worker.id) || eng.busy(worker)) return true
+  eng.act('use', worker.id, { e: crop.id }, { instrument: { e: vessel.id } })
+  setReason(eng, worker)
+  eng.setCooldown(worker.id, TICK_STEP * 2)
+  return true
+}
+
 function runWork(eng: Engine, worker: Entity, _scene: Scene): boolean {
   const w = eng.world
   const order = worker.residentWork
@@ -1052,6 +1200,10 @@ function runWork(eng: Engine, worker: Entity, _scene: Scene): boolean {
   if (!box) return false
 
   if (order.kind === 'feed') return runFeed(eng, worker, order, box)
+
+  // tending: what is dry among the cells is watered with a bucket from the warehouse
+  const tended = tend(eng, worker, order, box)
+  if (tended !== undefined) return tended
 
   if (order.cargoIds.length) {
     deposit(eng, worker, order, box)

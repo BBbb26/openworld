@@ -118,7 +118,9 @@
     "stand at the window": "站在窗边",
     "sew a robe": "缝白袍",
     "sleep in his chair": "在椅子上睡",
-    "keep the high altar": "守着高祭坛"
+    "keep the high altar": "守着高祭坛",
+    "walk the pilgrim roads": "走朝圣的路",
+    "keep her pack open": "摊开货包"
   },
   "性格": {
     "blunt": "直来直去",
@@ -219,7 +221,8 @@
     "owes her a crossing": "欠她一趟渡河",
     "paid him her fare once": "付过他一次船钱",
     "his wife": "他妻子",
-    "her husband": "她丈夫"
+    "her husband": "她丈夫",
+    "the old knight who showed her the way in": "领她进来的老骑士"
   },
   "条件": {
     "fact:ch1.roost": "黄昏看过老橡树之后",
@@ -385,7 +388,9 @@
     "fact:sins.defeated.witnesses": "白衣万证倒下之后",
     "fact:ch4.rider": "看过骑者之后",
     "fact:ch4.shroud": "看过移灵裹尸布之后",
-    "fact:sins.defeated.nacht": "纳赫特倒下之后"
+    "fact:sins.defeated.nacht": "纳赫特倒下之后",
+    "fact:haven.market": "誓守之地的集日",
+    "fact:haven.build.kitchen": "誓守之地的灶台建好之后"
   },
   "地图类型": {
     "wild": "野外",
@@ -512,6 +517,7 @@
     "alias:guard": "守卫",
     "tag:edible": "吃的",
     "tag:nightborn": "夜行者",
-    "tag:vegetable": "蔬菜"
+    "tag:vegetable": "蔬菜",
+    "alias:neighbour": "托付的人"
   }
 }
