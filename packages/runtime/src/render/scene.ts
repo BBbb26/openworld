@@ -412,6 +412,16 @@ export class WorldScene extends Phaser.Scene {
     this.covered.clear()
     this.overrides.clear()
     this.following = undefined
+    // a new map: no vista yet (the first frame finds the one the player stands in), and the camera back at the game's
+    // own scale — a vista's or a fight's zoom left behind, and its easing stopped if still under way (it would go on
+    // setting the zoom into this map: through a door taken while the square before a church eased back, the nave behind
+    // it stayed drawn back)
+    const cam = this.cameras.main
+    if (this.vista || this.bossCam || cam.zoomEffect.isRunning) {
+      this.vista = undefined
+      cam.zoomEffect.reset()
+      if (!this.free) cam.setZoom(this.fitZoom()).setFollowOffset(0, 0)
+    }
     this.bossCam = undefined
     this.focus?.destroy()
     this.focus = undefined
@@ -421,11 +431,6 @@ export class WorldScene extends Phaser.Scene {
     this.tilemap?.destroy()
     if (this.base && this.base.id !== map.id) this.cameFrom = this.base.id
     this.base = map
-    // a new map: no vista yet (the first frame finds the one the player stands in)
-    if (this.vista) {
-      this.vista = undefined
-      this.cameras.main.setZoom(this.fitZoom()).setFollowOffset(0, 0)
-    }
     this.fishWater = []
     if (map.fish) {
       const water = (x: number, y: number) => x >= 0 && y >= 0 && x < map.width && y < map.height && FISH_WATER.has(map.terrain[y * map.width + x])
