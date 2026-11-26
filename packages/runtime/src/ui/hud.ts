@@ -7,7 +7,7 @@ import { bindSlotKeys, itemSlotHtml, placeFloating, windowManager } from './comp
 import { xpToNext, type Frame, type FxEvent, type ItemInfo, type Mood, type TalkOption, type Text } from '@openworld/engine'
 import { catalog, game, hasModule, itemIconSignature, ontology } from '../game.ts'
 import { artEpoch, assetUrl, cssAssetUrl } from '../render/assets.ts'
-import { $, MOOD_GLYPH, SLOT_KEYS, esc, kbd, locale, prefs, t, tx, gearFrame } from './common.ts'
+import { $, MOOD_GLYPH, SLOT_KEYS, esc, kbd, locale, prefs, t, tx, gearFrame, itemBadgeHtml } from './common.ts'
 import type { Action } from '../keymap.ts'
 import { skillPng } from './skillIcons.ts'
 import { heartsOf } from './hearts.ts'
@@ -352,7 +352,7 @@ export class Hud {
       .map(
         (s, i) =>
           itemSlotHtml({ label: s ? tx(s.item.name) : `${t('csPack')} ${i + 1}`, className: (i === f.player.selected ? ' sel' : '') + gearFrame(s?.item), attributes: { 'data-slot': i, 'data-item': s?.item.id }, content:
-          `<span class="key" data-kbd="slot${i + 1}">${kbd(`slot${i + 1}` as Action)}</span>${s ? `<div class="icon" data-icon="${esc(s.item.id)}"></div>${s.count > 1 ? `<span class="count">${s.count}</span>` : ''}${s.worn ? '<span class="worn"></span>' : ''}` : ''}` }),
+          `<span class="key" data-kbd="slot${i + 1}">${kbd(`slot${i + 1}` as Action)}</span>${s ? `<div class="icon" data-icon="${esc(s.item.id)}"></div>${itemBadgeHtml(s.item)}${s.count > 1 ? `<span class="count">${s.count}</span>` : ''}${s.worn ? '<span class="worn"></span>' : ''}` : ''}` }),
       )
       .join('')
     bindSlotKeys($('#toolbar'))

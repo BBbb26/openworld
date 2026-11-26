@@ -14,7 +14,7 @@ import { CATALOG } from '../../../client/src/catalog.ts'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../../..')
 const OUT = join(ROOT, 'games', 'openworld', 'client', 'src', 'loudness.json')
 /** Where a catalogue path is: the project's own art, or the pack's subset copied into public/assets/na (npm run assets). */
-export const fileOf = (p: string) => join(ROOT, 'games', 'openworld', 'public', 'assets', p.startsWith('lsw/') ? '' : 'na', p)
+export const fileOf = (p: string) => join(ROOT, 'games', 'openworld', 'public', 'assets', p.startsWith('lsw/') || p.startsWith('own/') ? '' : 'na', p)
 
 /** Every file the music cues name. */
 export function musicFiles(): string[] {

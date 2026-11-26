@@ -144,6 +144,9 @@ const WEAPON_METALS = ['bronze', 'iron', 'steel', 'silver', 'obsidian', 'mithril
 const TOOL_METALS = ['bronze', 'iron', 'steel']
 const W = (id: string, en: string, zh: string, sprite: string, rest: Partial<Form> = {}): Form => ({ id, en, zh, sprite, ...rest })
 
+/** How many draughts a common bucket holds (a bucket of water's `fill` when full; rules.ts `draught`, docs/logs/0001, 0004). */
+export const BUCKET_DRAUGHTS = 10
+
 /** The base forms: every kind the played world lays, and what the regions' goods vary (goods.ts). */
 const BASE_FORMS: Form[] = [
   // weapons
@@ -220,9 +223,12 @@ const BASE_FORMS: Form[] = [
   W('item/light/candle', 'Candle', '蜡烛', 'item:candle', { tags: ['fire-source', 'wax', 'flammable', 'light'], where: { home: 2, temple: 3, library: 2 } }),
   W('item/light/lantern', 'Lantern', '提灯', 'item:lantern', { tags: ['fire-source', 'metal', 'light', 'conductive'], where: { shop: 1, home: 0.5, inn: 1 } }),
   // vessels (explicit empty/filled types so rules can transform between them)
-  W('item/vessel/bucket/empty', 'Bucket', '木桶', 'item:bucket', { tags: ['empty-vessel'], props: { waterType: 'item/vessel/bucket/water', oilType: 'item/vessel/bucket/oil' }, where: { home: 1, farm: 2, inn: 1 }, makeup: [{ type: 'item/material/plank', count: 3 }, { type: 'item/material/grass', count: 1 }], station: 'hands' }),
-  W('item/vessel/bucket/water', 'Water Bucket', '一桶水', 'item:bucket_water', { tags: ['liquid:water', 'liquid'], props: { emptyType: 'item/vessel/bucket/empty' }, where: { farm: 0.5, inn: 0.3 } }),
-  W('item/vessel/bucket/oil', 'Oil Bucket', '一桶油', 'item:bucket_oil', { tags: ['liquid:oil', 'liquid', 'flammable'], props: { emptyType: 'item/vessel/bucket/empty' }, where: {} }),
+  W('item/vessel/bucket/empty', 'Bucket', '木桶', 'item:bucket', { tags: ['empty-vessel'], props: { waterType: 'item/vessel/bucket/water', oilType: 'item/vessel/bucket/oil', draughts: BUCKET_DRAUGHTS }, where: { home: 1, farm: 2, inn: 1 }, makeup: [{ type: 'item/material/plank', count: 3 }, { type: 'item/material/grass', count: 1 }], station: 'hands' }),
+  // a bucket holds ten draughts of water (`fill` of its `draughts`): ten crops watered, ten splashes, ten drinks; the
+  // last leaves it empty (rules.ts `draught`), and a bucket topped up at water is full again. A bucket better made holds
+  // more (the empty bucket's `draughts`, scaled by its quality as it is made: engine madeOf; docs/logs/0004)
+  W('item/vessel/bucket/water', 'Water Bucket', '木桶（水）', 'item:bucket_water', { tags: ['liquid:water', 'liquid'], props: { emptyType: 'item/vessel/bucket/empty', draughts: BUCKET_DRAUGHTS, fill: BUCKET_DRAUGHTS }, where: { farm: 0.5, inn: 0.3 } }),
+  W('item/vessel/bucket/oil', 'Oil Bucket', '木桶（油）', 'item:bucket_oil', { tags: ['liquid:oil', 'liquid', 'flammable'], props: { emptyType: 'item/vessel/bucket/empty' }, where: {} }),
   W('item/vessel/flask/empty', 'Empty Flask', '空瓶', 'item:flask', { tags: ['empty-vessel'], props: { waterType: 'item/vessel/flask/water', oilType: 'item/vessel/flask/oil' }, where: { home: 1, shop: 1, library: 1, temple: 0.5 } }),
   W('item/vessel/flask/water', 'Flask of Water', '一瓶水', 'item:flask_water', { tags: ['liquid:water', 'liquid'], props: { emptyType: 'item/vessel/flask/empty' }, where: { home: 0.5, inn: 0.5, npc: 0.3 } }),
   W('item/vessel/flask/oil', 'Flask of Oil', '一瓶灯油', 'item:flask_oil', { tags: ['liquid:oil', 'liquid', 'flammable'], props: { emptyType: 'item/vessel/flask/empty' }, where: { shop: 1.5, home: 0.5, dungeon: 0.5 } }),
@@ -317,7 +323,16 @@ const BASE_FORMS: Form[] = [
   W('item/misc/bait', 'Bait', '鱼饵', 'item:bait', { tags: ['bait'], props: { casts: 5 }, where: { shop: 0.5 } }),
   W('item/misc/crate_hen', 'Crated Hen', '装箱的母鸡', 'item:crate', { tags: ['animal-crate', 'wooden'], props: { animalType: 'actor/creature/animal/chicken' }, where: {} }),
   W('item/misc/crate_calf', 'Crated Calf', '装箱的小牛', 'item:crate', { tags: ['animal-crate', 'wooden'], props: { animalType: 'actor/creature/animal/calf' }, where: {} }),
-  W('item/vessel/bucket/milk', 'Bucket of Milk', '一桶牛奶', 'item:milk', { tags: ['liquid', 'drinkable'], props: { food: 4, heal: 3, emptyType: 'item/vessel/bucket/empty' }, where: {} }),
+  // the Held Ground's sheep (docs/logs/0005): bought crated, shorn with a sickle once fed (homestead.ts home/shear)
+  W('item/misc/crate_sheep', 'Crated Sheep', '装箱的羊', 'item:crate', { tags: ['animal-crate', 'wooden'], props: { animalType: 'actor/creature/animal/sheep' }, where: {} }),
+  // what the Held Ground's machines make (processing.ts, docs/logs/0005): flour ground at a millstone from wheat; cider
+  // and fruit wine from apples and berries left in a cask; an apple seedling to plant an orchard (orchard.ts)
+  // cooked over a lit fire as raw food is, it is bread (rules.ts use/cook)
+  W('item/material/flour', 'Flour', '面粉', 'item:flour', { tags: ['cookable', 'raw', 'dry', 'soft'], props: { cookedType: 'item/food/bread' }, where: {} }),
+  W('item/food/cider', 'Cider', '苹果酒', 'item:cider', { tags: ['drinkable', 'glass', 'fragile', 'liquid', 'alcohol'], props: { heal: 5 }, where: {} }),
+  W('item/food/fruit_wine', 'Fruit Wine', '果酒', 'item:fruit_wine', { tags: ['drinkable', 'glass', 'fragile', 'liquid', 'alcohol'], props: { heal: 4 }, where: {} }),
+  W('item/seed/apple', 'Apple Seedling', '苹果苗', 'item:apple_seedling', { tags: ['tree-seed'], props: { cropType: 'fixture/orchard/apple_sapling' }, where: {} }),
+  W('item/vessel/bucket/milk', 'Bucket of Milk', '木桶（牛奶）', 'item:milk', { tags: ['liquid', 'drinkable'], props: { food: 4, heal: 3, emptyType: 'item/vessel/bucket/empty' }, where: {} }),
   // what else bites (homestead.ts FISH): by the hour, the weather, the water — after Stardew's
   W('item/food/fish/sunfish', 'Sunfish', '太阳鱼', 'item:sunfish', { tags: ['edible', 'raw', 'cookable'], props: { heal: 2, food: 2, cookedType: 'item/food/fish/cooked' }, where: {} }),
   W('item/food/fish/perch', 'Perch', '河鲈', 'item:perch', { tags: ['edible', 'raw', 'cookable'], props: { heal: 2, food: 3, cookedType: 'item/food/fish/cooked' }, where: {} }),
@@ -570,6 +585,8 @@ const VALUES: [string, number][] = [
   ['item/material', 0.5],
   // seeds: what the stall asks for them, less its quarter (a dearer seed, a dearer crop)
   ['item/seed/acorn', 3.2],
+  // an apple tree bears for ever: its seedling is dear (the stall's twelve, less its quarter)
+  ['item/seed/apple', 9.6],
   ['item/seed/melon', 6.4],
   ['item/seed/blueberry', 6.4],
   ['item/seed/cauliflower', 5.33],
@@ -594,6 +611,7 @@ const VALUES: [string, number][] = [
   ['item/document', 1],
   ['item/key', 5],
   ['item/misc/crate_calf', 96],
+  ['item/misc/crate_sheep', 64],
   ['item/misc/crate_hen', 32],
   ['item/misc/lute', 40],
   ['item/misc/bomb', 20],

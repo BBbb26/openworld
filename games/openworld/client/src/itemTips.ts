@@ -16,8 +16,29 @@ export function describeItem(item: ItemInfo): Text[] {
     out.push({ en: 'Deep water: more golden carp, and pike. Eels at night; catfish in rain.', zh: '深水更容易出金鳞鲤，还能钓狗鱼；夜里有鳗鱼，雨天有鲶鱼。' })
   }
   if (item.tags.includes('bait')) out.push({ en: `Adds ${Math.max(0, Math.floor(Number(item.props.casts) || 0))} baited casts. Bait of a different name or quality can only be used after the rod's current bait is spent.`, zh: `增加 ${Math.max(0, Math.floor(Number(item.props.casts) || 0))} 次挂饵抛竿。名称或品质不同的鱼饵，要等鱼竿上现有鱼饵用完后才能更换。` })
-  if (item.type === 'item/vessel/bucket/empty') out.push({ en: 'Fill at water to water crops, or milk a fed cow.', zh: '对水使用可装水浇地，也可给喂饱的牛挤奶。' })
+  if (item.type === 'item/vessel/bucket/empty') {
+    out.push({ en: 'Fill at water to water crops, or milk a fed cow.', zh: '对水使用可装水浇地，也可给喂饱的牛挤奶。' })
+    // a bucket better made holds more (engine madeOf: its quality's factor; docs/logs/0005)
+    const holds = Math.floor(Number(item.props.draughts) || 0)
+    if (holds > 0) out.push({ en: `Holds ${holds} waterings when filled.`, zh: `装满后可浇 ${holds} 次。` })
+  }
+  const draughts = vesselDraughts(item)
+  if (draughts) out.push({ en: `Water left: ${draughts.fill}/${draughts.of} · each watering, splash or drink uses one; top it up at water.`, zh: `剩余水量：${draughts.fill}/${draughts.of} · 每浇一次、泼一次或喝一次用掉一份；可随时到水边补满。` })
   return out
+}
+
+/** What a vessel of draughts holds (a bucket of water: rules.ts `draught`): its `fill` of its form's `draughts`, or nothing for one that holds a single draught. */
+export function vesselDraughts(item: ItemInfo): { fill: number; of: number } | undefined {
+  const of = Number(item.props.draughts)
+  if (!item.tags.includes('liquid') || !Number.isFinite(of) || of <= 1) return undefined
+  const fill = Math.max(0, Math.min(of, Math.floor(Number(item.props.fill ?? of) || 0)))
+  return fill > 0 ? { fill, of } : undefined
+}
+
+/** The badge in an icon's lower left: what is left in a vessel of draughts ("9/10"); an empty one shows none. */
+export function vesselIconBadge(item: ItemInfo): string | undefined {
+  const d = vesselDraughts(item)
+  return d && `${d.fill}/${d.of}`
 }
 
 /** The bait shown on a rod is a sprite from the game's forms; legacy rods use the ordinary bait. */

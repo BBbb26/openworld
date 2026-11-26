@@ -5,6 +5,8 @@
 // weakness count, so a frost wolf is immune to ice and as weak to fire as any beast. After Pokémon's chart (a dragon
 // fears the cold), Monster Hunter's weakness stars and Elin's resistances, kept to a few reads a player can learn by the
 // look of a thing.
+// Only kinds marked elemental-affinity use these factors instead of the legacy elemental reactions.
+// Unmarked actors (including bosses) retain those reactions' original multipliers.
 
 import type { TypeDef } from '@openworld/engine'
 import { ELEMENTS } from './elements.ts'

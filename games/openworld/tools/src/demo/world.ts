@@ -111,7 +111,7 @@ export const STAND = {
 } as const satisfies Record<string, readonly [number, number]>
 
 function buildMap(): MapBuilder {
-  const m = new MapBuilder('ford', L('Vesper Ford', '晚祷渡'), 'wild', 48, 30, 'grass', 'ford', 'outdoor', 'frostfang')
+  const m = new MapBuilder('ford', L('Vesper Ford', '晚祷渡'), 'wild', 48, 30, 'grass', 'ford_route', 'outdoor', 'frostfang')
   const grass = (t: string) => t === 'grass'
   // ------------------------------------------------------------ the river: a pool at the landing, narrows at the dead tree
   for (let y = 0; y < m.h; y++) for (let x = NEAR[y]; x <= FAR[y]; x++) m.set(x, y, 'water')
@@ -273,7 +273,7 @@ function buildMeadow(): MapBuilder {
   // (60 x 40 since 2026-10-11; redrawn to the showcase's standard on 2026-10-26, docs/release-1.md §3: the ground laid in
   // code — the woods round it, the square before the chapel, the east road from the Ford and the lanes north, west and
   // south, the pond — the village's own buildings on it. What stands on it is placed here and in village.ts.)
-  const m = new MapBuilder(FIRSTLIGHT.map, FIRSTLIGHT.name, 'village', 60, 40, 'grass', 'firstlight', 'outdoor', 'frostfang')
+  const m = new MapBuilder(FIRSTLIGHT.map, FIRSTLIGHT.name, 'village', 60, 40, 'grass', 'firstlight_route', 'outdoor', 'frostfang')
   firstlightGround(m)
   // the houses with their doors (every one has a room behind it: village.ts), their yards and what the village uses
   villageTown(m)
@@ -355,7 +355,7 @@ export const PASTURE_GAP = SOUTH_GAP
  * meadow and its stacks. The cows and hens, and more of them in time.
  */
 function buildPasture(): MapBuilder {
-  const m = new MapBuilder('pasture', L('Dusklea', '暮牧原'), 'wild', 40, 30, 'grass', 'field', 'outdoor', 'frostfang')
+  const m = new MapBuilder('pasture', L('Dusklea', '暮牧原'), 'wild', 40, 30, 'grass', 'dusklea', 'outdoor', 'frostfang')
   m.paint('pasture')
   // the fold: a dry-stone pen the herd is brought into, a gate east to Brin's post and one south to the pond; its hay
   // and its trough inside
@@ -416,7 +416,7 @@ function buildPasture(): MapBuilder {
  * over, to the pilgrims' camp deep in the south-east by the brook (quest/chapter1.ts).
  */
 function buildForest(): MapBuilder {
-  const m = new MapBuilder('forest', L('Hushwood', '噤声林'), 'wild', 40, 30, 'grass', 'forest', 'outdoor', 'frostfang')
+  const m = new MapBuilder('forest', L('Hushwood', '噤声林'), 'wild', 40, 30, 'grass', 'hushwood', 'outdoor', 'frostfang')
   m.paint('forest')
   m.stumpsAsThings()
   // the woodcutters' clearing: stumps of old fellings round it (the layout's), the chopping block, split logs stacked

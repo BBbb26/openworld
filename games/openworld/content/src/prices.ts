@@ -15,6 +15,7 @@ import { NAMED_VALUE } from './goods.ts'
 import { LIFE_RECIPES } from './life.ts'
 import { ARCANE_RECIPES } from './arcane.ts'
 import { SET_RECIPES } from './sets.ts'
+import { PROCESSES } from './processing.ts'
 
 /** What the work adds to what a thing was made of: a quarter, once. */
 export const LABOUR = 1.25
@@ -60,6 +61,8 @@ function ruleWays(): Way[] {
     }
   }
   out.push({ id: 'ranch/cheese', takes: [['item/vessel/bucket/milk', 1]], gives: [['item/food/cheese', 2], ['item/vessel/bucket/empty', 1]] })
+  // a cask's work (processing.ts): one of what it makes for each thing put in
+  for (const p of PROCESSES) out.push({ id: `cask/${p.takes.split('/').pop()}`, takes: [[p.takes, 1]], gives: [[p.makes, 1]] })
   return out
 }
 
