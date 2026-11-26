@@ -73,7 +73,10 @@ describe('a regional form is its base to every rule', () => {
   })
 })
 
-describe('nothing put down is lost', () => {
+// Every swept form put on every target (351 × 347, some 120 000 puts and takes back): minutes in all, three quarters of it
+// making a fresh engine for each put (docs/logs/0015). One case a target keeps each a second or so — well inside the
+// per-test timeout under a full parallel run — and a failure names its target; the sweep itself stays whole.
+describe('nothing put down is lost: every form put on a target stays in hand or can be taken back', () => {
   const onto = buildOntology()
   const lib = new RuleLibrary(BASE_RULES)
   /** An act's own rule that uses the put thing up (building with it) or turns it into something else (sowing it) does so by design. */
@@ -81,37 +84,35 @@ describe('nothing put down is lost', () => {
     const r = lib.rules.get(id)
     return !!r && r.on === 'act/put' && leaves(r.tree).some((l) => isDo(l) && l.do.some((e) => e.op === 'destroy' || e.op === 'transform'))
   }
+  // Handing something to a person gives it away; yourself is not a place to put things.
+  const all = targets(onto).filter((t) => t.id !== 'person' && t.id !== 'self')
 
-  it('every form put on every target stays in hand or can be taken back', () => {
+  it.each(all.map((t) => [t.id, t] as const))('%s', (_, target) => {
     const lost: string[] = []
-    for (const target of targets(onto)) {
-      // Handing something to a person gives it away; yourself is not a place to put things.
-      if (target.id === 'person' || target.id === 'self') continue
-      const sc: Scenario = {
-        terrain: Array.from({ length: 3 }, () => Array(3).fill('grass')),
-        entities: [{ key: 'actor', type: 'actor/person/player', ...ORIGIN }],
-        event: {},
-      }
-      const key = target.scenario(sc)
-      const start = buildSandbox(sc, onto, lib)
-      const ref: Ref = key === 'target' ? { e: key } : start.world.cellRef(SANDBOX_MAP, FRONT.x, FRONT.y)
-      for (const form of SWEPT) {
-        const eng = new Engine(structuredClone(start.world.state), start.world.onto.data, lib)
-        const actor = eng.world.get('actor')!
-        eng.author(() => eng.world.add({ id: 'held', type: form.id, place: { on: 'hand', holder: 'actor' } }))
-        eng.trace.length = 0
-        const put = eng.act('put', 'actor', ref, { instrument: { e: 'held' } })
-        if (eng.trace.some((t) => t.rule && consumes(t.rule))) continue
-        // something explosive put into a fire goes off (fire/explode): used up by its nature
-        if (eng.trace.some((t) => t.rule === 'fire/explode')) continue
-        if (actor.held === 'held') continue
-        // a built thing put down lies loose, packed (design.md §5.2): the hand takes the pack, and the thing comes out
-        const back = eng.world.get('held')
-        const pack = back?.place.on === 'inside' ? eng.world.get(back.place.holder) : undefined
-        eng.act('take', 'actor', { e: pack?.type === LOOSE ? pack.id : 'held' }, { instrument: null })
-        if (actor.held !== 'held' && !actor.contents?.includes('held')) lost.push(`${form.id} → ${target.id} (${put.rule?.id ?? 'undefined'})`)
-      }
+    const sc: Scenario = {
+      terrain: Array.from({ length: 3 }, () => Array(3).fill('grass')),
+      entities: [{ key: 'actor', type: 'actor/person/player', ...ORIGIN }],
+      event: {},
+    }
+    const key = target.scenario(sc)
+    const start = buildSandbox(sc, onto, lib)
+    const ref: Ref = key === 'target' ? { e: key } : start.world.cellRef(SANDBOX_MAP, FRONT.x, FRONT.y)
+    for (const form of SWEPT) {
+      const eng = new Engine(structuredClone(start.world.state), start.world.onto.data, lib)
+      const actor = eng.world.get('actor')!
+      eng.author(() => eng.world.add({ id: 'held', type: form.id, place: { on: 'hand', holder: 'actor' } }))
+      eng.trace.length = 0
+      const put = eng.act('put', 'actor', ref, { instrument: { e: 'held' } })
+      if (eng.trace.some((t) => t.rule && consumes(t.rule))) continue
+      // something explosive put into a fire goes off (fire/explode): used up by its nature
+      if (eng.trace.some((t) => t.rule === 'fire/explode')) continue
+      if (actor.held === 'held') continue
+      // a built thing put down lies loose, packed (design.md §5.2): the hand takes the pack, and the thing comes out
+      const back = eng.world.get('held')
+      const pack = back?.place.on === 'inside' ? eng.world.get(back.place.holder) : undefined
+      eng.act('take', 'actor', { e: pack?.type === LOOSE ? pack.id : 'held' }, { instrument: null })
+      if (actor.held !== 'held' && !actor.contents?.includes('held')) lost.push(`${form.id} → ${target.id} (${put.rule?.id ?? 'undefined'})`)
     }
     expect(lost).toEqual([])
-  }, 600_000) // a sweep of every swept item form × target (the continent's grounds among them): under a full parallel run it outlasts the default
+  })
 })

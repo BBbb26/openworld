@@ -83,6 +83,8 @@
 /* something worn (world-model.md §6.8): a small mark in the corner */
 .slot .worn { position: absolute; left: 3px; top: 3px; width: 7px; height: 7px; }
 .slot .count { position: absolute; right: 3px; bottom: 1px; }
+.slot .item-badge { position: absolute; left: 3px; bottom: 1px; }
+.carried .item-badge { position: absolute; left: -6px; bottom: -4px; font: 600 10px var(--pixel); color: #cfe8ff; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000; }
 
 /* messages, bottom left */
 .msgs { position: absolute; left: 14px; bottom: 80px; display: flex; flex-direction: column; gap: 4px; max-width: min(460px, 36vw); pointer-events: none !important; }

@@ -139,6 +139,8 @@ export interface ClientGame extends GameDef {
   describeItem?(item: ItemInfo): Text[]
   /** A small game-owned sprite drawn over an item icon; x, y and size are fractions of that icon's dimensions. */
   itemIconDecoration?(item: ItemInfo): { sprite: string; x: number; y: number; size: number } | undefined
+  /** A short text the game shows in an item icon's lower left, beside the stack's count (what is left in a vessel: "9/10"). */
+  itemIconBadge?(item: ItemInfo): string | undefined
   /** A game's wording or suppression for a held item used/put on a carried context-menu target. */
   itemContextAction?(key: 'use' | 'put', instrument: ItemInfo, target: ItemInfo): Text | false | undefined
   /** Sprites, sounds and music by the content's keys. */
@@ -243,7 +245,7 @@ export function game(): ClientGame {
  * the hand, a bucket filled: the same id, another type, its stack key with it) or its game-owned overlay changes.
  */
 export function itemIconSignature(items: readonly ItemInfo[]): string {
-  return JSON.stringify(items.map((item) => [item.id, item.stackKey ?? item.type, game().itemIconDecoration?.(item) ?? null]))
+  return JSON.stringify(items.map((item) => [item.id, item.stackKey ?? item.type, game().itemIconDecoration?.(item) ?? null, game().itemIconBadge?.(item) ?? null]))
 }
 
 /** The game's worker entry, which hands the game over in the worker too: the page that plays the game sets it. */

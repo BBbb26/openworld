@@ -53,6 +53,8 @@ export const SHOP_RECIPES: Recipe[] = [
   buy('farm', 'item/seed/herb', 3),
   buy('farm', 'item/material/fertilizer', 3),
   buy('farm', 'item/seed/acorn', 1),
+  // an apple seedling: an orchard tree that bears every day (orchard.ts, docs/logs/0006)
+  buy('farm', 'item/seed/apple', 1),
   buy('farm', 'item/tool/shovel', 1),
   buy('farm', 'item/tool/hoe', 1),
   buy('farm', 'item/tool/sickle', 1),
@@ -62,6 +64,7 @@ export const SHOP_RECIPES: Recipe[] = [
   buy('ranch', 'item/vessel/bucket/empty', 1),
   buy('ranch', 'item/misc/crate_hen', 1),
   buy('ranch', 'item/misc/crate_calf', 1),
+  buy('ranch', 'item/misc/crate_sheep', 1),
   // fishing: bait, a rod
   buy('fish', 'item/misc/bait', 5),
   buy('fish', 'item/tool/fishing_rod', 1),
@@ -83,9 +86,22 @@ export const SHOP_RECIPES: Recipe[] = [
   sell('item/material/feather', 'sell:ranch'),
   sell('item/food/honey', 'sell:ranch'),
   sell('item/food/cheese', 'sell:ranch'),
+  // what the Held Ground makes of what it grows (docs/logs/0006): wool shorn, flour ground, cider and fruit wine from the cask
+  sell('item/material/wool', 'sell:ranch'),
+  sell('item/material/flour', 'sell:farm'),
+  sell('item/food/cider', 'sell:farm'),
+  sell('item/food/fruit_wine', 'sell:farm'),
 ]
 
 const ANIMAL = { type: 'actor/creature/animal' }
+/** What is said as young are born: one, and twins. */
+const BORN: Record<'cow' | 'chicken' | 'sheep', [Text, Text]> = {
+  cow: [L('A calf is born!', '一头小牛出生了！'), L('Twin calves are born!', '一对双胞胎小牛出生了！')],
+  chicken: [L('A chick hatches!', '一只小鸡孵出来了！'), L('Two chicks hatch!', '孵出了两只小鸡！')],
+  sheep: [L('A lamb is born!', '一只小羊出生了！'), L('Twin lambs are born!', '一对双胞胎小羊出生了！')],
+}
+/** A sheep shorn: its wool (two) at its feet, and it grows its fleece again in two days (the status's own). */
+const SHORN = 2
 /** What a beast fed does: fed for a day (two, fed by a Herdsman: life.ts), and glad of it. */
 const fedFor = (days: number): Effect[] => [{ op: 'addStatus', status: 'fed', duration: FED_FOR * days }, { op: 'emote', mood: 'happy' }, { op: 'log', text: L('{host} eats happily.', '{host}吃得很开心。') }]
 const FED = fedFor(1)
@@ -151,7 +167,7 @@ export const HOMESTEAD_RULES: Rule[] = [
   }),
   // breeding (Minecraft's): a cow or a hen fed calls to the fed of its kind close by; one not resting from young answers
   // with a calf or a chick of its own (and rests a day). A young one never breeds.
-  ...(['cow', 'chicken'] as const).map((kind) => story({
+  ...(['cow', 'chicken', 'sheep'] as const).map((kind) => story({
     id: `home/breed-${kind}`,
     doc: `A ${kind} fed (not resting from young) calls to the fed ${kind}s beside it; one that hears the call (fed, not resting) bears its young beside it, and both rest a day (the caller is told); told it is milked, a cow is milked for the day.`,
     host: { type: `actor/creature/animal/${kind}` },
@@ -166,7 +182,7 @@ export const HOMESTEAD_RULES: Rule[] = [
         // the call heard: the young born beside it (twins, now and then, for a Breeder), and the caller told so (both rest)
         if: { all: [{ param: { key: 'what', cmp: 'mate' } }, { has: { role: 'host', status: 'fed' } }, { not: { has: { role: 'host', status: 'bred' } } }] },
         then: (() => {
-          const born = (n: number): Tree => rest({ op: 'spawn', type: '@prop:host.babyType', at: 'tileOf:host', count: n, ownerFrom: 'host' }, { op: 'emit', impulse: 'notify', to: 'source', params: { what: 'rested' } }, { op: 'emote', mood: 'happy' }, { op: 'vfx', fx: 'sparkle' }, { op: 'log', text: n > 1 ? L(kind === 'cow' ? 'Twin calves are born!' : 'Two chicks hatch!', kind === 'cow' ? '一对双胞胎小牛出生了！' : '孵出了两只小鸡！') : L(kind === 'cow' ? 'A calf is born!' : 'A chick hatches!', kind === 'cow' ? '一头小牛出生了！' : '一只小鸡孵出来了！') })
+          const born = (n: number): Tree => rest({ op: 'spawn', type: '@prop:host.babyType', at: 'tileOf:host', count: n, ownerFrom: 'host' }, { op: 'emit', impulse: 'notify', to: 'source', params: { what: 'rested' } }, { op: 'emote', mood: 'happy' }, { op: 'vfx', fx: 'sparkle' }, { op: 'log', text: BORN[kind][n > 1 ? 1 : 0] })
           return { if: { all: [tagged('breeder'), { chance: 0.3 }] }, then: born(2), else: born(1) } as Tree
         })(),
         else: {
@@ -189,6 +205,22 @@ export const HOMESTEAD_RULES: Rule[] = [
         if: { all: [{ has: { role: 'target', status: 'fed' } }, { not: { has: { role: 'target', status: 'milked' } } }] },
         then: { do: [{ op: 'emit', impulse: 'notify', to: 'target', params: { what: 'milked' } }, { op: 'transform', into: 'item/vessel/bucket/milk' }, { op: 'vfx', fx: 'splash' }, { op: 'log', text: L('You milk {target}.', '你给{target}挤了奶。') }] },
         else: { do: [{ op: 'log', text: L('{target} gives no milk. Feed it first; it can be milked once a day.', '{target}挤不出奶。先把它喂饱；一天只能挤一次。') }] },
+      },
+      else: 'inherit',
+    },
+  }),
+  story({
+    id: 'home/shear',
+    label: L('Shear {target}', '给{target}剪毛'),
+    doc: 'A sickle swung at a sheep shears it, without a wound: fed and not shorn in two days, it gives its wool (two) at its feet and is shorn; otherwise its fleece has not grown, and it is said so. Anything else that strikes a sheep strikes it.',
+    host: { type: 'actor/creature/animal/sheep' },
+    on: 'impulse/strike',
+    tree: {
+      if: { has: { role: 'instrument', tag: 'tool:sickle' } },
+      then: {
+        if: { all: [{ has: { role: 'host', status: 'fed' } }, { not: { has: { role: 'host', status: 'shorn' } } }] },
+        then: { do: [{ op: 'spawn', type: '@prop:host.wool', at: 'tileOf:host', count: SHORN }, { op: 'addStatus', status: 'shorn', duration: 2 * FED_FOR }, { op: 'emote', mood: 'happy' }, { op: 'vfx', fx: 'sparkle' }, { op: 'log', text: L('You shear {host}.', '你给{host}剪了毛。') }] },
+        else: { do: [{ op: 'log', text: L('{host}\'s fleece has not grown. Feed it; it can be shorn every two days.', '{host}的毛还没长好。先把它喂饱；每两天能剪一次。') }] },
       },
       else: 'inherit',
     },
