@@ -112,16 +112,16 @@ const FORD_RULES: Rule[] = [
     tree: { if: { all: [fact('ford.winch', 1), fact('ford.crossed', 0), is('actor', { type: 'actor/person' }), { none: 'instrument' }, { not: { param: { key: 'say', cmp: { ne: '' } } } }] }, then: { do: [notify('ferry')] }, else: 'inherit' },
   }),
   story({
-    id: 'ford/call-ferry',
-    label: L('Pull the line at {target} to call the ferry', '拉{target}的渡绳叫渡船'),
-    doc: "The line runs between a post on each bank (a post's `ferry` prop says which way it takes one: `over` or `back`). Mended, a pull on it calls the ferrykeeper, and she takes you to the other bank; before that, the far post's line hangs slack.",
+    id: 'ford/far-post',
+    label: L('Pull the line at {target}', '拉{target}的渡绳'),
+    doc: "The line's far end, a post on the far bank (a post's `ferry` prop: `far`). The ferry goes one way: she takes one over once, and a pull on the far post calls nobody back; before the line is mended it hangs slack.",
     host: { type: WINCH, notStatus: ['broken'] },
     on: 'impulse/handle',
     tree: {
-      if: { all: [{ prop: { role: 'host', key: 'ferry', cmp: { ne: '' }, default: '' } }, { none: 'instrument' }] },
+      if: { all: [{ prop: { role: 'host', key: 'ferry', cmp: 'far', default: '' } }, { none: 'instrument' }] },
       then: {
-        if: { all: [fact('ford.winch', 1), is('actor', { type: 'actor/person' })] },
-        then: { if: { prop: { role: 'host', key: 'ferry', cmp: 'back' } }, then: { do: [notify('ferry_back')] }, else: { do: [notify('ferry')] } },
+        if: fact('ford.winch', 1),
+        then: { do: [log('The line runs taut across the water. You pull on it a few times. Nothing stirs across the river.', '渡绳绷得紧紧的，横过水面。你拉了几下，河那边没有动静。')] },
         else: { do: [log('The line runs from the post into the water and hangs slack. It has parted somewhere across the river.', '渡绳从木桩上垂进水里，松松地漂着。是在河那边什么地方断的。')] },
       },
       else: 'inherit',
@@ -194,7 +194,7 @@ const FORD_RULES: Rule[] = [
   // ---------------------------------------------------------------- the story keeps its own facts
   story({
     id: 'ford/story',
-    doc: 'The story hears what happened at the ford and keeps it: the line mended, the tree felled, the wand traded; asked for the crossing, it plays the ferry, over or back.',
+    doc: 'The story hears what happened at the ford and keeps it: the line mended, the tree felled, the wand traded; asked for the crossing, it plays the ferry.',
     host: { type: 'resident/story' },
     on: 'impulse/notify',
     tree: {
@@ -206,12 +206,7 @@ const FORD_RULES: Rule[] = [
         else: {
           if: what('charm'),
           then: { do: [{ op: 'setProp', key: 'ford.charm', value: 1 }] },
-          // (over: the ferrykeeper asked before the first crossing, or the near post's line pulled; back: the far post's)
-          else: {
-            if: what('ferry'),
-            then: { do: [{ op: 'scene', id: 'ferry' }] },
-            else: { if: what('ferry_back'), then: { do: [{ op: 'scene', id: 'ferry_back' }] }, else: 'inherit' },
-          },
+          else: { if: { all: [what('ferry'), fact('ford.crossed', 0)] }, then: { do: [{ op: 'scene', id: 'ferry' }] }, else: 'inherit' },
         },
       },
     },

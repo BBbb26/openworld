@@ -618,35 +618,30 @@ req('F2a', 'the ferry:the rope from her chest, the winch mended, and she takes y
   expect(far(f)).toBe(true)
 })
 
-req('F2d', "the ferry runs both ways: a post on each bank holds the line, and once it is mended a pull on either calls her, so whoever crossed by her can come back to the camp's side (and go over again)", ['fixture/ferry/winch'], () => {
-  // before the line is mended, the far post only says it hangs slack: nobody comes
+req('F2d', "the ferry goes one way: she says she takes one over only the once, and the line's far post, pulled, calls nobody back", ['fixture/ferry/winch'], () => {
+  // before the line is mended, the far post only says it hangs slack
   const g = fresh()
   stand(g, ...STAND.farWinch)
   W(g).fx = []
-  expect(run(g, 'hands', ...AT.farWinch).rule).toBe('ford/call-ferry')
+  expect(run(g, 'hands', ...AT.farWinch).rule).toBe('ford/far-post')
   expect(W(g).fx.some((x) => x.t === 'log' && /slack/.test(JSON.stringify((x as { text?: unknown }).text)))).toBe(true)
-  ticks(g, 40)
-  expect(W(g).posOf(W(g).player)).toMatchObject({ map: 'ford', x: STAND.farWinch[0], y: STAND.farWinch[1] })
   const f = fresh()
   const camp = W(f).partAt('ford', ...AT.spawn)
   const side = () => W(f).partAt('ford', W(f).posOf(W(f).player)!.x, W(f).posOf(W(f).player)!.y)
-  const idle = () => ticks(f, 600, () => !W(f).scene)
-  // over by her, as the first time
+  W(f).fx = []
   byFerry(f)
   expect(far(f)).toBe(true)
-  idle()
+  // she says, as she takes one over, that it is the once
+  expect(W(f).fx.some((x) => x.t === 'say' && x.who === 'npc.hesper' && /only.*once|the once/.test(JSON.stringify((x as { text?: unknown }).text)))).toBe(true)
+  ticks(f, 600, () => !W(f).scene)
   expect(side()).not.toBe(camp)
-  // back: the far post's line pulled
+  // mended, the far post's line is taut, and nobody comes
   stand(f, ...STAND.farWinch)
-  expect(run(f, 'hands', ...AT.farWinch).rule).toBe('ford/call-ferry')
-  expect(ticks(f, 600, () => side() === camp)).toBe(true)
-  expect(W(f).posOf(W(f).player)).toMatchObject({ map: 'ford', x: STAND.winch[0], y: STAND.winch[1] })
-  idle()
-  // and over again from the near post
-  stand(f, ...STAND.winch)
-  expect(run(f, 'hands', ...AT.winch).rule).toBe('ford/call-ferry')
-  expect(ticks(f, 600, () => side() !== camp)).toBe(true)
-  expect(W(f).posOf(W(f).player)).toMatchObject({ map: 'ford', x: AT.farLanding[0], y: AT.farLanding[1] })
+  W(f).fx = []
+  expect(run(f, 'hands', ...AT.farWinch).rule).toBe('ford/far-post')
+  expect(W(f).fx.some((x) => x.t === 'log' && /Nothing stirs/.test(JSON.stringify((x as { text?: unknown }).text)))).toBe(true)
+  expect(ticks(f, 600, () => side() === camp)).toBe(false)
+  expect(W(f).posOf(W(f).player)).toMatchObject({ map: 'ford', x: STAND.farWinch[0], y: STAND.farWinch[1] })
 })
 
 req('F2b', 'the dead tree: the axe, three blows from the west, and a walk across', ['item/weapon/blade/axe', 'fixture/nature/dead_tree'], () => {
@@ -4958,7 +4953,7 @@ req('FIN', "the finale (docs/finale.md), offline: the road down to the Holy City
   'npc.primate', 'npc.warden_w', 'npc.warden_e',
   'actor/creature/sin/astra', 'fixture/sacred/bier', 'fixture/sacred/instrument_niche', 'fixture/sacred/bearer_statue',
   'fixture/sacred/red_channel/dust', 'fixture/sacred/red_channel/black', 'fixture/sacred/red_channel/white', 'fixture/sacred/red_channel/thorn',
-  'fixture/standard', 'fixture/sacred/saint', 'fixture/sacred/rail', 'fixture/sacred/font', 'item/weapon/blade/sword', 'site/place/cathedral',
+  'fixture/standard', 'fixture/sacred/saint', 'fixture/sacred/rail', 'fixture/sacred/font', 'fixture/sacred/stalls', 'fixture/sacred/slab', 'item/weapon/blade/sword', 'site/place/cathedral',
 ], () => {
   const f = fresh()
   const w = W(f)
