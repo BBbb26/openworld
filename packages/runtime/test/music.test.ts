@@ -83,6 +83,11 @@ const cues: Record<string, string | MusicCue> = {
   title: { tracks: ['title.ogg'] },
   field: { tracks: ['day1.ogg', 'day2.ogg'], rest: [60, 60], at: { night: 'field_night' } },
   field_night: { tracks: ['night.ogg'], rest: [60, 60] },
+  west: { like: 'field', at: { night: 'shared' } },
+  east: { like: 'field', at: { day: 'shared' } },
+  night_route: { like: 'field', at: { night: 'route_night' } },
+  route_night: { tracks: ['route-night.ogg'], enterImmediately: true },
+  shared: 'shared.ogg',
   village: 'village.ogg',
   outdoor: { like: 'field' },
   battle: { tracks: ['fight.ogg'], at: { night: 'battle_night' } },
@@ -118,6 +123,35 @@ afterEach(() => {
 const pass = (ms: number) => vi.advanceTimersByTime(ms)
 
 describe('the music director', () => {
+  it('crossfades to a night theme marked for immediate entry before the daytime piece ends', () => {
+    dir.setPlace('night_route', 'outdoor', day)
+    const daytime = made[0]
+
+    dir.setPlace('night_route', 'outdoor', night)
+    pass(3000)
+    expect(playing()).toEqual(['route-night.ogg'])
+    expect(daytime.paused).toBe(true)
+    expect(made[1].loop).toBe(true)
+  })
+
+  it('keeps a looping track when the map and time change together to the same cue', () => {
+    dir.setMoment(night)
+    dir.setPlace('west', 'outdoor')
+    const first = made[0]
+    first.currentTime = 23
+    expect(first.loop).toBe(true)
+
+    dir.setPlace('east', 'outdoor', day)
+    pass(3000)
+    expect(made).toEqual([first])
+    expect(first.currentTime).toBe(23)
+    expect(playing()).toEqual(['shared.ogg'])
+
+    dir.setPlace('village', 'outdoor')
+    pass(3000)
+    expect(playing()).toEqual(['village.ogg'])
+  })
+
   it('continues the same piece and its rest when a shop shares the outdoor mood', () => {
     dir.setPlace('field', 'outdoor')
     const first = made[made.length - 1]
@@ -182,6 +216,39 @@ describe('the music director', () => {
     expect(playing()).toEqual(['fight_night.ogg'])
   })
 
+  it('keeps the place track in a map with ordinary fight music disabled', () => {
+    dir.setPlace('west', 'outdoor', night, false)
+    const track = made[0]
+    track.currentTime = 23
+    dir.setFight(true)
+    pass(1000)
+    expect(made).toEqual([track])
+    expect(track.currentTime).toBe(23)
+    expect(playing()).toEqual(['shared.ogg'])
+
+    dir.setBoss({ kind: 'alberic', phase: 1 })
+    pass(3000)
+    expect(playing()).toEqual(['alberic.ogg'])
+  })
+
+  it('clears the fight music hold on entry to a map that disables it', () => {
+    dir.setPlace('west', 'outdoor', night)
+    dir.setFight(true)
+    pass(1000)
+    expect(playing()).toEqual(['fight_night.ogg'])
+
+    dir.setPlace('west', 'outdoor', night, false)
+    pass(3100)
+    expect(playing()).toEqual(['shared.ogg'])
+
+    dir.setPlace('village', 'outdoor')
+    pass(1600)
+    expect(playing()).toEqual(['village.ogg'])
+    dir.setFight(true)
+    pass(1000)
+    expect(playing()).toEqual(['fight_night.ogg'])
+  })
+
   it("plays a boss's own music and its later phase's", () => {
     dir.setPlace('village', 'outdoor')
     dir.setBoss({ kind: 'actor/boss/alberic', phase: 1 })
@@ -223,6 +290,7 @@ describe('the music director', () => {
     dir.setPlace(undefined, 'outdoor')
     expect(playing().length).toBe(1)
     const first = made[made.length - 1]
+    dir.setPlace('field', 'outdoor')
     // night falls while the day's piece plays: it plays on to its end
     dir.setMoment(night)
     pass(1000)

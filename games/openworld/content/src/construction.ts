@@ -38,7 +38,7 @@ export const FARMING: PlacementRecipe[] = [
     description: text('One seed on empty farmland. Water at each growing stage.', '消耗一份种子，在空耕地播种。每个生长阶段都需要浇水。'), target: 'tile', site: { type: 'tile/farmland' }, empty: 'non-actors',
     needs: [{ match: { type: `item/seed/${c.id}` }, name: text(`${c.en} Seeds`, `${c.zh}种子`), sprite: `item:${c.id}_seed`, count: 1, consume: true }], steps: [hit(0, 'farm/sow')] })),
   { id: 'water', category: 'farming', name: text('Water', '浇水'), sprite: 'item:bucket_water',
-    description: text('One watering grows one stage after two game hours.', '浇水后两小时成长一阶段；水桶变为空桶。'), target: 'entity', site: { tags: ['crop', 'growing'], notStatus: ['watered'] },
+    description: text('One watering grows one stage after two game hours. A full bucket waters ten crops.', '浇水后两小时成长一阶段；满满一桶水可浇十次，用完变为空桶。'), target: 'entity', site: { tags: ['crop', 'growing'], notStatus: ['watered'] },
     needs: [tool('liquid:water', 'Water Vessel', '装满水的容器', 'item:bucket_water')], steps: [hit(0, 'farm/water')] },
   { id: 'fill', category: 'farming', name: text('Refill Water', '装水'), sprite: 'item:bucket',
     description: text('Refill an empty vessel at the river or a well.', '靠近河水或水井，将空桶装满。'), target: 'either', site: { tags: ['water-source'] },

@@ -262,4 +262,5 @@ If you use OpenWorld in your research, please cite:
 - The project's own art (`games/openworld/public/assets/lsw/`): [CC0 1.0](games/openworld/public/assets/lsw/LICENSE.md).
 - Art and audio from [Ninja Adventure](https://pixel-boy.itch.io/ninja-adventure-asset-pack) by Pixel-boy and AAA:
   CC0.
+- Music provided by 喵法自然 (音乐由【喵法自然】提供). Tracks 22, 23 and 26 are used under the [source's music terms](https://www.bilibili.com/video/BV1bgdhBGE9w/).
 - Font: Fusion Pixel, under the SIL Open Font License 1.1 (`packages/runtime/src/fonts/`).

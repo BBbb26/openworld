@@ -203,6 +203,7 @@ interface Wants {
   /** The map's mood and its light (for a map that names no mood). */
   mood?: string
   light: string
+  battleMusic: boolean
 }
 
 export class MusicDirector {
@@ -211,7 +212,7 @@ export class MusicDirector {
   /** What plays over the place now, by what it is (its fade out differs). */
   private overKind?: 'title' | 'scene' | 'boss' | 'fight'
   /** (no place yet: the first map's light is told with its mood) */
-  private want: Wants = { title: false, death: false, light: '' }
+  private want: Wants = { title: false, death: false, light: '', battleMusic: true }
   private moment: Moment = { hour: 12, dusk: 19, dawn: 6, weather: 'sun' }
   /** The fight's music plays until then (performance.now ms). */
   private fightUntil = 0
@@ -253,25 +254,26 @@ export class MusicDirector {
     if (boss?.kind === this.want.boss?.kind && boss?.phase === this.want.boss?.phase) return
     this.set({ boss })
   }
-  setPlace(mood: string | undefined, light: string): void {
-    this.set({ mood, light })
+  setPlace(mood: string | undefined, light: string, moment?: Moment, battleMusic = true): void {
+    if (!battleMusic) this.fightUntil = 0
+    this.set({ mood, light, battleMusic }, moment)
   }
   setMoment(m: Moment): void {
-    const before = this.moment
-    this.moment = m
-    if (momentsOf(before).join() !== momentsOf(m).join()) this.decide()
+    this.set({}, m)
   }
   /** The frame says whether the player is in a fight: the music holds a few seconds past its end. */
   setFight(on: boolean): void {
-    if (on) {
+    if (on && this.want.battleMusic) {
       const was = performance.now() < this.fightUntil
       this.fightUntil = performance.now() + FIGHT_HOLD * 1000
       if (!was) this.decide()
     }
   }
 
-  private set(w: Partial<Wants>): void {
-    if (Object.entries(w).every(([k, v]) => JSON.stringify(this.want[k as keyof Wants]) === JSON.stringify(v))) return
+  private set(w: Partial<Wants>, moment = this.moment): void {
+    const sameMoment = moment === this.moment || momentsOf(this.moment).join() === momentsOf(moment).join()
+    this.moment = moment
+    if (sameMoment && Object.entries(w).every(([k, v]) => JSON.stringify(this.want[k as keyof Wants]) === JSON.stringify(v))) return
     Object.assign(this.want, w)
     this.decide()
   }
@@ -326,17 +328,16 @@ export class MusicDirector {
     }
     const sameMood = this.place && (this.placeMood === (w.mood ?? w.light))
     if (this.place && this.place.name !== placeCue.name) {
-      // the hour or the weather: at the end of the piece playing (one that loops on its own changes now)
-      if (sameMood && !this.place.loops) this.place.pending = placeCue
+      // Most moment changes wait for the current piece. A loop or an immediate destination crossfades now.
+      if (sameMood && !this.place.loops && !placeCue.cue.enterImmediately) this.place.pending = placeCue
       else {
         this.place.stop(FADE.placeOut)
         this.place = undefined
       }
     } else if (this.place) this.place.pending = undefined
-    if (!this.place) {
-      this.place = new Strand(this.ctx, this.out, placeCue.name, placeCue.cue).start(FADE.place)
-      this.placeMood = w.mood ?? w.light
-    } else this.place.resume(FADE.place)
+    if (!this.place) this.place = new Strand(this.ctx, this.out, placeCue.name, placeCue.cue).start(FADE.place)
+    else this.place.resume(FADE.place)
+    this.placeMood = w.mood ?? w.light
   }
   private placeMood?: string
 }

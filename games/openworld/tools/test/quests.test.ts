@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest'
 import { socialOf, takeProfession } from '@openworld/modules'
 import { Game, RuleLibrary, tickAt, validatePatch, type Engine, type QuestDef } from '@openworld/engine'
-import { BASE_RULES, CH1, FIRSTLIGHT, GARDEN_BARE_ROW, PROFESSION_BY_ID, QUESTS, SKILLS, STORY_RULES, WAYSHRINES, buildOntology, decodeChunk, shrineFact } from '@openworld-game/content'
+import { BASE_RULES, CH1, COMMISSIONS, FIRSTLIGHT, GARDEN_BARE_ROW, PROFESSION_BY_ID, QUESTS, SKILLS, STORY_RULES, WAYSHRINES, buildOntology, decodeChunk, shrineFact } from '@openworld-game/content'
 import { buildFord } from '../src/demo/world.ts'
 
 const onto = buildOntology()
@@ -501,3 +501,30 @@ describe('a quest done for someone is a kindness', () => {
     expect(w.num(w.player, 'karma')).toBe(3)
   })
 })
+
+describe('commissions: what the Held Ground grows, asked for someone else\'s good (docs/logs/0008; P1, 0004)', () => {
+  it('are offered only once the Held Ground is one\'s own, by someone in Firstlight', () => {
+    const { eng } = world()
+    const q = eng.quests
+    const offered = () => COMMISSIONS.flatMap((d) => q.of(d.id)).filter((x) => q.stateOf(x) === 'offered')
+    for (let i = 0; i < 20; i++) (q.news({ kind: 'morning' }), ticks(eng, 2))
+    expect(offered()).toEqual([])
+    eng.author(() => eng.world.setFact('sins.defeated.alberic', 1))
+    for (let i = 0; i < 40 && !offered().length; i++) (q.news({ kind: 'morning' }), ticks(eng, 2))
+    expect(offered().length).toBeGreaterThan(0)
+    for (const x of offered()) expect(eng.world.posOf(eng.world.get(q.alias(x, 'neighbour') ?? '')!)?.map).toBe('meadow')
+  })
+
+  it('cost nothing turned down, and end kindly when left too long: no stage of theirs harms anyone', () => {
+    for (const d of COMMISSIONS) {
+      expect(d.declined, d.id).toBeDefined()
+      const failing = d.stages.filter((s) => s.failed)
+      expect(failing.length, d.id).toBe(1)
+      // the deadline's (no trigger of its own: QuestManager.fail), and kind words, not a loss
+      expect(failing[0].on, d.id).toBeUndefined()
+      expect(JSON.stringify(failing[0].log), d.id).not.toMatch(/gone|dead|died|不在了|死/)
+      expect(JSON.stringify(failing[0].log), d.id).toMatch(/glad|高兴/)
+    }
+  })
+})
+
