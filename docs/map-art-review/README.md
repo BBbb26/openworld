@@ -19,6 +19,14 @@ Captured in local playtest at noon, sunny weather. Overview zoom is 2; close vie
 ![Hunter yard](hunter-yard.png)
 ![Hunter interior](hunter-interior.png)
 
+Rendered offline from the map files (no lighting or animation), as the wiki draws maps:
+
+- Vesper Ford, the whole map: the north cliff and falls, the ferrykeeper's camp, the crossing (winch, piers, boat, far post), the broken footbridge, the dead tree and the pond. Rendered 2026-11-24, before the ferry went back to one way; the map looks the same.
+- The churches: the ten chapel and church maps redone from the user's sheets, at one scale (32 px a cell), on one poster.
+
+![Vesper Ford](ford.png)
+![The churches](churches.jpg)
+
 ## Reproduce
 
 Run npm install, npm run gen:world, then npm run dev. Open the client with ?lang=zh&modder=off&playtest=1&at=summit,10,7 or ?lang=zh&modder=off&playtest=1&at=foot,20,8. The hunter interior is foot.hut,6,13.
