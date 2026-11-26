@@ -335,6 +335,10 @@ export const STATUSES: StatusDef[] = [
   { id: 'milked', name: { en: 'milked', zh: '挤过奶' }, duration: TICKS_PER_DAY },
   // a beast that has borne young rests a day before it can again
   { id: 'bred', name: { en: 'bred', zh: '刚生过崽' }, duration: TICKS_PER_DAY },
+  // a sheep shorn grows its fleece again in two days (homestead.ts home/shear)
+  { id: 'shorn', name: { en: 'shorn', zh: '剪过毛' }, duration: 2 * TICKS_PER_DAY },
+  // a sealed cask at work on what was put in it (processing.ts): its clock's end is when what it makes is done
+  { id: 'brewing', name: { en: 'brewing', zh: '正在酿' } },
   // forced to one's knees (the Crown of Thorns' power: none cross that do not kneel)
   { id: 'knelt', name: { en: 'kneeling', zh: '跪地' }, duration: 10, immobilize: true },
   { id: 'adrenaline', name: { en: 'adrenaline', zh: '肾上腺素' }, duration: 50, every: 10 },
@@ -458,6 +462,9 @@ const actorTypes: TypeDef[] = [
   P('actor/creature/animal/chicken', 'chicken', '鸡', { tags: ['livestock', 'bird', 'feathered', 'lays-eggs'], sprite: 'creature:chicken', stage: LAYS, props: { hp: 4, maxHp: 4, atk: 0, speed: 5, babyType: 'actor/creature/animal/chick', meat: 'item/food/chicken/raw', hide: 'item/material/feather' }, makeup: [{ type: 'item/food/chicken/raw', count: 2 }] }),
   // the young of a pair fed together (homestead.ts, Minecraft's breeding): they grow up in two days
   P('actor/creature/animal/calf', 'calf', '小牛', { tags: ['livestock', 'furry', 'young'], sprite: 'creature:calf', stage: { lasts: GROWS_UP, into: 'actor/creature/animal/cow' }, props: { hp: 5, maxHp: 5, atk: 0, speed: 6 }, makeup: [{ type: 'item/food/meat/raw', count: 1 }] }),
+  // the Held Ground's sheep (docs/logs/0006): bought crated, fed, shorn with a sickle for wool (homestead.ts), bred as a cow is
+  P('actor/creature/animal/sheep', 'sheep', '羊', { tags: ['livestock', 'furry', 'woolly'], sprite: 'creature:sheep', props: { hp: 8, maxHp: 8, atk: 0, speed: 6, babyType: 'actor/creature/animal/lamb', meat: 'item/food/meat/raw', wool: 'item/material/wool' }, makeup: [{ type: 'item/food/meat/raw', count: 3 }] }),
+  P('actor/creature/animal/lamb', 'lamb', '小羊', { tags: ['livestock', 'furry', 'young'], sprite: 'creature:lamb', stage: { lasts: GROWS_UP, into: 'actor/creature/animal/sheep' }, props: { hp: 4, maxHp: 4, atk: 0, speed: 5 }, makeup: [{ type: 'item/food/meat/raw', count: 1 }] }),
   P('actor/creature/animal/chick', 'chick', '小鸡', { tags: ['livestock', 'bird', 'feathered', 'young'], sprite: 'creature:chick', stage: { lasts: GROWS_UP, into: 'actor/creature/animal/chicken' }, props: { hp: 2, maxHp: 2, atk: 0, speed: 4 }, makeup: [{ type: 'item/material/feather', count: 1 }] }),
   // the main quest's monsters (docs/main-quest.md)
   P('actor/creature/spider', 'cave spider', '洞穴蜘蛛', { tags: ['spider', 'venomous'], sprite: 'creature:spider', props: { speed: 4 } }),
@@ -601,6 +608,8 @@ const fixtureTypes: TypeDef[] = [
   F('fixture/water', 'water source', '水源', ['water-source', 'stone'], { solid: true }),
   F('fixture/water/well', 'well', '水井', []),
   F('fixture/water/well/square', 'well head', '井台', [], { footprint: [2, 1], sprite: 'fixture:well_head' }),
+  // a well one builds (docs/logs/0005): made from the bag once the Held Ground's workshop stands, set up where it is wanted
+  F('fixture/water/well/dug', 'dug well', '自砌水井', ['portable'], { sprite: 'fixture:well', props: { material: 'stone' }, makeup: [{ type: 'item/material/stone', count: 12 }, { type: 'item/material/plank', count: 2 }, { type: 'item/vessel/bucket/empty', count: 1 }], station: 'hands' }),
   F('fixture/water/fountain', 'fountain', '喷泉', []),
   F('fixture/water/trough', 'trough', '水槽', ['wooden']),
   // a sign is read from a step or two off
@@ -745,6 +754,24 @@ const fixtureTypes: TypeDef[] = [
     [], [...(c.perennial ? ['perennial'] : []), `crop:${CROP_KIND[c.id] ?? 'fruit'}`])),
   F('fixture/crop/oak', 'oak', '橡树', [], { props: { seedType: 'item/seed/acorn' } }),
   F('fixture/crop/oak/sapling', 'oak sapling', '橡树苗', ['sapling'], { sprite: 'fixture:oak_sapling', stage: GROWS_INTO_TREE }),
+  // the Held Ground's water (water.ts, docs/logs/0005): a barrel that catches the rain (three bucketfuls), a sprinkler that
+  // waters the crops round it each morning from the water poured into it (ten mornings). Made from the bag, set up where wanted.
+  F('fixture/farm', 'farm fixture', '农事设施', ['wooden', 'flammable', 'portable'], { solid: true, props: { material: 'wood' } }),
+  F('fixture/farm/rain_barrel', 'rain barrel', '雨水桶', ['cistern'], { props: { material: 'wood', stored: 0, holds: 3 }, makeup: [{ type: 'item/material/plank', count: 4 }, { type: 'item/material/stick', count: 2 }], station: 'hands' }),
+  F('fixture/farm/sprinkler', 'sprinkler', '洒水器', ['reservoir', 'metal'], { props: { material: 'wood', fill: 0, draughts: 10 }, makeup: [{ type: 'item/vessel/bucket/empty', count: 1 }, { type: 'item/material/iron_ingot', count: 1 }, { type: 'item/material/plank', count: 2 }], station: 'hands' }),
+  // the Held Ground's machines (processing.ts, docs/logs/0006): a millstone, a station where wheat is ground into flour
+  // (a hand on it opens its panel); a cask, which works by itself — fruit put in, sealed, and two days later cider or
+  // fruit wine comes out beside it
+  F('fixture/machine', 'machine', '机具', ['portable', 'machine'], { solid: true }),
+  F('fixture/machine/millstone', 'millstone', '石磨', ['stone', 'station:mill'], { sprite: 'fixture:millstone', props: { material: 'stone' }, makeup: [{ type: 'item/material/stone', count: 8 }, { type: 'item/material/plank', count: 2 }], station: 'hands' }),
+  F('fixture/machine/cask', 'cask', '酒桶', ['wooden', 'flammable'], { props: { material: 'wood', makes: '', batch: 0, holds: 12 }, makeup: [{ type: 'item/material/plank', count: 6 }, { type: 'item/material/iron_ingot', count: 1 }], station: 'hands' }),
+  // an orchard (orchard.ts, docs/logs/0006): a seedling planted grows into a tree in two days, and the tree bears every day
+  // after; its fruit picked by hand, it is bare again until the next. Three kinds side by side, not a stage tree under one
+  // (a child would take its parent's stage)
+  F('fixture/orchard', 'orchard tree', '果树', ['plant', 'wooden', 'flammable'], { solid: true, props: { material: 'wood' } }),
+  F('fixture/orchard/apple_sapling', 'apple sapling', '苹果树苗', ['sapling'], { solid: false, stage: { into: 'fixture/orchard/apple_tree', lasts: TREE_GROWS, needs: { all: [LIGHT, CLEAR] }, wait: 600, fx: 'leaves' } }),
+  F('fixture/orchard/apple_tree', 'apple tree', '苹果树', [], { props: { material: 'wood', maxHp: 10, hp: 10 }, makeup: [{ type: 'item/material/log', count: 3 }, { type: 'item/material/stick', count: 2 }], stage: { into: 'fixture/orchard/apple_fruiting', lasts: TICKS_PER_DAY, needs: LIGHT, wait: 600, fx: 'leaves' } }),
+  F('fixture/orchard/apple_fruiting', 'apple tree in fruit', '结果的苹果树', ['fruiting'], { props: { material: 'wood', maxHp: 10, hp: 10, fruitType: 'item/food/apple', fruit: 3, bareType: 'fixture/orchard/apple_tree' }, makeup: [{ type: 'item/material/log', count: 3 }, { type: 'item/material/stick', count: 2 }] }),
   F('fixture/build', 'unfinished work', '半成品', ['unfinished'], { solid: true }),
   F('fixture/build/frame', 'wooden frame', '木框架', ['wooden', 'flammable']),
   F('fixture/build/stakes', 'stakes', '木桩', ['wooden', 'flammable', 'turns']),
@@ -862,6 +889,12 @@ export function buildOntology(): Ontology {
       // provisions (store/morning): kept, so one away at six o'clock has it when next seen
       { name: 'morning', every: TICKS_PER_DAY, kept: true, host: { type: 'actor/person' } },
       { name: 'morning', every: TICKS_PER_DAY, kept: true, host: { type: 'fixture/container', tags: ['larder'] } },
+      // the Held Ground's water (water.ts): a rain barrel looks each hour whether it rains on it; a sprinkler sprays each
+      // morning (kept: one on a ground one was away from sprays once on one's return)
+      { name: 'rain', every: TICKS_PER_DAY / 24, host: { type: 'fixture/farm/rain_barrel' } },
+      // the story counts the days to the Held Ground's market day (market.ts: the pilgrim pedlar every third day)
+      { name: 'market', every: TICKS_PER_DAY, host: 'story' },
+      { name: 'morning', every: TICKS_PER_DAY, kept: true, host: { type: 'fixture/farm/sprinkler' } },
       // the night's walkers crumble at dawn (their own)
       { name: 'dawn', every: 5, host: { type: 'actor', tags: ['nightborn'] } },
       // the dragon's whelps, their mother slain, scatter into the dark (quest.ts, mq/whelps-scatter)

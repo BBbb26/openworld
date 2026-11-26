@@ -100,6 +100,11 @@ export const LIFE_RECIPES: Recipe[] = [
   { id: 'smith/anvil', name: L("Smith's Anvil", '铁匠砧'), sprite: 'fixture:anvil', needs: needs([INGOTS.iron, 3]), make: { type: 'fixture/craft/anvil/smith', name: L("Smith's Anvil", '铁匠砧') }, station: 'forge', skill: 'forge-builder' },
   // cloth woven from grass fibre: anywhere, once the Held Ground's weaving shed stands (haven.ts `recipes`)
   { id: 'weave/cloth', name: formName('item/material/cloth'), sprite: sprite('item/material/cloth'), needs: needs(['item/material/grass', 4]), make: { type: 'item/material/cloth' }, station: 'hands' },
+  // cloth of a sheep's wool, one to one (docs/logs/0006): the same cloth, from the ground's own flock
+  { id: 'weave/wool', name: formName('item/material/cloth'), sprite: sprite('item/material/cloth'), needs: needs(['item/material/wool', 1]), make: { type: 'item/material/cloth' }, station: 'hands' },
+  // the millstone (processing.ts, docs/logs/0006): five sheaves of wheat ground into two of flour; a flour cooked over a fire is a
+  // loaf (rules.ts use/cook) — so a loaf is worth what a loaf was (six: prices.ts, the cheapest way)
+  { id: 'mill/flour', name: formName('item/material/flour'), sprite: sprite('item/material/flour'), needs: needs([M.wheat, 5]), make: { type: 'item/material/flour' }, station: 'mill', count: 2 },
   // leather gear (Leatherworker)
   leather('item/clothing/gloves', 1),
   leather('item/clothing/boots', 2),
@@ -137,6 +142,7 @@ const STATIONS: [type: string, station: string, label: Text][] = [
   ['fixture/craft/arcane', 'arcane', L('Work at {target}', '在{target}施法制作')],
   ['fixture/craft/workbench', 'workbench', L('Work at {target}', '在{target}做东西')],
   ['fixture/craft/loom', 'loom', L('Weave at {target}', '在{target}织布')],
+  ['fixture/machine/millstone', 'mill', L('Grind at {target}', '在{target}磨面')],
 ]
 
 /**

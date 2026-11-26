@@ -92,6 +92,12 @@ export function buildHaven(): MapBuilder {
     m.anchor(`home.${u.id}.a`, x - 1, y + 1)
     m.anchor(`home.${u.id}.b`, x + 1, y + 1)
   }
+  // the table (docs/logs/0011): every resident's day is spent round the kitchen hearth and the storehouse (their plots
+  // at [22,25] and [24,25]), within a hand's reach of what is shared there; the camp's bed keeps its place by the fire
+  for (const [i, u] of HAVEN_UPGRADES.filter((x) => x.id.startsWith('lodge') && x.plot).entries()) {
+    m.anchor(`home.${u.id}.a.day`, 20 + i * 2, 23)
+    m.anchor(`home.${u.id}.b.day`, 21 + i * 2, 23)
+  }
   m.fixture('fixture/container/chest', hx + 3, hy - 3, { id: 'haven.chest', statuses: { open: -1 }, name: L('The Held Ground\'s chest', '誓守之地的箱子') })
   // no beasts of its own: a cow, a calf, hens are bought crated at Alberic's stall and set down here
   // the fish pond (homestead.ts): cast a line in it (a rod is made at hand; bait from the stall makes them bite);
@@ -102,6 +108,11 @@ export function buildHaven(): MapBuilder {
   // Alberic's stall: three shelves (farming, ranching, fishing) and what it buys back (homestead.ts)
   // the Held Ground's only trade: fire does not take it (gone, it would be gone for good)
   m.fixture('fixture/furniture/stall/trade', hx + 3, hy + 1, { id: 'haven.stall', name: L("Alberic's stall", '阿尔贝里克的货摊'), statuses: { fireproof: -1 } })
+  // the commission board (docs/logs/0008): what Firstlight's people ask of the ground's harvest — bread for the vigil, wool,
+  // apples for the sick (content quests/commissions.ts); like every board it shows all the favours on offer
+  // where Gisela, the pilgrim pedlar, keeps her pack open on a market day (docs/logs/0009; people/gisela.ts)
+  m.anchor('market', hx + 5, hy + 2)
+  m.fixture('fixture/sign/questboard', hx + 2, hy + 3, { id: 'haven.board', name: L("The Held Ground's commission board", '誓守之地的委托板') })
   // the rings of mist: each a bank all round, lifting when the ground is widened past it (its `ring`)
   m.regions.held = [hx - 8, hy - 7, 17, 15]
   for (const [i, r] of HAVEN.rings.entries())

@@ -2,13 +2,14 @@
 // what the modder and the runtime are handed instead of importing the content.
 
 import type { Engine, GameDef } from '@openworld/engine'
-import { HUNGER_EVERY } from '@openworld/modules'
+import { HUNGER_EVERY, RESIDENT_MEAL, residentSchedule } from '@openworld/modules'
 import { STORY_RULES } from './ford.ts'
 import { WATCH_SHELTER } from './chapter1.ts'
 import { TERRAIN_CHARS, buildOntology } from './ontology.ts'
 import { BASE_RULES } from './rules.ts'
 import { CHAPEL_SIGN } from './village.ts'
 import { SET_DEFS, setOfSlot } from './sets.ts'
+import { SOCIAL } from './social.ts'
 
 /** The forged sets' ids (each profession's armour; its trinkets are `<id>_trinkets`). */
 const FORGED = new Set(SET_DEFS.map((s) => s.id))
@@ -57,6 +58,25 @@ function upgradeSave(eng: Engine): void {
     if (savedCloak && place && typeof place === 'object' && !('on' in place) && ('x' in place || 'y' in place || 'z' in place || 'map' in place)) {
       savedCloak.place = { on: 'tile', map, x: 8, y: 5, ...place, holder: null }
     }
+    // Residents who came to live on the Held Ground before it had a table (docs/logs/0011) kept a day without meals:
+    // their day is the residence's as it is now — two meals at the table, their day place by the hearth.
+    // (the bed and the day place from the map's anchors where its map is loaded, else from the day they kept)
+    const home = SOCIAL.residence
+    if (home)
+      for (const e of w.people()) {
+        const r = e.npc?.resident
+        if (!r || r.map !== home.map || r.schedule.some((s) => s.activity === RESIDENT_MEAL)) continue
+        const anchors = w.map(home.map)?.anchors
+        const kept = (where: 'bed' | 'day'): [number, number] | undefined => {
+          const span = home.days.find((d) => d.at === where && d.activity !== RESIDENT_MEAL)
+          const was = span && r.schedule.find((s) => s.activity === span.activity)
+          return was && [was.x, was.y]
+        }
+        const at = anchors?.[r.slot] ?? kept('bed')
+        const day = anchors?.[`${r.slot}.day`] ?? kept('day') ?? at
+        if (!at || !day) continue
+        r.schedule = residentSchedule(w, home, { at, day })
+      }
     // The First Seal's stage 40 (across the river) showed the White Knight until the Pilgrim's Road came between them
     // (2026-10-12, docs/chapter-1.md §14): it shows the oath at the Pilgrims' Rest now, and the knight from stage 80. A
     // save at that stage from before shows what the stage shows now (the oath's own fact moves it on, as ever).

@@ -26,7 +26,7 @@ const SPAWN_MAX = 64
 export const PRIMITIVES: Record<Exclude<Effect['op'], ModuleOp>, string> = {
   spawn: 'spawn {type, at: role ref, into?: tile|contents|hand, count?, still?, owner?: role, ownerFrom?: role} — create new things at a role\'s place (its tile, contents or hand); owner makes the spawned thing belong to that role, while ownerFrom copies only an existing string owner prop from that role; type may be "@prop:<role>.<key>" (a crop\'s yieldType); count may read a prop or a param; items on the ground pop out for the magnet unless still (then they are picked up with E); what cannot be carried (not portable) is made on the holder\'s tile, never in a hand or bag',
   destroy: 'destroy {} — the host is gone (with what it holds); the essential (people) never are: they go down instead',
-  transform: 'transform {into} — the host becomes another type ("@prop:key" reads the type from its own prop, e.g. emptyType). A cell is made of things (tile/<terrain>: the floor, what roots in the soil, what fills the volume): water becoming ice is the water transforming; becoming a type whose space in its cell another thing holds (rock into gravel, where a floor is), the host is gone instead; a carried host become a thing that cannot be carried is set down at its holder\'s feet',
+  transform: 'transform {into} — the host becomes another type ("@prop:key" reads the type from its own prop, e.g. emptyType). A cell is made of things (tile/<terrain>: the floor, what roots in the soil, what fills the volume): water becoming ice is the water transforming; becoming a type whose space in its cell another thing holds (rock into gravel, where a floor is), the host is gone instead; a carried host become a thing that cannot be carried is set down at its holder\'s feet; what a vessel held in draughts (its own `fill`) goes with its old form: it holds what its new form holds (none, or full)',
   move: 'move {to: role ref, into?: tile|contents|hand} — the host moves itself to a role\'s tile, contents or hand; a built thing (a fixture, a structure) that comes to rest on a tile lies loose there (packed as item/misc/bundle/loose, which a hand picks up) unless the event says it is set up (param build: the right click\'s, the build palette\'s)',
   loosen: 'loosen {} — the host, a built thing that can be carried standing on its cell (a bed, a wall), comes loose there whole (a tool knocking it loose): what it holds spills out, and it lies packed as an item for the magnet and the hand; a floor that bears something stays',
   step: 'step {dir?} — the host steps one tile (dir, or the act\'s `dir` param): walls and the solid stop it (a bump), portals carry it',
@@ -320,6 +320,9 @@ export class EffectRunner {
         else delete host.name
         // a thing become another is whole as what it is now (a felled tree's stump, a regrown tree)
         if (host.props?.hp !== undefined && w.onto.resolve(into).props.maxHp !== undefined) w.setProp(host, 'hp', undefined)
+        // what a vessel held in draughts (`fill` of its form's `draughts`: a bucket of water) was its old form's:
+        // emptied or filled again, it holds what its new form holds — none, or full (its form's own `fill`)
+        if (host.props?.fill !== undefined) w.setProp(host, 'fill', undefined)
         eng.touch({ e: host.id })
         return
       }

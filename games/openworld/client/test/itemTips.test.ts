@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { textOf, type ItemInfo } from '@openworld/engine'
 import { CLIENT_GAME } from '../src/game.ts'
-import { fishingBaitContextAction, fishingRodIconDecoration } from '../src/itemTips.ts'
+import { fishingBaitContextAction, fishingRodIconDecoration, vesselIconBadge } from '../src/itemTips.ts'
 
 vi.mock('phaser', () => ({ default: { Scene: class {} } }))
 
@@ -31,6 +31,20 @@ describe('the game item descriptions', () => {
     expect(fishingRodIconDecoration(rod, forms)?.sprite).toBe('item:masterwork-bait')
     rod.props.bait = 0
     expect(fishingRodIconDecoration(rod, forms)).toBeUndefined()
+  })
+
+  it('counts a bucket of water down in its icon (10/10 … 1/10) and its tooltip; an empty bucket, milk or a flask shows none', () => {
+    const item = (type: string, props: ItemInfo['props'] = {}): ItemInfo => {
+      const form = CLIENT_GAME.items.forms[type]
+      return { id: 'it', type, name: type, sprite: '', tags: form?.tags ?? [], statuses: [], props: { ...form?.props, ...props } }
+    }
+    expect(vesselIconBadge(item('item/vessel/bucket/water'))).toBe('10/10')
+    expect(vesselIconBadge(item('item/vessel/bucket/water', { fill: 9 }))).toBe('9/10')
+    expect(vesselIconBadge(item('item/vessel/bucket/water', { fill: 1 }))).toBe('1/10')
+    expect(CLIENT_GAME.itemIconBadge?.(item('item/vessel/bucket/water', { fill: 4 }))).toBe('4/10')
+    for (const type of ['item/vessel/bucket/empty', 'item/vessel/bucket/milk', 'item/vessel/flask/water']) expect(vesselIconBadge(item(type))).toBeUndefined()
+    expect(tips('item/vessel/bucket/water', { fill: 7 })).toContain('Water left: 7/10')
+    expect(tips('item/vessel/bucket/empty')).not.toContain('Water left')
   })
 
   it('names the legacy bait-on-rod action and hides only its meaningless put option', () => {

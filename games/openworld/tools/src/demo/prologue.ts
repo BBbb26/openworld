@@ -44,7 +44,7 @@ export function buildSummit(): MapBuilder {
   // the snowfield and the shelter built against them, the wind-bent pines in their lee, the patches the wind has
   // scoured to the tussock, the rim of rock along the plateau's south edge with the cut through it, the face below and
   // the way down between rock and pine to the Mountain Foot. A trail trodden in the snow runs from the door to the cut.)
-  const m = new MapBuilder('summit', L('Cloudtop', '云顶台地'), 'wild', 40, 30, 'snow', 'cloudtop', 'outdoor', 'frostfang')
+  const m = new MapBuilder('summit', L('Cloudtop', '云顶台地'), 'wild', 40, 30, 'snow', 'cloudtop_route', 'outdoor', 'frostfang')
   m.paint('summit')
   // the ruined watch shelter one wakes in: low walls of dry stone built against the crags, roofless, fallen in at its
   // north-west corner and on its west side, its doorway on the south toward the cut, the hearth's chimney still standing
@@ -119,7 +119,7 @@ export function buildFoot(): MapBuilder {
   // crags and the ledge of fallen rock under them, the cleft the trail comes down through, the scree at the foot of the
   // face; the old ground of the seal stone, paved and gone to flowers; the hunter's hut and its yard; the meadows and
   // the woods round them, open only where the trail runs out south to the top of the Ford's cliff.)
-  const m = new MapBuilder('foot', L('Woundstone Foot', '伤石山麓'), 'wild', 40, 30, 'grass', 'field', 'outdoor', 'frostfang')
+  const m = new MapBuilder('foot', L('Woundstone Foot', '伤石山麓'), 'wild', 40, 30, 'grass', 'woundstone_foot', 'outdoor', 'frostfang')
   m.paint('foot')
   // the heights, drawn by hand: the crags two levels above the ledge, the ledge two above the foot, its edge a face of
   // rock — a ramp runs down the cleft where the trail does (each row half a level lower), a drop anywhere else hurts

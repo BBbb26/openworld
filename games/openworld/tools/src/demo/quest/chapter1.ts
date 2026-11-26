@@ -213,6 +213,9 @@ export function buildOffstage(): MapBuilder {
   m.anchor('severin.hide', 2, 2)
   m.anchor('courier.hide', 5, 3)
   m.anchor('alberic.hide', 6, 1)
+  // the pilgrim roads, where Gisela is between her market days at the Held Ground (docs/logs/0009); a cell of its own
+  // (1,4 is Roderick's, chapter2Offstage — docs/logs/0015)
+  m.anchor('gisela.road', 3, 2)
   m.zone = 'peaceful'
   return m
 }
