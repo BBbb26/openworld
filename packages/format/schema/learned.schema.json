@@ -1216,6 +1216,9 @@
                 ]
               }
             },
+            "actor": {
+              "$ref": "#/definitions/RoleName"
+            },
             "item": {
               "$ref": "#/definitions/RoleName"
             },

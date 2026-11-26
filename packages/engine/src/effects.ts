@@ -57,7 +57,7 @@ export const PRIMITIVES: Record<Exclude<Effect['op'], ModuleOp>, string> = {
   lightning: 'lightning {power} — the world\'s: a bolt seeks what stands tall near the player and emits element lightning to it',
   ashore: 'ashore {} — the host gets out of where it cannot be, to the nearest free tile',
   fallback: 'fallback {} — the story\'s: run the broken invariant\'s authored fallback',
-  emit: 'emit {impulse, to, params?, item?, other?, chance?, filter?} — send an impulse (strike, element, coat, restore, push, taken, receive, offered, handle, notify, settle) to a role, "story", "world", {named: id}, {area: {at?, radius}}, {line: {from?, away, length, over?}} or {map: true}; params are values, Amounts, {typeOf: role} (what kind of thing a role is, kept even after it is gone) or {idOf: role} (which thing it is); filter and chance pick who receives it; the receiver answers for itself',
+  emit: 'emit {impulse, to, params?, actor?, item?, other?, chance?, filter?} — send an impulse (strike, element, coat, restore, push, taken, receive, offered, handle, notify, settle) to a role, "story", "world", {named: id}, {area: {at?, radius}}, {line: {from?, away, length, over?}} or {map: true}; params are values, Amounts, {typeOf: role} (what kind of thing a role is, kept even after it is gone) or {idOf: role} (which thing it is); actor optionally names the acting role (host for a counterattack), otherwise the original actor is preserved; filter and chance pick who receives it; the receiver answers for itself',
   vfx: 'vfx {at?, fx} — play a visual effect (at the host unless at names a role)',
   say: 'say {text, who?} — the host says a line ("@line": one of its own lines for the moment; "@given": its line for the item it was given; "@chat": one of its chat lines, or what it likes best); text fills {host} {actor} {target} {instrument} {other} {item} and {role.key}',
   remark: 'remark {text, again?, alone?, every?} — a line for whoever set the event going (the cause; else its other): its companion beside it says it in a bubble, as a leader\'s companion speaks the story\'s beats — `text` the first time this host says it, `again` (default text) after; `every` (ticks): not again within that long (a way walked into on and on). No companion at hand: `alone` (default text) in the message line, as log writes it. Writes nothing',
@@ -993,7 +993,7 @@ export class EffectRunner {
         host: to,
         roles: {
           source: ev.host,
-          actor: ev.roles.actor ?? (ev.cause ? { e: ev.cause } : undefined),
+          actor: eff.actor ? this.roleRef(ev, eff.actor) : ev.roles.actor ?? (ev.cause ? { e: ev.cause } : undefined),
           instrument: ev.roles.instrument,
           item,
           other,
