@@ -28,10 +28,14 @@ describe('garden species use the native crop cycle', () => {
     expect(eng.controls.count(seed)).toBe(0)
     let crop = w.placedAt('sandbox', 2, 1).find(e => e.type.startsWith('fixture/crop/'))!
     expect(crop.type).toBe('fixture/crop/' + id + '/sprout')
-    for (const stage of ['young', 'ripe']) {
-      carry(eng, 'item/vessel/bucket/water'); use(eng)
+    // one bucket waters every stage: it holds ten waterings, one spent each time
+    carry(eng, 'item/vessel/bucket/water')
+    const bucket = w.player.held!
+    for (const [n, stage] of ['young', 'ripe'].entries()) {
+      use(eng)
       expect(w.hasStatus({ e: crop.id }, 'watered')).toBe(true)
-      expect(eng.controls.count('item/vessel/bucket/water')).toBe(0)
+      expect(w.get(bucket)!.type).toBe('item/vessel/bucket/water')
+      expect(w.num(w.get(bucket)!, 'fill')).toBe(9 - n)
       for (let tick = 0; tick <= cropHours(id) * 600; tick++) eng.tick()
       crop = w.get(crop.id)!
       expect(crop.type).toBe('fixture/crop/' + id + '/' + stage)

@@ -15,6 +15,7 @@ export interface AmbienceState {
   dusk: number
   dawn: number
   weather: string
+  muteCrickets?: boolean
   /** 0–1, near the middle of the view: running or standing water; snow and ice; how near a fire burns. */
   water: number
   cold: number
@@ -193,8 +194,11 @@ export class Ambience {
 
   /** The world as it is now (the scene tells it each second, and on a change of map). */
   update(s: AmbienceState): void {
-    this.state = s
     const t = this.ctx.currentTime
+    if (s.muteCrickets && !this.state?.muteCrickets) {
+      for (const cricket of this.crickets) ease(cricket.amp.gain, 0, t, 0.02)
+    }
+    this.state = s
     const L = this.layers
     const out = s.light === 'outdoor'
     const roof = s.light === 'indoor'
@@ -355,7 +359,7 @@ export class Ambience {
       if (n.song <= now) (n.song = now + rand(morning ? 1.5 : 3, morning ? 6 : 11)), this.song(now + 0.05, morning)
     } else n.song = now + rand(1, 4)
     // crickets at night where it is not cold or wet; now and then an owl
-    const chirping = (out || s.light === 'indoor') && night && !wet && s.cold < 0.4
+    const chirping = !s.muteCrickets && (out || s.light === 'indoor') && night && !wet && s.cold < 0.4
     for (const k of this.crickets) {
       if (!chirping) {
         k.next = now + rand(0, 1)

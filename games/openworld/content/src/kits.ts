@@ -129,7 +129,7 @@ export const KIT_RULES: Rule[] = [
     doc: 'A Hollow Clerk weighing takes no hurt from a blow, and the one who struck is struck back with the weight of its own (its own attack).',
     host: { type: CLERK, status: ['weighing'] },
     on: 'impulse/strike',
-    tree: DO({ op: 'emit', impulse: 'strike', to: 'actor', params: { power: { prop: 'atk', of: 'host' }, edge: 'magic' }, filter: { type: 'actor' } }, { op: 'vfx', fx: 'sparks' }),
+    tree: DO({ op: 'emit', impulse: 'strike', to: 'actor', actor: 'host', params: { power: { prop: 'atk', of: 'host' }, edge: 'magic' }, filter: { type: 'actor' } }, { op: 'vfx', fx: 'sparks' }),
   }),
   ...kitRule('kit/bog_wisp', BOG_WISP, 'A bog wisp\'s Beckon draws whoever stands in its row three cells toward it, and its Corpse Light burns the cells round it at once.', [
     ['beckon', DO(unleash({ edge: 'magic', pull: 3 }))],

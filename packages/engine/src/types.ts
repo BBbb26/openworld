@@ -2027,10 +2027,11 @@ export type Effect =
   | { op: 'transform'; into: string }
   | { op: 'move'; to: RoleRef; into?: 'tile' | 'contents' | 'hand' }
   | { op: 'loosen' }
+  | { op: 'aloft' }
   | { op: 'step'; dir?: Dir; away?: RoleRef; tiles?: number }
   | { op: 'addStatus'; status: string; duration?: number }
   | { op: 'removeStatus'; status: string }
-  | { op: 'setProp'; key: string; value: PropValue | { param: string } }
+  | { op: 'setProp'; key: string; value: PropValue | null | { param: string } }
   | { op: 'addProp'; key: string; delta: Amount; min?: number; max?: Amount }
   | { op: 'addTag'; tag: string }
   | { op: 'removeTag'; tag: string }
@@ -2116,7 +2117,7 @@ export type Effect =
   | { op: 'craft' }
   | { op: 'lightning'; power: number }
   /** Send an impulse: `item` names the thing it carries (given, put, taken), `other` the role it names as the other side. */
-  | { op: 'emit'; impulse: Impulse; to: EmitTo; params?: Record<string, PropValue | Amount | { typeOf: RoleName } | { idOf: RoleName } | { stackKeyOf: RoleName }>; item?: RoleName; other?: RoleName; chance?: number; filter?: Selector }
+  | { op: 'emit'; impulse: Impulse; to: EmitTo; params?: Record<string, PropValue | Amount | { typeOf: RoleName } | { idOf: RoleName } | { stackKeyOf: RoleName }>; actor?: RoleName; item?: RoleName; other?: RoleName; chance?: number; filter?: Selector }
   /** Get out of where one cannot be (water closing over the ice): to the nearest free tile. */
   | { op: 'ashore' }
   /** The story's: an invariant's authored fallback (the default of a `broken` outcome). */

@@ -97,6 +97,10 @@ export function madeOf(data: Ontology, onto: OntologyIndex, type: string, materi
   const props: Record<string, PropValue> = {}
   // (only gear — a thing with a slot — has a level; a bucket does not)
   Object.assign(props, gearProps(r.props, m, q, typeof r.props.slot === 'string' ? level : undefined, data.params?.gearLevels))
+  // a vessel that holds draughts (a bucket's ten waterings) holds as many as it is well made: its quality's factor, as
+  // a weapon's power has it (a master's bucket fifteen, a crude one eight); a common one keeps its kind's own
+  const draughts = r.props.draughts
+  if (q && q.factor !== 1 && typeof draughts === 'number') props.draughts = Math.max(1, Math.round(draughts * q.factor))
   const base = r.name ?? { en: type.split('/').pop()!, zh: type.split('/').pop()! }
   const say = (x: Text | undefined, l: 'en' | 'zh') => (x === undefined ? '' : typeof x === 'string' ? x : (x[l] ?? x.en))
   // nor when its name already begins with it (a 木桶 of wood is not a 木木桶)

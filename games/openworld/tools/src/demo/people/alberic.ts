@@ -36,6 +36,8 @@ export const alberic: PersonDef = {
     line('default', 'Plant what you will, and build what you will. No one need kneel here.', '想种什么就种什么，想盖什么就盖什么。在这里，谁也不必下跪。'),
     line('default', 'The mist marks how far I can hold. Bring me what a wider ground needs, and I will push it further back.', '迷雾在哪里，我能守住的地方就到哪里。把扩地要用的东西带来给我，我就把迷雾再往外推一些。'),
     line('default', 'Before I was a knight, my father was a smith. The forge is lit; whenever you carry a hammer, the anvil is yours. If you lack bars or coal, I keep some.', '我做骑士以前，父亲是个铁匠。炉火一直生着，你只要带着锻锤，铁砧随时可以用。缺铁锭、缺煤，就跟我说，我这里备着。'),
+    // the table (docs/logs/0011): the residents eat together at the hearth
+    line('fact:haven.build.kitchen', 'Thy people eat together at the hearth now, morning and evening. I have set a stool for each of them. I do not keep their names yet. I keep the stools.', '你的人如今早晚都在灶台边一起吃饭。我给他们每人摆了一张凳子。他们的名字我还记不住，凳子我记得。'),
     line('hour:evening', 'The sun sets early now, earlier than it did. I am sorry for it. I cannot say why I am sorry, but I am.', '如今太阳落得早，比从前早。我很抱歉。为什么抱歉，我说不上来，可我心里确实抱歉。'),
     line('fact:q.templar', 'There was a squire once, who carried my lance. I cannot see his face any more. If you meet him, tell him I am sorry. One morning I asked him his name.', '从前有个侍从，替我扛长枪。他的脸，我已经想不起来了。你要是遇见他，替我跟他说声对不起。有一天早上，我问了他叫什么名字。', { once: true, mood: 'sad' }),
   ],

@@ -170,6 +170,19 @@ describe('creature kits', () => {
     run(3)
     expect(w.num(clerk, 'hp')).toBe(its)
     expect(w.num(p, 'hp')).toBeLessThan(mine)
+    expect(p.combat?.lastHurtBy).toBe(clerk.id)
+  })
+
+  it('a clerk\'s reflected blow respects the player\'s guard', () => {
+    const { eng, w, p, spawn, run } = arena()
+    const clerk = spawn('actor/creature/undead/clerk', 1)
+    expect(run(200, () => !!clerk.statuses?.weighing)).toBe(true)
+    eng.author(() => { (p.combat ??= {}).guardUntil = w.state.tick + 20 })
+    const mine = w.num(p, 'hp'), its = w.num(clerk, 'hp')
+    eng.playerAttack({ e: clerk.id })
+    run(3)
+    expect(w.num(clerk, 'hp')).toBe(its)
+    expect(w.num(p, 'hp')).toBe(mine)
   })
 
   it('a bog wisp beckons one down its row to its side and burns the cells round it', () => {
