@@ -1,9 +1,10 @@
 // The kit goal (docs/creatures.md, docs/skills.md): a minor monster's skills, taken up when their conditions hold —
 // the foe's distance, a row or a column, its own health, a chance, a cooldown (Elin's model). It looks once a second;
-// taking nothing up, it fights on as before (the threat goal). A boss's director takes its answering skills up by the
+// taking nothing up, it fights on as before (the threat goal). One that takes a skill up is in a fight, as one that
+// chases is (its `ai.state`, behaviour.ts). A boss's director takes its answering skills up by the
 // same conditions (`ready`).
 
-import type { Engine, Entity, KitSkill, Pos } from '@openworld/engine'
+import { provokedBy, type Engine, type Entity, type KitSkill, type Pos } from '@openworld/engine'
 import { beginCast, kitsOf, stepCast } from './cast.ts'
 import { originOf } from './pattern.ts'
 
@@ -40,7 +41,7 @@ export function foeOf(eng: Engine, e: Entity, active: string, sight: number): { 
     if (o === e || o.place.on !== 'tile' || (o.place.z ?? 0) !== (e.place.on === 'tile' ? e.place.z ?? 0 : 0) || !eng.hostileTo(e, o) || w.num(o, 'hp') <= 0 || o.statuses?.down) continue
     if ((o.combat?.veilUntil ?? 0) > now) continue
     const d = Math.abs(o.place.x - pos.x) + Math.abs(o.place.y - pos.y)
-    if (d <= sight && d < near) (best = o), (near = d)
+    if ((d <= sight || provokedBy(eng, e, o)) && d < near) (best = o), (near = d)
   }
   const at = best && w.posOf(best)
   return best && at ? { foe: best, at } : undefined
@@ -80,6 +81,7 @@ export function kitGoal(eng: Engine, e: Entity, active: string): boolean {
   if (!seen) return false
   for (const skill of kit) {
     if (!ready(eng, e, skill, pos, seen.at)) continue
+    e.ai.state = 'chase'
     ;(seen.foe.combat ??= {}).fightTick = w.state.tick
     const p = beginCast(eng, e, skill, seen.at, { target: seen.foe.id })
     if (!p) return false

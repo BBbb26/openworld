@@ -81,10 +81,15 @@ of about its level (the map's `gearLevel`), witnessed by demo requirement K2:
 | Giant crab | the Reed Bend (2) | the shore south of the spit |
 | Ice golem | the Cinder Pass (6) | the snow below, with the frost wolves |
 | Storm wisp | the Cinder Pass (6) | up the trail; and in a storm over the pass, up to two more (its own `appear` with `weather: ['storm']`) |
+| Slime King | Thornwood Hollow (2) | the bog at the west end, off the way to the barrow (demo requirement K4) |
 
 The world's night walkers stay the dead and the bats: the night's table is every outdoor combat map's, and a ghost
 (level 4) or a wisp (level 5) there would meet a level-1 player in the Ford's meadow. A kind of a later place comes
 by that place's own appearances, as the wisp's storm does.
+
+On a map of the later chapters a kind is of the map's level however it got there: `levelCreatures` sets those placed and
+fills `MapData.levelled`, the numbers `appear` gives each kind that comes by itself, the night's walkers among them
+(`tools/test/map-levels.test.ts`).
 
 ## 4. How it is built
 
@@ -253,3 +258,149 @@ wolves come at their foe from opposite sides), minor-balance.test.ts unchanged i
 
 Checks: kits.test.ts (the web left round the player, who wades in is webbed, a blow tears one, the rest sag away; the
 Spore Cloud poisons), demo.test.ts K3, trophies.test.ts (the sporecap's piece stands alone).
+
+## 13. Struck from afar (2026-11-19)
+
+A monster looked for foes only within its sight, so whoever struck it from beyond that was never answered: a bow's six
+cells against a wolf's five, and seven kinds of eight stood under the arrows. Now one that struck it in the last ten
+seconds (`combat.lastHurtBy`, `PROVOKED` in engine `creatures.ts`) is its foe wherever it stands, for the threat goal
+a minor monster's kit goal and its tactics alike (`provokedBy`; a boss's director already sees the whole map): it
+comes on, or into its own reach if it shoots, as far as its leash lets it. Once ten seconds pass without a blow, one out
+of its sight is forgotten and it goes back toward home (to within four cells of it); if they come into its sight again it fights them again, and one within its sight it fights on, as before. A passive animal struck from
+afar runs from the one who struck it for those ten seconds. A short leash still stops it: a skeleton on a leash of 3
+cannot reach an archer six cells off. Minecraft's mobs turn on whoever hurt them the same way.
+
+Checks: provoked.test.ts (a wolf and a fire imp shot from six cells come and fight back; one left alone stays; one
+struck once by someone who then goes out of its sight chases them, then goes home).
+
+## 14. The late roads' kinds (2026-11-20)
+
+Chapters 3 to 5 had borrowed the Ford's kinds: the Black Balance's clerks were ghosts, the Pale Fens' wisps were storm
+wisps. Each chapter now has a kind of its own, and each asks an answer none before it did, the way a new enemy in a
+Souls game or Monster Hunter teaches one new read.
+
+- **The Hollow Clerk** 空心书记官 (`undead/clerk`, a fighter, the six desks of the Black Balance). **Weigh** 称量:
+  it stands 0.6 s, then is `weighing` for 1.5 s, gold on its body (the status's tint; the skill marks no cells). A
+  blow struck meanwhile does it no harm and comes back on the striker at the clerk's own attack (`clerk/weigh`, an
+  `impulse/strike` rule of the status). **Strike the Account** 勾账: a cone of 2 toward its foe, 1 s, atk × 1.4 cut.
+  The answer is to hold one's blows: the read Sekiro's and Dark Souls' parries ask of the player, turned round.
+- **The bog wisp** 沼火 (`wisp/bog_wisp`, a caster, keeps away at 3, the causeway and the drowned graves).
+  **Beckon** 招引: from 2 to 4 cells off in its row, a line of 5, 1 s, pulls 3 toward it (so from its farthest one lands beside it), and chains into **Corpse Light** 尸火: the ring of 8
+  round itself, 0.6 s, atk × 1.3. The will-o'-wisp that leads one into the bog, with a hook's two beats (Dota's Pudge):
+  step off the line and neither lands; pulled, step out of the ring.
+- **The Restless** 不安者 (`undead/restless`, a caster, keeps away at 3, two in the catacombs among the dead).
+  **Plea** 哀求: a line of 4, 1 s, atk × 1, mired. **How Long?** 还要多久: half the times it may, it stands 1.4 s
+  and robes itself and every undead within 5 (`coat robed`, the `body/afflict` rule), 5 s mending 4% of their health a
+  second (`body/robed`). Diablo's Fallen Shaman and Dark Souls' Channeler: the one to fell first, or to draw the others
+  away from.
+- Their pieces are a fourth trinket family, the Unreleased 未释者首饰 (the Ledger Ring, the Fenlight Earring, the
+  White-Robe Clasp; levels 12, 15, 18). The kits are eighteen.
+
+Checks: kits.test.ts (a clerk weighing takes no harm and strikes back; the wisp beckons and burns; the Restless robe
+the dead within reach and they mend), minor-balance.test.ts (a guard status is a wall: standing into it may cost a
+brute's 20, reading it a fighter's 12), demo.test.ts K5 (each kind on its maps, their kits and their set).
+
+## 15. Weaknesses and immunities (2026-11-20)
+
+Until now an element on a blow reached only what the element itself did (a burn, a chill, a shock); the blow's harm
+was the same whatever it struck, and the resistances the engine already had (world-model.md §6.8) were read by those
+reactions alone. Now the whole blow is the element's: `hurt` in answer to a strike that carries one meets the one
+struck's resistance to it (effects.ts), and the frame's `damage` says what it made of it — `weak`, `resisted`,
+`immune` — so the number is drawn larger with a `!`, smaller and dimmer, or as the word Immune (hud.ts).
+
+Each minor kind's resistances come from what it is (content `affinities.ts`), never from a list of kinds:
+
+- its own element it is immune to (a fire slime, the storm wisp, the ice golem);
+- each of its tags, inherited down the type tree, brings its nature's: the elemental ones their element's immunity and
+  the opposite's weakness (fiery to water, icy to fire, charged to earth, watery to lightning, stone to water), and
+  the rest a weakness or a share each — what burns (beasts, the sporecap), rots or wears cloth to fire, bone to earth,
+  spirits to wind, dragons to ice, constructs half lightning, fur a quarter of the cold;
+- of several, the strongest resistance and the worst weakness count. A weakness is half again the harm (−50), an
+  immunity none of it (100).
+
+References: Pokémon's type chart (the reads by a thing's nature, a dragon's cold, electric to ground), Monster Hunter's
+weakness stars (one or two weaknesses a kind, never a wall of numbers), Elin's per-element resistances (the engine's
+model already). The green slime, the spider and the cyclops stay neutral, a baseline. The bosses keep theirs as their
+owners set them: `CREATURE_ROLES` names the minor kinds alone.
+
+The element/actor reaction no longer weighs its harm itself (water on the fiery took 1.2 of the blow's power, lightning
+on a construct a half): the resistances carry it, so a weakness is never counted twice. The fireproof draught's
+resFire 75 now meets fire blows as well as burns, which its own words and the wiki already promised (the dragon's
+fire does a quarter of its harm to one who drank it).
+
+Checks: affinities.test.ts (a wolf takes half again from fire and less from ice, a storm wisp nothing from lightning,
+each with its mark in the frame; every kind immune to its own element, at most two immunities and two weaknesses, every
+element someone's weakness, the green slime neutral, every nature's tag worn by some minor kind; a reaction weighed once). The wiki's monster infobox
+reads the three rows from the data (templates.ts), and 元素 has the table.
+
+## 16. How a blow looks (2026-11-20)
+
+A minor monster answered a blow with a number over its head and nothing more, and fell by vanishing. Every action game
+since Zelda draws the blow on the body: Hollow Knight and Hades flash the struck body white for a few frames and knock
+it back from the striker; Minish Cap and Stardew's monsters burst into motes as they fall; Zelda's octoroks and
+Stardew's slimes lunge at you as they strike. The page now does the same (runtime `render/scene.ts`):
+
+- **Struck** (`struck`, `jolt`): white for 90 ms, knocked 2.5 px back from the one who dealt the blow (4 px on a
+  weakness), easing back over 160 ms. Only actors other than the player, never a boss (its own animations answer).
+- **Striking bare** (a monster's swing with no weapon to draw): a 4 px lunge the way it faces and back, 180 ms.
+- **Felled** (`fell`): white, squashed, then stretched upward and faded as it rises 8 px, with eight motes in its own
+  tint flying out; 330 ms in all, then the view is gone. Bosses and persons keep their own.
+
+For this the frame's `damage` carries `by` (who dealt it, when someone did) and `fell` (the blow brought it to
+nothing); the felled one leaves the frame in the same tick, so the page reads `fell` before the removal.
+
+The bog wisp has its own sheet now (tools `art/creatures.ts`): the storm wisp's ball of light in marsh-fire green, where
+it was the pack's spirit tinted.
+
+Checks: motion.test.ts (a landed blow names its striker; only a felling one says `fell`, and the felled is gone in that
+frame; a monster striking bare makes a swing naming it).
+
+## 17. Their own colours (2026-11-20)
+
+Seven minor monsters wore one of the pack's sheets under a multiplying tint: the fire, frost and spark slimes, the
+frost wolf, the sporecap, the hollow clerk and the restless dead. A multiplying tint only darkens, so each came out a
+muddy cast of its source, and the fire slime and the frost slime were one sheet in two shades. They are recoloured
+pixel by pixel now (tools `art/recolours.ts`, after alberic-human.swift): every colour of the pack's sheet mapped to
+its own, the drawing and its line kept, the faces too, and the moods the face tool draws on the restless's. What
+tells a kind apart at a glance is drawn on its frames:
+
+- **Fire slime:** amber, a flame four pixels high on its crown that sways with its step.
+- **Frost slime:** pale ice, a cluster of cyan shards on its crown.
+- **Spark slime:** the one-eyed slime in yellow, its eye electric blue, a spark leaping off it at another place each step.
+- **Sporecap:** the cap violet with lime spots, spores drifting up off it. A sporecap no longer passes for one of the
+  Hollow's red mushrooms.
+- **Frost wolf:** the horned beast in ice, horns and fangs white and cyan.
+- **Hollow clerk:** the inspector gone to ash, his coat faded to ink-grey, his hat yellowed like old paper.
+- **Restless:** the monk gone grave-pale, in grey grave-cloth.
+
+Where a leap brings the body to the frame's top, its marks are lowered with it rather than cut off. A felled one
+breaks into motes of its own colour (§16): the tint gave that colour before, and now the sheet's `tone` in the
+catalogue gives it, the bog wisp's too.
+
+The pack's Slime and Slime2, sheets and faces, stay copied as the sources (copyAssets.ts `KEEP`). No minor monster
+wears a tinted sheet now.
+
+## 18. Noticed (2026-11-21)
+
+A monster that turns on you used to do it without a sign; one at the edge of the screen was already on its way
+before you knew. Now it shows it: a "!" pops up over its head for a moment as it takes a foe up, as a Pokémon
+trainer's does when you cross their sight and a guard's in Metal Gear.
+
+- **When.** The moment it takes a foe up to fight or to run from (`ai.state` turned `chase` or `flee`): the threat
+  goal, the pack's tactics, and now the kit goal too, since one that opens with a skill is in a fight as much as one
+  that closes in. A passive creature that bolts shows it as well.
+- **Once.** It shows again only after five seconds without a foe (behaviour.ts `FORGET`), so a monster that turns
+  back at its leash and comes on again, or a foe at the edge of its sight, does not flicker it.
+- **The signal** is the one a startled person already gives (npc.ts): the `emote` fx with the mood `surprised`. The
+  engine adds no new kind of fx. The page draws it for a creature as a short pop (hud.ts `alert`, 0.9 s) rather than
+  a person's speech bubble, and above whatever the creature says at the same moment: a monster that opens with a
+  skill shows the "!" over the skill's name, which still warns of the wind-up. Any other surprise of a creature's (a
+  rule's or a scene's emote, a step into fire) is drawn the same way. Bosses (their own openings), people and
+  companions are left out.
+- **Kept** for the map in hand only, as the people's runtime is: a save forgets it, and a monster already after you
+  when a game is loaded shows it once more.
+
+Checks: `tools/test/motion.test.ts` holds that a monster that takes a foe up shows it once over eighty ticks, not at
+all while it sees nothing, and again when it sees once more after that; and that a wolf three cells off whose first
+act is its lunge has shown it by the time it winds up. Without the kit goal's change that second check fails. In
+the browser, a wolf on Dawnhill showed the "!" within 0.6 s of the player coming into its sight.

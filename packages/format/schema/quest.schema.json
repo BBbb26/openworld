@@ -999,6 +999,19 @@
           "properties": {
             "op": {
               "type": "string",
+              "const": "aloft"
+            }
+          },
+          "required": [
+            "op"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
               "const": "step"
             },
             "dir": {
@@ -1067,6 +1080,9 @@
               "anyOf": [
                 {
                   "$ref": "#/definitions/PropValue"
+                },
+                {
+                  "type": "null"
                 },
                 {
                   "type": "object",
@@ -1822,6 +1838,9 @@
                   }
                 ]
               }
+            },
+            "actor": {
+              "$ref": "#/definitions/RoleName"
             },
             "item": {
               "$ref": "#/definitions/RoleName"

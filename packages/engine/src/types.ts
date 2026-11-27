@@ -1373,7 +1373,7 @@ export interface MapData {
   music?: string
   light?: 'outdoor' | 'indoor' | 'dark'
   environment?: MapEnvironment
-  /** Its own look over its region's (render hint): a room lit otherwise than the land round it. */
+  /** A map's own render look overrides its environment and region. */
   look?: RegionLook
   /**
    * Where the camera draws back and looks ahead (render hint, docs/showcase.md §3.3): standing in a vista's rect, the
@@ -1398,6 +1398,7 @@ export interface MapData {
   regionProps?: Record<string, Record<string, PropValue>>
   /** What appears on the map by itself (world-model.md §6.9): the ground's yield, creatures that come back. */
   appear?: AppearDef[]
+  levelled?: Record<string, Record<string, PropValue>>
   /** Older chunks' name for `appear`, one type each (read when a chunk is decoded). */
   forage?: Forage[]
   /** Peaceful (towns, camps: nothing comes out at night) or combat (default: zombies and bats come out after dark, nightspawn.ts). */
@@ -2031,10 +2032,11 @@ export type Effect =
   | { op: 'transform'; into: string }
   | { op: 'move'; to: RoleRef; into?: 'tile' | 'contents' | 'hand' }
   | { op: 'loosen' }
+  | { op: 'aloft' }
   | { op: 'step'; dir?: Dir; away?: RoleRef; tiles?: number }
   | { op: 'addStatus'; status: string; duration?: number }
   | { op: 'removeStatus'; status: string }
-  | { op: 'setProp'; key: string; value: PropValue | { param: string } }
+  | { op: 'setProp'; key: string; value: PropValue | null | { param: string } }
   | { op: 'addProp'; key: string; delta: Amount; min?: number; max?: Amount }
   | { op: 'addTag'; tag: string }
   | { op: 'removeTag'; tag: string }
@@ -2120,7 +2122,7 @@ export type Effect =
   | { op: 'craft' }
   | { op: 'lightning'; power: number }
   /** Send an impulse: `item` names the thing it carries (given, put, taken), `other` the role it names as the other side. */
-  | { op: 'emit'; impulse: Impulse; to: EmitTo; params?: Record<string, PropValue | Amount | { typeOf: RoleName } | { idOf: RoleName } | { stackKeyOf: RoleName }>; item?: RoleName; other?: RoleName; chance?: number; filter?: Selector }
+  | { op: 'emit'; impulse: Impulse; to: EmitTo; params?: Record<string, PropValue | Amount | { typeOf: RoleName } | { idOf: RoleName } | { stackKeyOf: RoleName }>; actor?: RoleName; item?: RoleName; other?: RoleName; chance?: number; filter?: Selector }
   /** Get out of where one cannot be (water closing over the ice): to the nearest free tile. */
   | { op: 'ashore' }
   /** The story's: an invariant's authored fallback (the default of a `broken` outcome). */
@@ -2339,7 +2341,7 @@ export type FxEvent =
   | { t: 'strike'; map: string; x: number; y: number }
   /** dev: for the developer (a rejected patch, a rule set aside): the console's, never a player's toast. */
   | { t: 'log'; text: Text; tone?: 'info' | 'warn' | 'ai' | 'good' | 'bad' | 'dev' }
-  | { t: 'damage'; who: Id; amount: number; element?: string }
+  | { t: 'damage'; who: Id; amount: number; element?: string; affinity?: 'weak' | 'resisted' | 'immune'; by?: Id; fell?: boolean }
   | { t: 'undefined'; request: string; summary: string; /** someone (a provider) is working it out */ asked?: boolean }
   | { t: 'patched'; request: string; rule: string }
   | { t: 'mapChanged'; map: string }

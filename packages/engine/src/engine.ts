@@ -3,7 +3,8 @@
 // the outcome is undefined, the Mod port is asked; with no one to ask, the leaf's default runs.
 // The engine also keeps time (timers, periods), the relations between things (contact and
 // containment, diffed after every outcome), sight, and the active, dormant and resident parts of
-// the world. Pure, deterministic, no AI.
+// the world. Pure, deterministic, no AI. What a save's own content adds to a map already loaded (a created region
+// grown, its entrance) is laid in as loading lays a map's things (`furnish`).
 
 import { TICKS_PER_HOUR, TICKS_PER_MINUTE } from './calendar.ts'
 import { EffectRunner } from './effects.ts'
@@ -1077,7 +1078,10 @@ export class Engine {
     // an element's harm, less what resists it (world-model.md §6.8: each element names its resistance; the
     // herbalist's draught gives it while it lasts, a worn thing may): all of it, none; below none, more
     const resist = element ? w.onto.data.resistances?.[element] : undefined
-    if (resist) amount *= 1 - Math.min(100, w.stat(e, resist)) / 100
+    const share = resist ? Math.min(100, w.stat(e, resist)) : 0
+    const affinity = share >= 100 ? 'immune' : share < 0 ? 'weak' : share > 0 ? 'resisted' : undefined
+    if (affinity === 'immune' && amount > 0) return void w.fx.push({ t: 'damage', who: e.id, amount: 0, element, affinity })
+    amount *= 1 - share / 100
     if (amount <= 0) return
     const def = pierce ? 0 : w.stat(e, 'def')
     // the combat talents of the one struck (combat.ts): dodge, a guarded moment, reductions, the brink
@@ -1086,7 +1090,6 @@ export class Engine {
     const dmg = this.combat.damage(e, Math.max(1, Math.round(amount - def)), attacker, !!pierce)
     // a blow that found nothing (dodged, or the moment after a dash)
     if (dmg <= 0) return
-    w.fx.push({ t: 'damage', who: e.id, amount: dmg, element })
     // who felled it (the death screen): the source of this harm, never an older blow's; none for a fall, hunger, the world.
     // A status's pulse from one now gone (a bleed they opened) keeps naming them, if they are the last who struck.
     const status = by?.kind.startsWith('time/') && typeof by.params?.status === 'string' ? by.params.status : undefined
@@ -1100,6 +1103,7 @@ export class Engine {
     // health stops at nothing: a blow past it is a blow that fells, not a debt (thresholds read lte 0)
     // health stops at nothing; what a combat module keeps from a lethal blow, it keeps (combat.lethal)
     const hp = this.combat.lethal(e, Math.max(0, w.num(e, 'hp', w.num(e, 'maxHp', 1)) - dmg))
+    w.fx.push({ t: 'damage', who: e.id, amount: dmg, element, ...(affinity && { affinity }), ...(attacker && attacker.id !== e.id && { by: attacker.id }), ...(hp <= 0 && { fell: true }) })
     this.setProp(e, 'hp', hp, by)
     // what a landed blow carries beyond its harm (a bleed, an affliction, health drawn back): the combat module's
     this.combat.wounded(e, by, attacker)
@@ -2183,6 +2187,21 @@ export class Engine {
       const p = this.world.player
       this.write(() => this.teleport(p, to.entry ? this.entryPoint(p, to.map, to.entry) : to))
     }
+  }
+
+  furnish(things: Entity[], gone: Id[] = []): void {
+    const w = this.world
+    this.write(() => {
+      for (const e of things) {
+        const kept = w.get(e.id)
+        if (kept) w.place(kept, e.place)
+        else w.add(e)
+      }
+      for (const id of gone) {
+        const e = w.get(id)
+        if (e) w.destroy(e)
+      }
+    })
   }
 
   // ---------------------------------------------------------------- names

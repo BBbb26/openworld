@@ -25,7 +25,8 @@ import { FLOWER_CROPS, GARDEN_SPECIES, VEGETABLE_CROPS, cropHours } from './crop
 import { BOSSES, BOSS_ENCOUNTERS, BOSS_KITS, BOSS_TYPES } from './bosses.ts'
 import { CREATURE_TACTICS, ELITE_KITS, KIT_TYPES, KITS } from './kits.ts'
 import { CREATURE_DROPS } from './drops.ts'
-import { CREATURE_STATS } from './levels.ts'
+import { CREATURE_ROLES, CREATURE_STATS } from './levels.ts'
+import { affinityOf } from './affinities.ts'
 import { SKILL_STATUSES } from './afflictions.ts'
 import { SKILL_PROFESSIONS } from './skills.ts'
 import { BOON_STATUSES } from './boons.ts'
@@ -160,6 +161,7 @@ const LAYS: StageDef = { lasts: LAYS_EVERY, yields: [{ type: 'item/food/egg/raw'
 
 /** How many night-born walk a map at once, and how often (ticks) another may come (world-model.md §6.9). */
 export const NIGHT_CAP = 4
+export const NIGHT_WALKERS = { 'actor/creature/undead/zombie': 0.6, 'actor/creature/beast/bat': 0.4 }
 export const NIGHT_EVERY = 60
 /** The largest a room may be, in cells (larger is out of doors). */
 export const ROOM_SIZE = 256
@@ -804,6 +806,8 @@ export function buildOntology(): Ontology {
   for (const [kind, makeup] of Object.entries(CREATURE_DROPS)) types[kind] = { ...types[kind], makeup }
   // each minor kind's level and numbers, from one curve through its role (levels.ts)
   for (const [kind, stats] of Object.entries(CREATURE_STATS)) types[kind] = { ...types[kind], props: { ...types[kind].props, ...stats } }
+  // what each minor kind makes of the elements, from its element and its nature (affinities.ts)
+  for (const kind of Object.keys(CREATURE_ROLES)) types[kind] = { ...types[kind], tags: [...(types[kind].tags ?? []), 'elemental-affinity'], props: { ...types[kind].props, ...affinityOf(types, kind) } }
   // how each moves in a fight: keeping back, fleeing hurt, a pack's flank (kits.ts CREATURE_TACTICS)
   for (const [kind, t] of Object.entries(CREATURE_TACTICS))
     types[kind] = { ...types[kind], ...(t.pack && { tags: [...(types[kind].tags ?? []), 'pack'] }), props: { ...types[kind].props, ...(t.keepAway && { keepAway: t.keepAway }), ...(t.fleeBelow && { fleeBelow: t.fleeBelow }) } }
@@ -907,7 +911,7 @@ export function buildOntology(): Ontology {
       // any outdoor map, a few at a time, slowly — every couple of hours, never more than a handful
       ...LITTER.map(([type, on, max]) => ({ types: { [type]: 1 }, on, max, every: LITTER_EVERY, where: { light: 'outdoor' as const } })),
       {
-        types: { 'actor/creature/undead/zombie': 0.6, 'actor/creature/beast/bat': 0.4 },
+        types: NIGHT_WALKERS,
         where: { zone: 'combat', light: 'outdoor' },
         night: true,
         ring: [6, 10],

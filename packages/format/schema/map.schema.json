@@ -133,6 +133,10 @@
         "environment": {
           "$ref": "#/definitions/MapEnvironment"
         },
+        "look": {
+          "$ref": "#/definitions/RegionLook",
+          "description": "A map's own render look overrides its environment and region."
+        },
         "vistas": {
           "type": "array",
           "items": {
@@ -194,6 +198,15 @@
             "$ref": "#/definitions/AppearDef"
           },
           "description": "What appears on the map by itself (world-model.md §6.9): the ground's yield, creatures that come back."
+        },
+        "levelled": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/PropValue"
+            }
+          }
         },
         "forage": {
           "type": "array",
@@ -368,6 +381,28 @@
       },
       "additionalProperties": false,
       "description": "Bounded local presentation presets, without asset URLs or executable behavior."
+    },
+    "RegionLook": {
+      "type": "object",
+      "properties": {
+        "tint": {
+          "type": "string",
+          "description": "The colour its light is toned toward (a hex), and how far (0…1)."
+        },
+        "tintAmount": {
+          "type": "number"
+        },
+        "desat": {
+          "type": "number",
+          "description": "Greyer (or, below 0, more colourful) than the game's grade: added to the filter's desaturation."
+        },
+        "shade": {
+          "type": "number",
+          "description": "A shade over its hours out of doors, by day as by night (0…0.5): a dusk that hardly lifts."
+        }
+      },
+      "additionalProperties": false,
+      "description": "A region's own look (docs/continent.md §9 B): the grade the client's world filter gives its maps, over the game's own, and how dim its light is. A map takes its region's; the client eases from one to the next."
     },
     "Vista": {
       "type": "object",

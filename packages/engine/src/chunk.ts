@@ -30,6 +30,7 @@ export interface RawMap {
   regionProps?: MapData['regionProps']
   law?: MapData['law']
   appear?: MapData['appear']
+  levelled?: MapData['levelled']
   /** An older chunk's `appear` (one type each). */
   forage?: MapData['forage']
   zone?: MapData['zone']
@@ -74,6 +75,7 @@ export function decodeRawMap(m: RawMap, chars: Record<string, string>): MapData 
     ...(m.regionProps && { regionProps: m.regionProps }),
     ...(m.law && { law: m.law }),
     appear: m.appear ?? appearFromForage(m as unknown as MapData),
+    ...(m.levelled && { levelled: m.levelled }),
     zone: m.zone,
     scale: m.scale,
     site: m.site,

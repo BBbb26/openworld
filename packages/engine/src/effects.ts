@@ -29,14 +29,15 @@ export const PRIMITIVES: Record<Exclude<Effect['op'], ModuleOp>, string> = {
   transform: 'transform {into} — the host becomes another type ("@prop:key" reads the type from its own prop, e.g. emptyType). A cell is made of things (tile/<terrain>: the floor, what roots in the soil, what fills the volume): water becoming ice is the water transforming; becoming a type whose space in its cell another thing holds (rock into gravel, where a floor is), the host is gone instead; a carried host become a thing that cannot be carried is set down at its holder\'s feet; what a vessel held in draughts (its own `fill`) goes with its old form: it holds what its new form holds (none, or full)',
   move: 'move {to: role ref, into?: tile|contents|hand} — the host moves itself to a role\'s tile, contents or hand; a built thing (a fixture, a structure) that comes to rest on a tile lies loose there (packed as item/misc/bundle/loose, which a hand picks up) unless the event says it is set up (param build: the right click\'s, the build palette\'s)',
   loosen: 'loosen {} — the host, a built thing that can be carried standing on its cell (a bed, a wall), comes loose there whole (a tool knocking it loose): what it holds spills out, and it lies packed as an item for the magnet and the hand; a floor that bears something stays',
+  aloft: 'aloft {} — the host, a thing someone carries, leaves them for the air (thrown): it is nowhere until a move sets it down',
   step: 'step {dir?} — the host steps one tile (dir, or the act\'s `dir` param): walls and the solid stop it (a bump), portals carry it',
   addStatus: 'addStatus {status, duration?} — the host gains a status (a threshold/gain event follows)',
   removeStatus: 'removeStatus {status} — the host loses a status (threshold/lose)',
-  setProp: 'setProp {key, value}',
+  setProp: 'setProp {key, value} — value null takes the key away',
   addProp: 'addProp {key, delta, min?, max?} — delta and max are Amounts',
   addTag: 'addTag {tag}',
   removeTag: 'removeTag {tag}',
-  hurt: 'hurt {amount, element?, pierce?, blow?} — the host loses health, or durability (hp; its defence applies unless pierce); at none, threshold/cross "broken". blow: a strike\'s — times how well the instrument (what struck, else the striker\'s own body) works on the host\'s material (the efficiency table), and nothing if the instrument is softer than it ("too hard")',
+  hurt: 'hurt {amount, element?, pierce?, blow?} — the host loses health, or durability (hp; its defence applies unless pierce); at none, threshold/cross "broken". blow: a strike\'s — times how well the instrument (what struck, else the striker\'s own body) works on the host\'s material (the efficiency table), and nothing if the instrument is softer than it ("too hard"). The element (given, else the impulse/element or impulse/strike it answers carries) meets the host\'s resistance to it: a share taken away, all of it (immune), or more (below none, its weakness)',
   wear: 'wear — the host (an actor) puts on the thing of its own it is offered (param item, by its slot prop: a helmet on the head; of a slot there are more of, as two rings, the first free), what was in that slot coming off; offered what it wears, it takes it off (world-model.md §6.8); a profession\'s piece (tag profession:<id>, the warrior\'s shield) goes on only for that profession',
   posture: "posture — the host (an actor) takes a posture at the thing that asked it to (the source of a settle impulse: a chair, hay, an altar): param pose sit|lie|kneel|lean; for sit, lie and kneel it goes onto that thing's cell when its body fits there; it gains the pose's status (seated, lying, kneeling, leaning — or param status, a status whose pose it is), which ends as soon as it moves on",
   sleep: 'sleep — the host sleeps until it is time to rise (time passes at once for the one at the keys), and wakes with what it was missing given back as its room says (a bedroom: all; elsewhere: half)',
@@ -56,7 +57,7 @@ export const PRIMITIVES: Record<Exclude<Effect['op'], ModuleOp>, string> = {
   lightning: 'lightning {power} — the world\'s: a bolt seeks what stands tall near the player and emits element lightning to it',
   ashore: 'ashore {} — the host gets out of where it cannot be, to the nearest free tile',
   fallback: 'fallback {} — the story\'s: run the broken invariant\'s authored fallback',
-  emit: 'emit {impulse, to, params?, item?, other?, chance?, filter?} — send an impulse (strike, element, coat, restore, push, taken, receive, offered, handle, notify, settle) to a role, "story", "world", {named: id}, {area: {at?, radius}}, {line: {from?, away, length, over?}} or {map: true}; params are values, Amounts, {typeOf: role} (what kind of thing a role is, kept even after it is gone) or {idOf: role} (which thing it is); filter and chance pick who receives it; the receiver answers for itself',
+  emit: 'emit {impulse, to, params?, actor?, item?, other?, chance?, filter?} — send an impulse (strike, element, coat, restore, push, taken, receive, offered, handle, notify, settle) to a role, "story", "world", {named: id}, {area: {at?, radius}}, {line: {from?, away, length, over?}} or {map: true}; params are values, Amounts, {typeOf: role} (what kind of thing a role is, kept even after it is gone) or {idOf: role} (which thing it is); actor optionally names the acting role (host for a counterattack), otherwise the original actor is preserved; filter and chance pick who receives it; the receiver answers for itself',
   vfx: 'vfx {at?, fx} — play a visual effect (at the host unless at names a role)',
   say: 'say {text, who?} — the host says a line ("@line": one of its own lines for the moment; "@given": its line for the item it was given; "@chat": one of its chat lines, or what it likes best); text fills {host} {actor} {target} {instrument} {other} {item} and {role.key}',
   remark: 'remark {text, again?, alone?, every?} — a line for whoever set the event going (the cause; else its other): its companion beside it says it in a bubble, as a leader\'s companion speaks the story\'s beats — `text` the first time this host says it, `again` (default text) after; `every` (ticks): not again within that long (a way walked into on and on). No companion at hand: `alone` (default text) in the message line, as log writes it. Writes nothing',
@@ -358,6 +359,12 @@ export class EffectRunner {
         eng.touch({ e: host.id })
         return
       }
+      case 'aloft': {
+        if (!host || (host.place.on !== 'inside' && host.place.on !== 'hand')) return
+        eng.touch({ e: host.id })
+        w.place(host, { on: 'none' })
+        return
+      }
       case 'loosen': {
         if (!host || host.place.on !== 'tile' || !w.isPortable(host) || !isBuilt(host.type) || w.bears(host)) return
         if (eng.isProtected(host)) return
@@ -414,7 +421,8 @@ export class EffectRunner {
       case 'setProp': {
         if (!host) return
         const v = typeof eff.value === 'object' && eff.value !== null ? ev.params?.[eff.value.param] : eff.value
-        if (v !== undefined) eng.setProp(host, eff.key, v, ev)
+        if (v === null) w.setProp(host, eff.key, undefined)
+        else if (v !== undefined) eng.setProp(host, eff.key, v, ev)
         return
       }
       case 'addProp': {
@@ -432,8 +440,9 @@ export class EffectRunner {
         if (host) w.removeTag(host, eff.tag)
         return
       case 'hurt': {
-        // harm done in answer to an element is that element's (what resists it takes a share away)
-        const element = eff.element ?? (ev.kind === 'impulse/element' && typeof ev.params?.element === 'string' ? ev.params.element : undefined)
+        // harm done in answer to an element, or to a strike that carries one, is that element's (what resists it takes a share away)
+        const carried = (ev.kind === 'impulse/element' || ev.kind === 'impulse/strike') && typeof ev.params?.element === 'string' && ev.params.element ? ev.params.element : undefined
+        const element = eff.element ?? carried
         if (host) eng.hurt(host, this.amount(ev, eff.amount), element, eff.pierce, ev, eff.blow)
         return
       }
@@ -985,7 +994,7 @@ export class EffectRunner {
         host: to,
         roles: {
           source: ev.host,
-          actor: ev.roles.actor ?? (ev.cause ? { e: ev.cause } : undefined),
+          actor: eff.actor ? this.roleRef(ev, eff.actor) : ev.roles.actor ?? (ev.cause ? { e: ev.cause } : undefined),
           instrument: ev.roles.instrument,
           item,
           other,

@@ -1572,6 +1572,7 @@ function check(patch: Patch, ctx: ValidateCtx): ValidationResult {
       for (const [key, c] of Object.entries(e.colors ?? {})) if (c !== null && !/^#[0-9a-f]{6}$/i.test(c) && !table?.colors[c]) errors.push(`${where}: unknown colour "${c}" for ${key}`)
     }
     if (e.op === 'emit') {
+      if (e.actor !== undefined) role(e.actor, `${where}.actor`)
       if (!IMPULSE_KINDS.has(e.impulse)) errors.push(`${where}: unknown impulse "${e.impulse}"`)
       // news is the game's own channel to its records (a stage, a defeat, a reward, a status): a learned
       // rule may only give the story a topic to talk about
